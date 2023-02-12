@@ -156,8 +156,8 @@ void test_PLL_dynamic() {
 
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-	mm.use_2019R1 = 1;
-	mm.use_2019R2 = 1;
+	mm.use_2019R1 = 0;
+	mm.use_2019R2 = 0;
 	mm.use_enhanced2019R2 = 0;
 	mm.use_non_adj_reduc_degree = 0;
 	mm.max_degree_MG_enhanced2019R2 = 100;
@@ -255,6 +255,9 @@ void test_PLL_dynamic() {
 				}
 			}
 		}
+
+
+
 
 
 		graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);					  
