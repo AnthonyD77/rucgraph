@@ -14,12 +14,12 @@ using namespace std;
 #include <boost/random.hpp>
 boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
 
-#include <build_in_progress/HL/dynamic/test_PLL_PSL_dynamic.h>
+#include <build_in_progress/HL/dynamic/test_dynamic.h>
 
 
 int main()
 {
-	test_PLL_PSL();
+	test_dynamic();
 }
 
 ------------------------------------------------------------------------------------------
@@ -148,12 +148,6 @@ void test_dynamic() {
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
 	double avg_canonical_repair_remove_label_ratio = 0;
 
-
-	bool weighted = true;
-	if (ec_min == 1 && ec_max == 1) {
-		weighted = false;
-	}
-
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 	mm.use_2019R1 = 0;
@@ -186,7 +180,7 @@ void test_dynamic() {
 
 		auto begin = std::chrono::high_resolution_clock::now();
 		try {
-			graph_hash_of_mixed_weighted_PLL_dynamic(instance_graph, V + 1, weighted, thread_num, mm);
+			graph_hash_of_mixed_weighted_PLL_dynamic(instance_graph, V + 1, thread_num, mm);
 			if (0) {
 				cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
 				cout << "mm.time_2019R1: " << mm.time_2019R1 << "s" << endl;
@@ -219,46 +213,6 @@ void test_dynamic() {
 			mm.print_reduction_measures_2019R2();
 			mm.print_f_2019R1();
 		}
-
-		/*test canonical_repair proof*/
-		if (1) {
-			auto mm2 = mm;
-			graph_hash_of_mixed_weighted_PLL_dynamic(instance_graph, V + 1, weighted, 1, mm2); // single thread
-
-			auto& L1 = mm.L;
-			auto& L2 = mm2.L;
-			int size = L1.size();
-			bool L1_is_l2 = true;
-			for (int xx = 0; xx < size; xx++) {
-				if (L1[xx].size() != L2[xx].size()) {
-					if ((L1[xx].size() == 0 && L2[xx].size() == 1) || (L1[xx].size() == 1 && L2[xx].size() == 0)) {
-					}
-					else {
-						L1_is_l2 == false;
-						cout << "here" << endl;
-						mm.print_L();
-						mm2.print_L();
-						getchar();
-					}
-				}
-				else {
-					int size2 = L1[xx].size();
-					for (int yy = 0; yy < size2; yy++) {
-						if (L1[xx][yy].vertex != L2[xx][yy].vertex) {
-							L1_is_l2 == false;
-							cout << "here" << endl;
-							mm.print_L();
-							mm2.print_L();
-							getchar();
-						}
-					}
-				}
-			}
-		}
-
-
-
-
 
 		graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);					  
 

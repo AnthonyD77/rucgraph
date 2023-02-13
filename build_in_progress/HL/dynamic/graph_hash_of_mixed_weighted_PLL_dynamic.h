@@ -391,7 +391,7 @@ vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HL_PLL_v1_transfor
 /*the following parallel PLL_with_non_adj_reduction code cannot be run parallelly, due to the above globel values*/
 
 void graph_hash_of_mixed_weighted_PLL_dynamic
-(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
+(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
 {
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
 	//cout << "step 1: initialization" << endl;
@@ -462,6 +462,7 @@ void graph_hash_of_mixed_weighted_PLL_dynamic
 
 
 	//----------------------------------------------- step 2: reduction ---------------------------------------------------------------
+	
 	//cout << "step 2: reduction" << endl;
 
 	/* redcution1: equivalence between vertices; we assume that vIDs in ideal_graph_595 are sorted by degree from large to small*/
@@ -504,10 +505,6 @@ void graph_hash_of_mixed_weighted_PLL_dynamic
 	}
 
 	/*reduction 2; 用了2019 R2 enhance之后的图就是weighted，不能使用Unweighted bfs了！*/
-	if (weighted == 0 && case_info.use_2019R2 + case_info.use_enhanced2019R2 > 0) {
-		cout << "weighted = 1; // 用了2019 R2 enhance之后的图就是weighted，不能使用Unweighted bfs了！" << endl;
-		weighted = 1;
-	}
 	begin = std::chrono::high_resolution_clock::now();
 	if (case_info.use_2019R2) {
 		case_info.MG_num = 0;
@@ -650,72 +647,36 @@ void graph_hash_of_mixed_weighted_PLL_dynamic
 	ThreadPool pool(num_of_threads);
 	std::vector< std::future<int> > results; // return typename: xxx
 	int num_of_threads_per_push = num_of_threads * 100; // 每次push进去 num_of_threads_per_push 线程，如果没有异常，继续push进去num_of_threads_per_push线程；如果全都一起push进去必须全部线程都结束才能catch异常
-	if (weighted) {
-		P_dij_595.resize(num_of_threads);
-		T_dij_595.resize(num_of_threads);
-		for (int i = 0; i < num_of_threads; i++)
+	P_dij_595.resize(num_of_threads);
+	T_dij_595.resize(num_of_threads);
+	for (int i = 0; i < num_of_threads; i++)
+	{
+		P_dij_595[i].resize(N);
+		T_dij_595[i].resize(N);
+		for (int j = 0; j < N; j++)
 		{
-			P_dij_595[i].resize(N);
-			T_dij_595[i].resize(N);
-			for (int j = 0; j < N; j++)
-			{
-				P_dij_595[i][j] = std::numeric_limits<double>::max();
-				T_dij_595[i][j] = std::numeric_limits<double>::max();
-			}
-			Qid_595.push(i);
+			P_dij_595[i][j] = std::numeric_limits<double>::max();
+			T_dij_595[i][j] = std::numeric_limits<double>::max();
 		}
-		int push_num = 0;
-		for (int v_k = 0; v_k < N; v_k++) {
-			if (ideal_graph_595[v_k].size() > 0) {  // not from isolated vertices
-				results.emplace_back(
-					pool.enqueue([v_k, N] { // pass const type value j to thread; [] can be empty
+		Qid_595.push(i);
+	}
+	int push_num = 0;
+	for (int v_k = 0; v_k < N; v_k++) {
+		if (ideal_graph_595[v_k].size() > 0) {  // not from isolated vertices
+			results.emplace_back(
+				pool.enqueue([v_k, N] { // pass const type value j to thread; [] can be empty
 					graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(v_k, N);
 					return 1; // return to results; the return type must be the same with results
-				})
-				);
-				push_num++;
-			}
-			if (push_num % num_of_threads_per_push == 0) {
-				for (auto&& result : results)
-					result.get(); //all threads finish here
-				results.clear();
-			}
+					})
+			);
+			push_num++;
+		}
+		if (push_num % num_of_threads_per_push == 0) {
+			for (auto&& result : results)
+				result.get(); //all threads finish here
+			results.clear();
 		}
 	}
-	else {
-		P_bfs_595.resize(num_of_threads);
-		T_bfs_595.resize(num_of_threads);
-		for (int i = 0; i < num_of_threads; i++)
-		{
-			P_bfs_595[i].resize(N);
-			T_bfs_595[i].resize(N);
-			for (int j = 0; j < N; j++)
-			{
-				P_bfs_595[i][j] = INT_MAX;
-				T_bfs_595[i][j] = INT_MAX;
-			}
-			Qid_595.push(i);
-
-		}
-		int push_num = 0;
-		for (int v_k = 0; v_k < N; v_k++) {
-			if (ideal_graph_595[v_k].size() > 0) {  // not from isolated vertices
-				results.emplace_back(
-					pool.enqueue([v_k, N] { // pass const type value j to thread; [] can be empty
-						graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_bfs_mixed(v_k, N);
-						return 1; // return to results; the return type must be the same with results
-						})
-				);
-				push_num++;
-				if (push_num % num_of_threads_per_push == 0) {
-					for (auto&& result : results)
-						result.get(); // all threads finish here
-					results.clear();
-				}
-			}
-		}
-	}
-
 	for (auto&& result : results)
 		result.get(); //all threads finish here
 
