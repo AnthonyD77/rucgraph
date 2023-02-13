@@ -234,113 +234,6 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 	}
 }
 
-void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_bfs_mixed(int v_k, int N)
-{
-	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-	int used_id = Qid_595.front(); // which P T elements does this thread use
-	Qid_595.pop();
-	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
-
-	queue<int> P_changed_vertices, T_changed_vertices;
-
-	queue<PLL_v1_node_for_sp> Q;
-
-	PLL_v1_node_for_sp node;
-	two_hop_label_v1 xx;
-
-	node.vertex = v_k;
-	node.parent_vertex = v_k;
-	node.priority_value = 0;
-	Q.push(node);
-	P_bfs_595[used_id][v_k] = 0;
-	P_changed_vertices.push(v_k);
-
-	mtx_595[v_k].lock();
-	int L_v_k_size = L_temp_595[v_k].size();
-	for (int i = 0; i < L_v_k_size; i++) {
-		int L_v_k_i_vertex = L_temp_595[v_k][i].vertex;
-		T_bfs_595[used_id][L_v_k_i_vertex] = L_temp_595[v_k][i].distance; //allocate T values for L_temp_595[v_k]
-		T_changed_vertices.push(L_v_k_i_vertex);
-	}
-	mtx_595[v_k].unlock();
-
-	long long int new_label_num = 0;
-
-	while (Q.size() > 0) {
-
-		node = Q.front();
-		Q.pop();
-		int u = node.vertex;
-
-		if (v_k <= u) { // this condition is not in 2013 paper, but in 2019 paper (Lemma 3.16)
-
-			int P_u = node.priority_value;
-
-			weightTYPE query_v_k_u = std::numeric_limits<weightTYPE>::max();
-
-			mtx_595[u].lock();
-			int L_u_size = L_temp_595[u].size();
-			for (int i = 0; i < L_u_size; i++) {
-				weightTYPE dis = L_temp_595[u][i].distance + T_bfs_595[used_id][L_temp_595[u][i].vertex];		 // cannot lock mtx_595[u] in this for loop, since the locking time is very large		
-				if (query_v_k_u > dis) { query_v_k_u = dis; }
-			}
-			mtx_595[u].unlock();
-
-			if (P_u < query_v_k_u) { // this is pruning
-
-				xx.vertex = v_k;
-				xx.distance = P_u;
-
-				mtx_595[u].lock();
-				L_temp_595[u].push_back(xx); //新增标签，并行时L_temp_595[u]里面的标签不一定是按照vertex ID排好序的，但是因为什么query时用了T_bfs_595的trick，没必要让L_temp_595[u]里面的标签排好序
-				mtx_595[u].unlock();
-				new_label_num++;
-				auto u_adj_size = ideal_graph_595[u].size();
-				for (int i = 0; i < u_adj_size; i++) {
-					int adj_v = ideal_graph_595[u][i].first;
-					if (P_bfs_595[used_id][adj_v] == INT_MAX) {
-						node.vertex = adj_v;
-						node.priority_value = P_u + 1;
-						Q.push(node);
-						P_bfs_595[used_id][adj_v] = node.priority_value;
-						P_changed_vertices.push(adj_v);
-					}
-				}
-
-
-
-
-			}
-		}
-	}
-
-	while (P_changed_vertices.size() > 0) {
-		P_bfs_595[used_id][P_changed_vertices.front()] = INT_MAX; // reverse-allocate P values
-		P_changed_vertices.pop();
-	}
-	while (T_changed_vertices.size() > 0) {
-		T_bfs_595[used_id][T_changed_vertices.front()] = INT_MAX; // reverse-allocate T values
-		T_changed_vertices.pop();
-	}
-
-	mtx_595[v_k].lock();
-	vector<two_hop_label_v1>(L_temp_595[v_k]).swap(L_temp_595[v_k]); // swap释放vector中多余空间： https://blog.csdn.net/qq_41929943/article/details/103190891 
-	mtx_595[v_k].unlock();
-
-	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-	Qid_595.push(used_id);
-	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
-
-	labal_size_595 = labal_size_595 + new_label_num;
-	if (labal_size_595 > max_labal_size_595) {
-		throw reach_limit_error_string_MB;  // after catching error, must call terminate_procedures_595(), otherwise this PLL cannot be reused
-	}
-
-	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_595).count() > max_run_time_nanoseconds_595) {
-		throw reach_limit_error_string_time;  // after catching error, must call terminate_procedures_595(), otherwise this PLL cannot be reused
-	}
-}
-
 void graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs_element(vector<vector<two_hop_label_v1>>* output_L, int v_k) {
 
 	int L_v_k_size = L_temp_595[v_k].size();
@@ -354,8 +247,7 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs_e
 	vector<two_hop_label_v1>().swap(L_temp_595[v_k]); // clear new labels for RAM efficiency
 }
 
-vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs
-(int N, int max_N_ID, int num_of_threads) {
+vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs(int N, int max_N_ID, int num_of_threads) {
 
 	/*time complexity: O(V*L*logL), where L is average number of labels per vertex*/
 
@@ -690,9 +582,10 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	//for (int i = 0; i < L_temp_595.size(); i++) {
 	//	cout << "L[" << i << "]=";
 	//	for (int j = 0; j < L_temp_595[i].size(); j++) {
-	//		cout << "{" << L_temp_595[i][j].vertex << "," << L_temp_595[i][j].distance << "," << L_temp_595[i][j].parent_vertex << "}";
+	//		cout << "{" << L_temp_595[i][j].vertex << "," << L_temp_595[i][j].distance << "}";
 	//	}
 	//	cout << endl;
+	//	//getchar();
 	//}
 
 	/*canonical_repair based on the sorted new ID order, not the original ID order!*/
@@ -730,9 +623,10 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	//for (int i = 0; i < L_temp_595.size(); i++) {
 	//	cout << "L[" << i << "]=";
 	//	for (int j = 0; j < L_temp_595[i].size(); j++) {
-	//		cout << "{" << L_temp_595[i][j].vertex << "," << L_temp_595[i][j].distance << "," << L_temp_595[i][j].parent_vertex << "}";
+	//		cout << "{" << L_temp_595[i][j].vertex << "," << L_temp_595[i][j].distance << "}";
 	//	}
 	//	cout << endl;
+	//	getchar();
 	//}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------
@@ -748,6 +642,17 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	end = std::chrono::high_resolution_clock::now();
 	case_info.time_update_old_IDs_in_labels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 	//---------------------------------------------------------------------------------------------------------------------------------------
+
+
+	//cout << "print_case_info.L:" << endl;
+	//for (int i = 0; i < case_info.L.size(); i++) {
+	//	cout << "L[" << i << "]=";
+	//	for (int j = 0; j < case_info.L[i].size(); j++) {
+	//		cout << "{" << case_info.L[i][j].vertex << "," << case_info.L[i][j].distance << "}";
+	//	}
+	//	cout << endl;
+	//	//getchar();
+	//}
 
 
 	graph_hash_of_mixed_weighted_two_hop_clear_global_values();
