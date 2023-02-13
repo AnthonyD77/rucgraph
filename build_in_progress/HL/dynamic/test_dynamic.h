@@ -138,7 +138,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 
 }
 
-void test_PLL_dynamic() {
+void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
