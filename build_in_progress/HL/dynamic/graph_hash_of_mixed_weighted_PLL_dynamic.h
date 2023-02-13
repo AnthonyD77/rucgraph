@@ -9,11 +9,10 @@
 #include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_two_hop_labels_dynamic.h>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted_update_vertexIDs.h>
 
-
 struct PLL_v1_node_for_sp {
 public:
 	int vertex, parent_vertex;
-	double priority_value;
+	weightTYPE priority_value;
 }; // define the node in the queue
 bool operator<(PLL_v1_node_for_sp const& x, PLL_v1_node_for_sp const& y) {
 	return x.priority_value > y.priority_value; // < is the max-heap; > is the min heap
@@ -148,10 +147,9 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 		int u = node.vertex;
 
 		if (v_k <= u) { // this pruning condition is not in the original 2013 PLL paper
-			int u_parent = node.parent_vertex;
-			double P_u = node.priority_value;
-			double P_u_with_error = P_u + 1e-5;
-			double query_v_k_u = std::numeric_limits<double>::max();
+			weightTYPE P_u = node.priority_value;
+			weightTYPE P_u_with_error = P_u + 1e-5;
+			weightTYPE query_v_k_u = std::numeric_limits<weightTYPE>::max();
 
 #ifdef _WIN32
 			mtx_595[u].lock();
@@ -159,7 +157,7 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 			mtx_595[u].unlock();
 			for (int i = 0; i < L_u_size; i++) {
 				mtx_595[u].lock();      // put lock in for loop is very slow, but it may be the only way under Windows
-				double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];
+				weightTYPE dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];
 				mtx_595[u].unlock();
 				if (query_v_k_u > dis) { query_v_k_u = dis; }
 			} //求query的值		
@@ -167,7 +165,7 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 			mtx_595[u].lock();
 			auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
 			for (int i = 0; i < L_u_size1; i++) {
-				double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
+				weightTYPE dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
 				if (query_v_k_u > dis) { query_v_k_u = dis; }
 			} //求query的值
 			mtx_595[u].unlock();
@@ -176,7 +174,6 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 			if (P_u_with_error < query_v_k_u) { // this is pruning
 				xx.vertex = v_k;
 				xx.distance = P_u;
-				xx.parent_vertex = u_parent;
 
 				mtx_595[u].lock();
 				L_temp_595[u].push_back(xx); //新增标签，并行时L_temp_595[u]里面的标签不一定是按照vertex ID排好序的，但是因为什么query时用了T_dij_595的trick，没必要让L_temp_595[u]里面的标签排好序
@@ -187,8 +184,8 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 				int u_adj_size = ideal_graph_595[u].size();
 				for (int i = 0; i < u_adj_size; i++) {
 					int adj_v = ideal_graph_595[u][i].first; // this needs to be locked
-					double ec = ideal_graph_595[u][i].second;
-					if (P_dij_595[used_id][adj_v] == std::numeric_limits<double>::max()) { //尚未到达的点
+					weightTYPE ec = ideal_graph_595[u][i].second;
+					if (P_dij_595[used_id][adj_v] == std::numeric_limits<weightTYPE>::max()) { //尚未到达的点
 						node.vertex = adj_v;
 						node.parent_vertex = u;
 						node.priority_value = P_u + ec;
@@ -211,11 +208,11 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 	}
 
 	while (P_changed_vertices.size() > 0) {
-		P_dij_595[used_id][P_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate P values
+		P_dij_595[used_id][P_changed_vertices.front()] = std::numeric_limits<weightTYPE>::max(); // reverse-allocate P values
 		P_changed_vertices.pop();
 	}
 	while (T_changed_vertices.size() > 0) {
-		T_dij_595[used_id][T_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate T values
+		T_dij_595[used_id][T_changed_vertices.front()] = std::numeric_limits<weightTYPE>::max(); // reverse-allocate T values
 		T_changed_vertices.pop();
 	}
 
@@ -277,15 +274,14 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_bfs_mixed(int v_k, i
 
 		if (v_k <= u) { // this condition is not in 2013 paper, but in 2019 paper (Lemma 3.16)
 
-			int u_parent = node.parent_vertex;
 			int P_u = node.priority_value;
 
-			double query_v_k_u = std::numeric_limits<double>::max();
+			weightTYPE query_v_k_u = std::numeric_limits<weightTYPE>::max();
 
 			mtx_595[u].lock();
 			int L_u_size = L_temp_595[u].size();
 			for (int i = 0; i < L_u_size; i++) {
-				double dis = L_temp_595[u][i].distance + T_bfs_595[used_id][L_temp_595[u][i].vertex];		 // cannot lock mtx_595[u] in this for loop, since the locking time is very large		
+				weightTYPE dis = L_temp_595[u][i].distance + T_bfs_595[used_id][L_temp_595[u][i].vertex];		 // cannot lock mtx_595[u] in this for loop, since the locking time is very large		
 				if (query_v_k_u > dis) { query_v_k_u = dis; }
 			}
 			mtx_595[u].unlock();
@@ -294,7 +290,6 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_bfs_mixed(int v_k, i
 
 				xx.vertex = v_k;
 				xx.distance = P_u;
-				xx.parent_vertex = u_parent;
 
 				mtx_595[u].lock();
 				L_temp_595[u].push_back(xx); //新增标签，并行时L_temp_595[u]里面的标签不一定是按照vertex ID排好序的，但是因为什么query时用了T_bfs_595的trick，没必要让L_temp_595[u]里面的标签排好序
@@ -305,7 +300,6 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_bfs_mixed(int v_k, i
 					int adj_v = ideal_graph_595[u][i].first;
 					if (P_bfs_595[used_id][adj_v] == INT_MAX) {
 						node.vertex = adj_v;
-						node.parent_vertex = u;
 						node.priority_value = P_u + 1;
 						Q.push(node);
 						P_bfs_595[used_id][adj_v] = node.priority_value;
@@ -353,13 +347,11 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs_e
 	for (int i = 0; i < L_v_k_size; i++) {
 		auto it = &L_temp_595[v_k][i];
 		it->vertex = vertexID_new_to_old_595[it->vertex];
-		it->parent_vertex = vertexID_new_to_old_595[it->parent_vertex];
 	}
 	sort(L_temp_595[v_k].begin(), L_temp_595[v_k].end(), compare_two_hop_label_small_to_large);
 
 	(*output_L)[vertexID_new_to_old_595[v_k]] = L_temp_595[v_k];
 	vector<two_hop_label_v1>().swap(L_temp_595[v_k]); // clear new labels for RAM efficiency
-
 }
 
 vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs
@@ -390,9 +382,7 @@ vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HL_PLL_v1_transfor
 
 /*the following parallel PLL_with_non_adj_reduction code cannot be run parallelly, due to the above globel values*/
 
-void graph_hash_of_mixed_weighted_PLL_dynamic
-(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
-{
+void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info){
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
 	//cout << "step 1: initialization" << endl;
 
@@ -640,6 +630,7 @@ void graph_hash_of_mixed_weighted_PLL_dynamic
 
 
 	//----------------------------------------------- step 3: generate labels ---------------------------------------------------------------
+	
 	//cout << "step 3: generate labels" << endl;
 	begin = std::chrono::high_resolution_clock::now();
 
@@ -655,8 +646,8 @@ void graph_hash_of_mixed_weighted_PLL_dynamic
 		T_dij_595[i].resize(N);
 		for (int j = 0; j < N; j++)
 		{
-			P_dij_595[i][j] = std::numeric_limits<double>::max();
-			T_dij_595[i][j] = std::numeric_limits<double>::max();
+			P_dij_595[i][j] = std::numeric_limits<weightTYPE>::max();
+			T_dij_595[i][j] = std::numeric_limits<weightTYPE>::max();
 		}
 		Qid_595.push(i);
 	}
@@ -687,40 +678,11 @@ void graph_hash_of_mixed_weighted_PLL_dynamic
 
 
 
-/*
-	update predecessors for this non_adj_reduction,
-	this update is for correct recursive direction.
-*/
-	begin = std::chrono::high_resolution_clock::now();
-	for (int i = new_edges_with_middle_v.size() - 1; i >= 0; i--) {
-		int e1 = new_edges_with_middle_v[i].first.first;
-		int e2 = new_edges_with_middle_v[i].first.second;
-		int middle_k = new_edges_with_middle_v[i].second;
-		/*
-			why just change the labels of e1 and e2 ?
-			because 'parent_vertex' stands for 'next vertex on the shortest path', so it can only be shown in e1 and e2's labels
-		*/
-		for (int j = L_temp_595[e1].size() - 1; j >= 0; j--) {
-			if (L_temp_595[e1][j].parent_vertex == e2) {
-				L_temp_595[e1][j].parent_vertex = middle_k;
-			}
-		}
-		for (int j = L_temp_595[e2].size() - 1; j >= 0; j--) {
-			if (L_temp_595[e2][j].parent_vertex == e1) {
-				L_temp_595[e2][j].parent_vertex = middle_k;
-			}
-		}
-	}
-	end = std::chrono::high_resolution_clock::now();
-	case_info.time_2019R2_or_enhanced_fixlabels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-
-
-
-
 
 
 
 	//----------------------------------------------- step 4: canonical_repair ---------------------------------------------------------------
+	
 	//cout << "step 4: canonical_repair" << endl;
 
 

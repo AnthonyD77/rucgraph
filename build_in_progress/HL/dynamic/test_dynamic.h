@@ -39,13 +39,17 @@ rm A
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>
 #include <graph_hash_of_mixed_weighted/common_algorithms/graph_hash_of_mixed_weighted_shortest_paths.h>
 
-void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info,
+
+
+
+
+void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info,
 	graph_hash_of_mixed_weighted& instance_graph, int iteration_source_times, int iteration_terminal_times) {
 
-	/*below is for checking whether the above labels are right (by randomly computing shortest paths)
+	/*
+	below is for checking whether the above labels are right (by randomly computing shortest paths)
 
 	this function can only be used when 0 to n-1 is in the graph, i.e., the graph is an ideal graph
-
 	*/
 
 	boost::random::uniform_int_distribution<> dist{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors.size() - 1) };
@@ -70,17 +74,17 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 			(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
 
-			if (abs(dis - distances[terminal]) > 1e-4 && (dis < std::numeric_limits<double>::max() || distances[terminal] < std::numeric_limits<double>::max())) {
+			if (abs(dis - distances[terminal]) > 1e-4 && (dis < std::numeric_limits<weightTYPE>::max() || distances[terminal] < std::numeric_limits<double>::max())) {
 				cout << "source = " << source << endl;
 				cout << "terminal = " << terminal << endl;
 				cout << "source vector:" << endl;
 				for (auto it = case_info.L[source].begin(); it != case_info.L[source].end(); it++) {
-					cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+					cout << "<" << it->vertex << "," << it->distance << ">";
 				}
 				cout << endl;
 				cout << "terminal vector:" << endl;
 				for (auto it = case_info.L[terminal].begin(); it != case_info.L[terminal].end(); it++) {
-					cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+					cout << "<" << it->vertex << "," << it->distance << ">";
 				}
 				cout << endl;
 
@@ -89,51 +93,60 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 				cout << "abs(dis - distances[terminal]) > 1e-5!" << endl;
 				getchar();
 			}
+		}
+	}
+}
 
-			//cout << 0 << endl;
-			//cout << source << " " << terminal << endl;
-			//getchar();
+void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
+	int V, int weightIncrease_time, int weightDecrease_time, double weightChange_ratio) {
 
-			vector<pair<int, int>> path = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path(case_info.L,
-				case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
+	while (weightIncrease_time + weightDecrease_time) {
 
-			double path_dis = 0;
-			if (path.size() == 0) {
-				if (source != terminal) { // disconnected
-					path_dis = std::numeric_limits<double>::max();
+		/*randomly select an edge*/
+		pair<int, int> selected_edge;
+		double selected_edge_weight;
+		while (1) {
+			boost::random::uniform_int_distribution<> dist_v1{ static_cast<int>(0), static_cast<int>(V - 1) };
+			int v1 = dist_v1(boost_random_time_seed);
+			if (instance_graph.degree(v1) > 0) {
+				if (instance_graph.hash_of_vectors[v1].adj_vertices.size() > 0) {
+					boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors[v1].adj_vertices.size() - 1) };
+					int v2 = instance_graph.hash_of_vectors[v1].adj_vertices[dist_v2(boost_random_time_seed)].first;
+					selected_edge = { v1,v2 };
+					selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
 				}
-			}
-			else {
-				for (auto it = path.begin(); it != path.end(); it++) {
-					path_dis = path_dis + graph_hash_of_mixed_weighted_edge_weight(instance_graph, it->first, it->second);
-					if (path_dis > std::numeric_limits<double>::max()) {
-						path_dis = std::numeric_limits<double>::max();
+				else {
+					boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_hashs[v1].size() - 1) };
+					int r = dist_v2(boost_random_time_seed);
+					auto it = instance_graph.hash_of_hashs[v1].begin();
+					int id = 0;
+					while (1) {
+						if (id == r) {
+							int v2 = it->first;
+							selected_edge = { v1,v2 };
+							selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
+							break;
+						}
+						else {
+							it++, id++;
+						}
 					}
 				}
-			}
-			if (abs(dis - path_dis) > 1e-4 && (dis < std::numeric_limits<double>::max() || distances[terminal] < std::numeric_limits<double>::max())) {
-				cout << "source = " << source << endl;
-				cout << "terminal = " << terminal << endl;
-
-				cout << "source vector:" << endl;
-				for (auto it = case_info.L[source].begin(); it != case_info.L[source].end(); it++) {
-					cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
-				}
-				cout << endl;
-				cout << "terminal vector:" << endl;
-				for (auto it = case_info.L[terminal].begin(); it != case_info.L[terminal].end(); it++) {
-					cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
-				}
-				cout << endl;
-
-				print_vector_pair_int(path);
-				cout << "dis = " << dis << endl;
-				cout << "path_dis = " << path_dis << endl;
-				cout << "abs(dis - path_dis) > 1e-5!" << endl;
-				getchar();
+				break;
 			}
 		}
 
+		/*change weight*/
+		if (weightIncrease_time >= weightDecrease_time) {
+			weightIncrease_time--;
+			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, selected_edge_weight * (1 + weightChange_ratio)); // increase weight
+			/*maintain labels*/
+		}
+		else {
+			weightDecrease_time--;
+			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, selected_edge_weight * (1 - weightChange_ratio)); // decrease weight
+			/*maintain labels*/
+		}
 	}
 
 }
@@ -143,7 +156,10 @@ void test_dynamic() {
 	/*parameters*/
 	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
 	int V = 100, E = 500, precision = 1, thread_num = 5;
-	double ec_min = 2, ec_max = 2; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
+	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
+
+	int weightIncrease_time = 0, weightDecrease_time = 0;
+	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
 	double avg_canonical_repair_remove_label_ratio = 0;
@@ -185,7 +201,6 @@ void test_dynamic() {
 				cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
 				cout << "mm.time_2019R1: " << mm.time_2019R1 << "s" << endl;
 				cout << "mm.time_2019R2_or_enhanced_pre: " << mm.time_2019R2_or_enhanced_pre << "s" << endl;
-				cout << "mm.time_2019R2_or_enhanced_fixlabels: " << mm.time_2019R2_or_enhanced_fixlabels << "s" << endl;
 				cout << "mm.time_generate_labels: " << mm.time_generate_labels << "s" << endl;
 				cout << "mm.time_canonical_repair1: " << mm.time_canonical_repair1 << "s" << endl;
 				cout << "mm.time_canonical_repair2: " << mm.time_canonical_repair2 << "s" << endl;
@@ -200,7 +215,6 @@ void test_dynamic() {
 		auto end = std::chrono::high_resolution_clock::now();
 		double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 		avg_index_time = avg_index_time + runningtime / iteration_graph_times;
-
 		avg_reduce_V_num_2019R1 = avg_reduce_V_num_2019R1 + (double)mm.reduce_V_num_2019R1 / iteration_graph_times;
 		avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
 		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
@@ -214,7 +228,10 @@ void test_dynamic() {
 			mm.print_f_2019R1();
 		}
 
-		graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);					  
+		/*dynamic maintenance*/
+		graph_change_and_label_maintenance(instance_graph, mm, V, weightIncrease_time, weightDecrease_time, weightChange_ratio);
+
+		graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(mm, instance_graph, iteration_source_times, iteration_terminal_times);
 
 		long long int index_size = 0;
 		for (auto it = mm.L.begin(); it != mm.L.end(); it++) {

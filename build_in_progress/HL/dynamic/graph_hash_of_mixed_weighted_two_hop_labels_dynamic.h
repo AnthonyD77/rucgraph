@@ -5,11 +5,13 @@
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 
 
+#define weightTYPE float // can be double or float (float barely cause precision errors in common cases; cannot be int, int causes precision errors, needs debug)
+
 /*PLL label format*/
 class two_hop_label_v1 {
 public:
-	int vertex, parent_vertex; // std::vector<PLL_with_non_adj_reduction_sorted_label> should be sorted by vertex
-	double distance;
+	int vertex; // std::vector<PLL_with_non_adj_reduction_sorted_label> should be sorted by vertex
+	weightTYPE distance;
 };
 
 
@@ -27,14 +29,14 @@ bool this_parallel_PLL_PSL_is_running_595 = false;
 bool if_continue_595;
 graph_v_of_v_idealID ideal_graph_595;
 vector<vector<two_hop_label_v1>> L_595;
-vector<vector<two_hop_label_v1>> L_temp_595; // dÂÖÖÐd-1ÂÖµÄlabel
+vector<vector<two_hop_label_v1>> L_temp_595;
 std::shared_mutex mtx_595_1, mtx_595_2;
 int max_N_ID_for_mtx_595 = 1e7;  // this is the max N to run
 vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595);  // std::mutex has no copy or move constructor, while std::vector::resize() requires that; you cannot resize mtx;    
 // moreover, do not change mtx to a pointer and then points to local values, it is very slow!!
 queue<int> Qid_595; // IDs of available elements of P T
-vector<vector<double>> P_dij_595;
-vector<vector<double>> T_dij_595;
+vector<vector<weightTYPE>> P_dij_595;
+vector<vector<weightTYPE>> T_dij_595;
 vector<vector<int>> P_bfs_595;
 vector<vector<int>> T_bfs_595;
 vector<vector<int>> pre_595;
@@ -58,8 +60,8 @@ void graph_hash_of_mixed_weighted_two_hop_clear_global_values() {
 	vector<vector<two_hop_label_v1>>().swap(L_595);
 	vector<vector<two_hop_label_v1>>().swap(L_temp_595);
 	queue<int>().swap(Qid_595);
-	vector<vector<double>>().swap(P_dij_595);
-	vector<vector<double>>().swap(T_dij_595);
+	vector<vector<weightTYPE>>().swap(P_dij_595);
+	vector<vector<weightTYPE>>().swap(T_dij_595);
 	vector<vector<int>>().swap(P_bfs_595);
 	vector<vector<int>>().swap(T_bfs_595);
 	vector<vector<int>>().swap(pre_595);
@@ -113,7 +115,6 @@ public:
 	/*running time records*/
 	double time_2019R1 = 0;
 	double time_2019R2_or_enhanced_pre = 0;
-	double time_2019R2_or_enhanced_fixlabels = 0; // s
 	double time_initialization = 0;
 	double time_generate_labels = 0;
 	double time_canonical_repair1 = 0;
@@ -145,7 +146,7 @@ public:
 		size = size + reduction_measures_2019R1.size() * 4;
 		size = size + f_2019R1.size() * 4;
 		for (auto it = L.begin(); it != L.end(); it++) {
-			size = size + (*it).size() * sizeof(two_hop_label_v1); // 12 bit per two_hop_label_v1
+			size = size + (*it).size() * sizeof(two_hop_label_v1); 
 		}
 		return size;
 	}
@@ -167,7 +168,7 @@ public:
 		for (int i = 0; i < L.size(); i++) {
 			cout << "L[" << i << "]=";
 			for (int j = 0; j < L[i].size(); j++) {
-				cout << "{" << L[i][j].vertex << "," << L[i][j].distance << "," << L[i][j].parent_vertex << "}";
+				cout << "{" << L[i][j].vertex << "," << L[i][j].distance << "}";
 			}
 			cout << endl;
 		}
@@ -222,7 +223,7 @@ graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_canonical_
 graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_repair are generally the same with the non "for_canonical_repair" versions
 */
 
-double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(int source, int terminal, int target_v) {
+weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(int source, int terminal, int target_v) {
 
 	/*return std::numeric_limits<double>::max() is not connected*/
 
@@ -230,7 +231,7 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_can
 		return 0;
 	}
 
-	double distance = std::numeric_limits<double>::max(); // if disconnected, return this large value
+	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
 
 	vector<two_hop_label_v1>::iterator vector1_check_pointer, vector2_check_pointer, pointer_L_s_end, pointer_L_t_end;
 	if (source == target_v) {
@@ -270,7 +271,7 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_can
 
 }
 
-double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_canonical_repair /* we assume that source and terminal are not reduced by 2019R1 here*/
+weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_canonical_repair /* we assume that source and terminal are not reduced by 2019R1 here*/
 (int source, int terminal, int target_v)
 {
 
@@ -280,7 +281,7 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_can
 		return 0;
 	}
 
-	double min_selected_distance = std::numeric_limits<double>::max(); // disconnected = std::numeric_limits<double>::max()
+	weightTYPE min_selected_distance = std::numeric_limits<weightTYPE>::max(); // disconnected = std::numeric_limits<double>::max()
 	//vector<double> selected_distance = { std::numeric_limits<double>::max() }; // Store all path lengths to be selected; disconnected = std::numeric_limits<double>::max()
 	auto s_adj_begin = adjs_new_IDs[source].begin();
 	auto s_adj_end = adjs_new_IDs[source].end();
@@ -296,12 +297,12 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_can
 				for (auto it2 = t_adj_begin; it2 != t_adj_end; it2++)
 				{
 					if (f_2019R1_new_ID[it1->first] == it1->first && f_2019R1_new_ID[it2->first] == it2->first) {
-						double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(it1->first, it2->first, target_v);
-						if (x == std::numeric_limits<double>::max()) {
+						weightTYPE x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(it1->first, it2->first, target_v);
+						if (x == std::numeric_limits<weightTYPE>::max()) {
 							return x;
 						}
 						else {
-							min_selected_distance = min(min_selected_distance, x + double(it1->second) + double(it2->second));
+							min_selected_distance = min(min_selected_distance, x + weightTYPE(it1->second) + weightTYPE(it2->second));
 						}
 					}
 				}
@@ -313,12 +314,12 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_can
 			for (auto it1 = s_adj_begin; it1 != s_adj_end; it1++)
 			{
 				if (f_2019R1_new_ID[it1->first] == it1->first) {
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(it1->first, terminal, target_v);
-					if (x == std::numeric_limits<double>::max()) {
+					weightTYPE x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(it1->first, terminal, target_v);
+					if (x == std::numeric_limits<weightTYPE>::max()) {
 						return x;
 					}
 					else {
-						min_selected_distance = min(min_selected_distance, x + double(it1->second));
+						min_selected_distance = min(min_selected_distance, x + weightTYPE(it1->second));
 					}
 				}
 			}
@@ -332,12 +333,12 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_can
 			for (auto it2 = t_adj_begin; it2 != t_adj_end; it2++)
 			{
 				if (f_2019R1_new_ID[it2->first] == it2->first) {
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(source, it2->first, target_v);
-					if (x == std::numeric_limits<double>::max()) {
+					weightTYPE x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(source, it2->first, target_v);
+					if (x == std::numeric_limits<weightTYPE>::max()) {
 						return x;
 					}
 					else {
-						min_selected_distance = min(min_selected_distance, x + double(it2->second));
+						min_selected_distance = min(min_selected_distance, x + weightTYPE(it2->second));
 					}
 				}
 			}
@@ -352,7 +353,7 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_can
 	return min_selected_distance;
 }
 
-double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_repair(graph_hash_of_mixed_weighted& instance_graph, int source, int terminal, int target_v)
+weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_repair(graph_hash_of_mixed_weighted& instance_graph, int source, int terminal, int target_v)
 {
 
 	if (source == terminal) {
@@ -398,8 +399,8 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_re
 		{
 			if (f_2019R1_new_ID[source] == f_2019R1_new_ID[terminal])
 			{
-				double s_t_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, source, terminal);
-				return double(min_adjs_new_IDs[source].second * 2) > s_t_weight ? s_t_weight : double(min_adjs_new_IDs[source].second * 2);
+				weightTYPE s_t_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, source, terminal);
+				return weightTYPE(min_adjs_new_IDs[source].second * 2) > s_t_weight ? s_t_weight : weightTYPE(min_adjs_new_IDs[source].second * 2);
 			}
 			else
 			{
@@ -486,8 +487,8 @@ void canonical_repair_element1(graph_hash_of_mixed_weighted* instance_graph_poin
 		if (vertex == target_v) {
 			continue;
 		}
-		double distance = begin->distance;
-		double query_dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_repair
+		weightTYPE distance = begin->distance;
+		weightTYPE query_dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_repair
 		(instance_graph, target_v, vertex, target_v);
 
 		//cout << "target_v " << target_v << " vertex " << vertex << " query_dis " << query_dis << endl;
@@ -580,17 +581,11 @@ void canonical_repair_multi_threads(graph_hash_of_mixed_weighted& instance_graph
 
 
 
-
-
-
-
-
-
 /*codes for querying distances or paths*/
 
 /*query dis and path after 2019R1*/
 
-double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vector<vector<two_hop_label_v1>>& L, int source, int terminal) {
+weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vector<vector<two_hop_label_v1>>& L, int source, int terminal) {
 
 	/*return std::numeric_limits<double>::max() is not connected*/
 
@@ -598,13 +593,13 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vector<
 		return 0;
 	}
 
-	double distance = std::numeric_limits<double>::max(); // if disconnected, return this large value
+	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
 	auto vector1_check_pointer = L[source].begin();
 	auto vector2_check_pointer = L[terminal].begin();
 	auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
 	while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end) {
 		if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
-			double dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
+			weightTYPE dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
 			if (distance > dis) {
 				distance = dis;
 			}
@@ -622,7 +617,7 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vector<
 
 }
 
-double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1 /* we assume that source and terminal are not reduced by 2019R1 here*/
+weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1 /* we assume that source and terminal are not reduced by 2019R1 here*/
 (vector<vector<two_hop_label_v1>>& L, vector<int>& reduction_measures_2019R2, vector<int>& f_2019R1, int source, int terminal)
 {
 
@@ -637,7 +632,7 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1 /* we a
 		return 0;
 	}
 
-	double min_selected_distance = std::numeric_limits<double>::max(); // disconnected = std::numeric_limits<double>::max()
+	weightTYPE min_selected_distance = std::numeric_limits<weightTYPE>::max(); // disconnected = std::numeric_limits<double>::max()
 	//vector<double> selected_distance = { std::numeric_limits<double>::max() }; // Store all path lengths to be selected; disconnected = std::numeric_limits<double>::max()
 	auto s_adj_begin = adjs[source].begin();
 	auto s_adj_end = adjs[source].end();
@@ -653,12 +648,12 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1 /* we a
 				for (auto it2 = t_adj_begin; it2 != t_adj_end; it2++)
 				{
 					if (f_2019R1[it1->first] == it1->first && f_2019R1[it2->first] == it2->first) {
-						double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, it2->first);
-						if (x == std::numeric_limits<double>::max() && full_two_hop_labels) { // if not full_two_hop_labels, then we may query a max dis while connected
+						weightTYPE x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, it2->first);
+						if (x == std::numeric_limits<weightTYPE>::max() && full_two_hop_labels) { // if not full_two_hop_labels, then we may query a max dis while connected
 							return x;
 						}
 						else {
-							min_selected_distance = min(min_selected_distance, x + double(it1->second) + double(it2->second));
+							min_selected_distance = min(min_selected_distance, x + weightTYPE(it1->second) + weightTYPE(it2->second));
 						}
 					}
 				}
@@ -672,12 +667,12 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1 /* we a
 			{
 				//cout << "it1->first: " << it1->first << " it1->second: " << it1->second << endl;
 				if (f_2019R1[it1->first] == it1->first) { 
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, terminal);
-					if (x == std::numeric_limits<double>::max() && full_two_hop_labels) {
+					weightTYPE x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, terminal);
+					if (x == std::numeric_limits<weightTYPE>::max() && full_two_hop_labels) {
 						return x;
 					}
 					else {
-						min_selected_distance = min(min_selected_distance, x + double(it1->second));
+						min_selected_distance = min(min_selected_distance, x + weightTYPE(it1->second));
 					}
 				}
 			}
@@ -693,13 +688,13 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1 /* we a
 			{
 				//cout << "it2->first: " << it2->first << " it2->second: " << it2->second << endl;
 				if (f_2019R1[it2->first] == it2->first) { 
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, source, it2->first);
+					weightTYPE x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, source, it2->first);
 					//cout << "x " << x << endl;
-					if (x == std::numeric_limits<double>::max() && full_two_hop_labels) {
+					if (x == std::numeric_limits<weightTYPE>::max() && full_two_hop_labels) {
 						return x;
 					}
 					else {
-						min_selected_distance = min(min_selected_distance, x + double(it2->second));
+						min_selected_distance = min(min_selected_distance, x + weightTYPE(it2->second));
 					}
 				}
 			}
@@ -714,206 +709,8 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1 /* we a
 	return min_selected_distance;
 }
 
-vector<pair<int, int>> graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1 /* we assume that source and terminal are not reduced by 2019R1*/
-(vector<vector<two_hop_label_v1>>& L, vector<int>& reduction_measures_2019R2, vector<int>& f_2019R1, graph_hash_of_mixed_weighted& instance_graph, int source, int terminal)
-{
-
-	/* we assume that source and terminal are not reduced by 2019R1*/
-
-	vector<pair<int, int>> paths;
-	if (source == terminal)
-	{
-		return paths;
-	}
-
-	double min_dis = std::numeric_limits<double>::max();
-	vector<pair<int, int>> partial_edges(2);
-
-	auto s_adj_begin = adjs[source].begin();
-	auto s_adj_end = adjs[source].end();
-	auto t_adj_begin = adjs[terminal].begin();
-	auto t_adj_end = adjs[terminal].end();
-
-	if (reduction_measures_2019R2[source] == 2)
-	{
-		if (reduction_measures_2019R2[terminal] == 2)
-		{
-			/*"Both reduced"*/
-			for (auto it1 = s_adj_begin; it1 != s_adj_end; it1++)
-			{
-				for (auto it2 = t_adj_begin; it2 != t_adj_end; it2++)
-				{
-					if (f_2019R1[it1->first] == it1->first && f_2019R1[it2->first] == it2->first) { 
-						double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, it2->first) + double(it1->second) + double(it2->second);
-						/*After removing the two edges, it becomes the fourth case: nothing happened*/
-						if (min_dis > x)
-						{
-							min_dis = x;
-							partial_edges[0] = { it1->first, source };
-							partial_edges[1] = { it2->first, terminal };
-						}
-					}				
-				}
-			}
-
-			if (min_dis == std::numeric_limits<double>::max())
-			{ // disconnected
-				return paths;
-			}
-
-			// add partial_edges into paths
-			paths.push_back(partial_edges[0]);
-			paths.push_back(partial_edges[1]);
-
-			// find new edges
-			vector<pair<int, int>> new_edges = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, partial_edges[0].first, partial_edges[1].first);
-			if (new_edges.size() > 0)
-			{
-				for (int i = new_edges.size() - 1; i >= 0; i--)
-				{
-					paths.push_back(new_edges[i]);
-				}
-			}
-		}
-		/*"Only source reduced"*/
-		else
-		{
-			for (auto it1 = s_adj_begin; it1 != s_adj_end; it1++)
-			{
-				if (f_2019R1[it1->first] == it1->first) { 
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, terminal) + double(it1->second);
-					if (min_dis > x)
-					{
-						min_dis = x;
-						partial_edges[0] = { it1->first, source };
-					}
-				}
-			}
-			if (min_dis == std::numeric_limits<double>::max())
-			{ // disconnected
-				return paths;
-			}
-
-			// add partial_edges into paths
-			paths.push_back(partial_edges[0]);
-
-			// find new edges
-			vector<pair<int, int>> new_edges = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, partial_edges[0].first, terminal);
-			if (new_edges.size() > 0)
-			{
-				for (int i = new_edges.size() - 1; i >= 0; i--)
-				{
-					paths.push_back(new_edges[i]);
-				}
-			}
-		}
-	}
-	else
-	{
-		/*"Only terminal reduced"*/
-		if (reduction_measures_2019R2[terminal] == 2)
-		{
-			for (auto it2 = t_adj_begin; it2 != t_adj_end; it2++)
-			{
-				if (f_2019R1[it2->first] == it2->first) { 
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, source, it2->first) + double(it2->second);
-					if (min_dis > x)
-					{
-						min_dis = x;
-						partial_edges[0] = { it2->first, terminal };
-					}
-				}
-			}
-			if (min_dis == std::numeric_limits<double>::max())
-			{ // disconnected
-				return paths;
-			}
-			// add partial_edges into paths
-			paths.push_back(partial_edges[0]);
-			// find new edges
-			vector<pair<int, int>> new_edges = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, partial_edges[0].first);
-			if (new_edges.size() > 0)
-			{
-				for (int i = new_edges.size() - 1; i >= 0; i--)
-				{
-					paths.push_back(new_edges[i]);
-				}
-			}
-		}
-		/*
-		"Nothing happened"
-		In this case, the problem that the removed vertices appear in the path needs to be solved
-		*/
-		else
-		{
-			int vector1_capped_v_parent = 0, vector2_capped_v_parent = 0;
-			double distance = std::numeric_limits<double>::max(); // if disconnected, retun this large value
-			bool connected = false;
-			auto vector1_check_pointer = L[source].begin();
-			auto vector2_check_pointer = L[terminal].begin();
-			auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
-			while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end)
-			{
-				if (vector1_check_pointer->vertex == vector2_check_pointer->vertex)
-				{
-					connected = true;
-					double dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
-					if (distance > dis)
-					{
-						distance = dis;
-						vector1_capped_v_parent = vector1_check_pointer->parent_vertex;
-						vector2_capped_v_parent = vector2_check_pointer->parent_vertex;
-					}
-					vector1_check_pointer++;
-				}
-				else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex)
-				{
-					vector2_check_pointer++;
-				}
-				else
-				{
-					vector1_check_pointer++;
-				}
-			}
-
-			if (connected)
-			{
-				/*the following code will not induce redundent edge, since for each vertex v_k, there is a label (v_k,0,v_k) in L[v_k];
-				you must ascending from both source and terminal, otherwise you may not be able to extract SP */
-				if (source != vector1_capped_v_parent)
-				{
-					paths.push_back({ source, vector1_capped_v_parent });
-					source = vector1_capped_v_parent; // ascending from source
-				}
-				if (terminal != vector2_capped_v_parent)
-				{
-					paths.push_back({ terminal, vector2_capped_v_parent });
-					terminal = vector2_capped_v_parent; // ascending from terminal
-				}
-			}
-			else
-			{
-				return paths;
-			}
-
-			// find new edges
-			vector<pair<int, int>> new_edges = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, terminal);
-
-			if (new_edges.size() > 0)
-			{
-				for (int i = new_edges.size() - 1; i >= 0; i--)
-				{
-					paths.push_back(new_edges[i]);
-				}
-			}
-		}
-	}
-
-	return paths;
-}
-
 /*query dis (final)*/
-double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
+weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 (vector<vector<two_hop_label_v1>>& L, vector<int>& reduction_measures_2019R2, vector<int>& reduction_measures_2019R1, 
 	vector<int>& f_2019R1, graph_hash_of_mixed_weighted& instance_graph, int source, int terminal)
 {
@@ -929,8 +726,8 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 		{
 			if (f_2019R1[source] == f_2019R1[terminal])
 			{
-				pair<int, double> s_min_adj = min_adjs[source];
-				return double(s_min_adj.second * 2);
+				pair<int, weightTYPE> s_min_adj = min_adjs[source];
+				return weightTYPE(s_min_adj.second * 2);
 			}
 			else
 			{
@@ -958,9 +755,9 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 		{
 			if (f_2019R1[source] == f_2019R1[terminal])
 			{
-				pair<int, double> s_min_adj = min_adjs[source];
-				double s_t_weight = double(graph_hash_of_mixed_weighted_edge_weight(instance_graph, source, terminal));
-				return double(s_min_adj.second * 2) > s_t_weight ? s_t_weight : double(s_min_adj.second * 2);
+				pair<int, weightTYPE> s_min_adj = min_adjs[source];
+				weightTYPE s_t_weight = weightTYPE(graph_hash_of_mixed_weighted_edge_weight(instance_graph, source, terminal));
+				return weightTYPE(s_min_adj.second * 2) > s_t_weight ? s_t_weight : weightTYPE(s_min_adj.second * 2);
 			}
 			else
 			{
@@ -992,490 +789,4 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 
 }
 
-/*query paths (final)*/
-void graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(vector<pair<int, int>>& paths, int old_, int new_)
-{
-	/*
-		this function can change specific vector on paths, used for shortesd paths query
-		take care, we assume that the 'old_' vector only appear once
-	*/
-	for (auto it = paths.begin(); it != paths.end(); it++)
-	{
-		if (it->first == old_)
-		{
-			it->first = new_;
-			break;
-		}
-		if (it->second == old_)
-		{
-			it->second = new_;
-			break;
-		}
-	}
-}
 
-vector<pair<int, int>> graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path
-(vector<vector<two_hop_label_v1>>& L, vector<int>& reduction_measures_2019R2, vector<int>& reduction_measures_2019R1, 
-	vector<int>& f_2019R1, graph_hash_of_mixed_weighted& instance_graph, int source, int terminal)
-{
-
-	vector<pair<int, int>> paths;
-	if (source == terminal)
-	{
-		return paths;
-	}
-	
-	if (reduction_measures_2019R1[source] == 11)
-	{
-		/* case 2 */
-		if (reduction_measures_2019R1[terminal] == 11)
-		{
-			if (f_2019R1[source] == f_2019R1[terminal])
-			{
-				pair<int, double> s_min_adj = min_adjs[source];
-				paths.push_back({ source, s_min_adj.first });
-				paths.push_back({ terminal, s_min_adj.first });
-				return paths;
-			}
-			else
-			{
-				paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-				graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[source], source);
-				graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[terminal], terminal);
-				return paths;
-			}
-		}
-		/* case 3 */
-		else if (reduction_measures_2019R1[terminal] == 12)
-		{
-			paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[source], source);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[terminal], terminal);
-			return paths;
-		}
-		/* case 1 */
-		else {
-			paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], terminal);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[source], source);
-			return paths;
-		}	
-	}
-	else if (reduction_measures_2019R1[source] == 12)
-	{
-		/* case 5 -- same with case 3 */
-		if (reduction_measures_2019R1[terminal] == 11)
-		{
-			paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[source], source);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[terminal], terminal);
-			return paths;
-		}
-		/* case 6 */
-		else if (reduction_measures_2019R1[terminal] == 12)
-		{
-			if (f_2019R1[source] == f_2019R1[terminal])
-			{
-				pair<int, double> s_min_adj = min_adjs[source];
-				double s_t_weight = double(graph_hash_of_mixed_weighted_edge_weight(instance_graph, source, terminal));
-				if (double(s_min_adj.second * 2) < s_t_weight)
-				{
-					paths.push_back({ source, s_min_adj.first });
-					paths.push_back({ terminal, s_min_adj.first });
-					return paths;
-				}
-				else
-				{
-					paths.push_back({ source, terminal });
-					return paths;
-				}
-			}
-			else // f_2019R1[source] != f_2019R1[terminal]
-			{
-				paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-				graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[source], source);
-				graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[terminal], terminal);
-				return paths;
-			}
-		}
-		/* case 4 */
-		else {
-			paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], terminal);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[source], source);
-			return paths;
-		}
-		
-	}
-	else {
-		/* case 8 -- same with case 1 */
-		if (reduction_measures_2019R1[terminal] == 11)
-		{
-			paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, f_2019R1[terminal]);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[terminal], terminal);
-			return paths;
-		}
-		/* case 9 -- same with case 4 */
-		else if (reduction_measures_2019R1[terminal] == 12)
-		{
-			paths = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, f_2019R1[terminal]);
-			graph_hash_of_mixed_weighted_two_hop_v1_vector_replace_on_paths(paths, f_2019R1[terminal], terminal);
-			return paths;
-		}
-		/* case 7 */
-		else {
-			return graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, terminal);
-		}
-		
-	}
-
-}
-
-
-
-
-
-
-
-/*query predecessors in instance_graph*/
-
-pair<int, int> graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1 /* we assume that source and terminal are not reduced by 2019R1*/
-(vector<vector<two_hop_label_v1>>& L, vector<int>& reduction_measures_2019R2, vector<int>& f_2019R1, graph_hash_of_mixed_weighted& instance_graph, int source, int terminal)
-{
-
-	/* we assume that source and terminal are not reduced by 2019R1*/
-	
-	if (source == terminal)
-	{
-		return { source, terminal }; // source_predecessor and terminal_predecessor;
-	}
-
-	double min_dis = std::numeric_limits<double>::max();
-	vector<pair<int, int>> partial_edges(2);
-
-	auto s_adj_begin = adjs[source].begin();
-	auto s_adj_end = adjs[source].end();
-	auto t_adj_begin = adjs[terminal].begin();
-	auto t_adj_end = adjs[terminal].end();
-
-	if (reduction_measures_2019R2[source] == 2)
-	{
-		if (reduction_measures_2019R2[terminal] == 2)
-		{
-			/*"Both reduced"*/
-			for (auto it1 = s_adj_begin; it1 != s_adj_end; it1++)
-			{
-				for (auto it2 = t_adj_begin; it2 != t_adj_end; it2++)
-				{
-					if (f_2019R1[it1->first] == it1->first && f_2019R1[it2->first] == it2->first) {
-						double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, it2->first) + double(it1->second) + double(it2->second);
-						/*After removing the two edges, it becomes the fourth case: nothing happened*/
-						if (min_dis > x)
-						{
-							min_dis = x;
-							partial_edges[0] = { it1->first, source };
-							partial_edges[1] = { it2->first, terminal };
-						}
-					}
-				}
-			}
-
-			if (min_dis == std::numeric_limits<double>::max())
-			{ // disconnected
-				return { source, terminal };
-			}
-
-			return { partial_edges[0].first, partial_edges[1].first };
-		}
-		/*"Only source reduced"*/
-		else
-		{
-			for (auto it1 = s_adj_begin; it1 != s_adj_end; it1++)
-			{
-				if (f_2019R1[it1->first] == it1->first) {
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, terminal) + double(it1->second);
-					if (min_dis > x)
-					{
-						min_dis = x;
-						partial_edges[0] = { it1->first, source };
-					}
-				}
-			}
-			if (min_dis == std::numeric_limits<double>::max())
-			{ // disconnected
-				return { source, terminal };
-			}
-
-			pair<int, int> recursive_two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, partial_edges[0].first, terminal);
-
-			return { partial_edges[0].first , recursive_two_predecessors.second };
-		}
-	}
-	else
-	{
-		/*"Only terminal reduced"*/
-		if (reduction_measures_2019R2[terminal] == 2)
-		{
-			for (auto it2 = t_adj_begin; it2 != t_adj_end; it2++)
-			{
-				if (f_2019R1[it2->first] == it2->first) {
-					double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, source, it2->first) + double(it2->second);
-					if (min_dis > x)
-					{
-						min_dis = x;
-						partial_edges[0] = { it2->first, terminal };
-					}
-				}
-			}
-
-			if (min_dis == std::numeric_limits<double>::max())
-			{ // disconnected
-				return { source, terminal };
-			}
-
-			pair<int, int> recursive_two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, partial_edges[0].first);
-
-			return { recursive_two_predecessors.first, partial_edges[0].first };
-		}
-		/*
-		"Nothing happened"
-		In this case, the problem that the removed vertices appear in the path needs to be solved
-		*/
-		else
-		{
-			int vector1_capped_v_parent = 0, vector2_capped_v_parent = 0;
-			double distance = std::numeric_limits<double>::max(); // if disconnected, return this large value
-			bool connected = false;
-			auto vector1_check_pointer = L[source].begin();
-			auto vector2_check_pointer = L[terminal].begin();
-			auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
-			while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end)
-			{
-				if (vector1_check_pointer->vertex == vector2_check_pointer->vertex)
-				{
-					connected = true;
-					double dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
-					if (distance > dis)
-					{
-						distance = dis;
-						vector1_capped_v_parent = vector1_check_pointer->parent_vertex;
-						vector2_capped_v_parent = vector2_check_pointer->parent_vertex;
-					}
-					vector1_check_pointer++;
-				}
-				else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex)
-				{
-					vector2_check_pointer++;
-				}
-				else
-				{
-					vector1_check_pointer++;
-				}
-			}
-
-			if (connected)
-			{
-				/*the following code will not induce redundent edge, since for each vertex v_k, there is a label (v_k,0,v_k) in L[v_k];
-				you must ascending from both source and terminal, otherwise you may not be able to extract SP */
-				pair<int, int> recursive_two_predecessors;
-				if (source != vector1_capped_v_parent) // ascending from source
-				{
-					recursive_two_predecessors.first = vector1_capped_v_parent;
-				}
-				else {
-					recursive_two_predecessors.first = source;
-				}
-				if (terminal != vector2_capped_v_parent) // ascending from terminal
-				{
-					recursive_two_predecessors.second = vector2_capped_v_parent;
-				}
-				else {
-					recursive_two_predecessors.second = terminal;
-				}
-				return recursive_two_predecessors;
-			}
-			else
-			{
-				return { source, terminal };
-			}
-		}
-	}
-}
-
-pair<int, int> graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors
-(vector<vector<two_hop_label_v1>>& L, vector<int>& reduction_measures_2019R2, vector<int>& reduction_measures_2019R1,
-	vector<int>& f_2019R1, graph_hash_of_mixed_weighted& instance_graph, int source, int terminal)
-{
-
-	pair<int, int> two_predecessors; // source_predecessor and terminal_predecessor;  
-	/*
-	if (source_predecessor == source && terminal_predecessor == terminal){
-	no edge is in path
-	}
-
-	if (source_predecessor == terminal && terminal_predecessor == source){
-	one edge is in path
-	}
-
-	*/
-
-	if (source == terminal)
-	{
-		return { source, terminal };
-	}
-
-	if (reduction_measures_2019R1[source] == 11)
-	{
-		/* case 2 */
-		if (reduction_measures_2019R1[terminal] == 11)
-		{
-			if (f_2019R1[source] == f_2019R1[terminal])
-			{
-				pair<int, double> s_min_adj = min_adjs[source];
-				return { s_min_adj.first , s_min_adj.first };
-			}
-			else
-			{
-				two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-				if (two_predecessors.first == f_2019R1[source]) {
-					two_predecessors.first = source;
-				}
-				if (two_predecessors.second == f_2019R1[source]) {
-					two_predecessors.second = source;
-				}
-				if (two_predecessors.first == f_2019R1[terminal]) {
-					two_predecessors.first = terminal;
-				}
-				if (two_predecessors.second == f_2019R1[terminal]) {
-					two_predecessors.second = terminal;
-				}
-				return two_predecessors;
-			}
-		}
-		/* case 3 */
-		else if (reduction_measures_2019R1[terminal] == 12)
-		{
-			two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-			if (two_predecessors.first == f_2019R1[source]) {
-				two_predecessors.first = source;
-			}
-			if (two_predecessors.second == f_2019R1[source]) {
-				two_predecessors.second = source;
-			}
-			if (two_predecessors.first == f_2019R1[terminal]) {
-				two_predecessors.first = terminal;
-			}
-			if (two_predecessors.second == f_2019R1[terminal]) {
-				two_predecessors.second = terminal;
-			}
-			return two_predecessors;
-		}
-		/* case 1 */
-		else {
-			two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], terminal);
-			if (two_predecessors.first == f_2019R1[source]) {
-				two_predecessors.first = source;
-			}
-			if (two_predecessors.second == f_2019R1[source]) {
-				two_predecessors.second = source;
-			}
-			return two_predecessors;
-		}
-	}
-	else if (reduction_measures_2019R1[source] == 12)
-	{
-		/* case 5 -- same with case 3 */
-		if (reduction_measures_2019R1[terminal] == 11)
-		{
-			two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-			if (two_predecessors.first == f_2019R1[source]) {
-				two_predecessors.first = source;
-			}
-			if (two_predecessors.second == f_2019R1[source]) {
-				two_predecessors.second = source;
-			}
-			if (two_predecessors.first == f_2019R1[terminal]) {
-				two_predecessors.first = terminal;
-			}
-			if (two_predecessors.second == f_2019R1[terminal]) {
-				two_predecessors.second = terminal;
-			}
-			return two_predecessors;
-		}
-		/* case 6 */
-		else if (reduction_measures_2019R1[terminal] == 12)
-		{
-			if (f_2019R1[source] == f_2019R1[terminal])
-			{
-				pair<int, double> s_min_adj = min_adjs[source];
-				double s_t_weight = double(graph_hash_of_mixed_weighted_edge_weight(instance_graph, source, terminal));
-				if (double(s_min_adj.second * 2) < s_t_weight)
-				{
-					return { s_min_adj.first , s_min_adj.first };
-				}
-				else
-				{
-					return { terminal, source };
-				}
-			}
-			else // f_2019R1[source] != f_2019R1[terminal]
-			{
-				two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], f_2019R1[terminal]);
-				if (two_predecessors.first == f_2019R1[source]) {
-					two_predecessors.first = source;
-				}
-				if (two_predecessors.second == f_2019R1[source]) {
-					two_predecessors.second = source;
-				}
-				if (two_predecessors.first == f_2019R1[terminal]) {
-					two_predecessors.first = terminal;
-				}
-				if (two_predecessors.second == f_2019R1[terminal]) {
-					two_predecessors.second = terminal;
-				}
-				return two_predecessors;
-			}
-		}
-		/* case 4 */
-		else {
-			two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, f_2019R1[source], terminal);
-			if (two_predecessors.first == f_2019R1[source]) {
-				two_predecessors.first = source;
-			}
-			if (two_predecessors.second == f_2019R1[source]) {
-				two_predecessors.second = source;
-			}
-			return two_predecessors;
-		}
-	}
-	else {
-		/* case 8 -- same with case 1 */
-		if (reduction_measures_2019R1[terminal] == 11)
-		{
-			two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, f_2019R1[terminal]);
-			if (two_predecessors.first == f_2019R1[terminal]) {
-				two_predecessors.first = terminal;
-			}
-			if (two_predecessors.second == f_2019R1[terminal]) {
-				two_predecessors.second = terminal;
-			}
-			return two_predecessors;
-		}
-		/* case 9 -- same with case 4 */
-		else if (reduction_measures_2019R1[terminal] == 12)
-		{
-			two_predecessors = graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, f_2019R1[terminal]);
-			if (two_predecessors.first == f_2019R1[terminal]) {
-				two_predecessors.first = terminal;
-			}
-			if (two_predecessors.second == f_2019R1[terminal]) {
-				two_predecessors.second = terminal;
-			}
-			return two_predecessors;
-		}
-		/* case 7 */
-		else {
-			return graph_hash_of_mixed_weighted_two_hop_v1_extract_two_predecessors_st_no_R1(L, reduction_measures_2019R2, f_2019R1, instance_graph, source, terminal);
-		}
-
-	}
-
-}
