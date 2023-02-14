@@ -5,9 +5,8 @@
 #include <chrono>
 #include <boost/heap/fibonacci_heap.hpp>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
-#include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID.h>
+#include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_two_hop_labels_dynamic.h>
-#include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted_update_vertexIDs.h>
 
 struct PLL_v1_node_for_sp {
 public:
@@ -91,15 +90,15 @@ void update_2019R1_condition_PLL_with_non_adj_reduction(int v1, int ideal_graph_
 		but it seems that such bugs never occur, since v1 is increasing pushing into threads*/
 		if (condition == 1)
 		{
-			(*reduction_measures_2)[vertexID_new_to_old_595[v1]] = 11;
-			(*reduction_measures_2)[vertexID_new_to_old_595[v2]] = 11;
-			(*f_2019R1)[vertexID_new_to_old_595[v2]] = (*f_2019R1)[vertexID_new_to_old_595[v1]];
+			(*reduction_measures_2)[v1] = 11;
+			(*reduction_measures_2)[v2] = 11;
+			(*f_2019R1)[v2] = (*f_2019R1)[v1];
 		}
 		else if (condition == 2)
 		{
-			(*reduction_measures_2)[vertexID_new_to_old_595[v1]] = 12;
-			(*reduction_measures_2)[vertexID_new_to_old_595[v2]] = 12;
-			(*f_2019R1)[vertexID_new_to_old_595[v2]] = (*f_2019R1)[vertexID_new_to_old_595[v1]];
+			(*reduction_measures_2)[v1] = 12;
+			(*reduction_measures_2)[v2] = 12;
+			(*f_2019R1)[v2] = (*f_2019R1)[v1];
 		}
 	}
 
@@ -234,48 +233,12 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 	}
 }
 
-void graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs_element(vector<vector<two_hop_label_v1>>* output_L, int v_k) {
-
-	int L_v_k_size = L_temp_595[v_k].size();
-	for (int i = 0; i < L_v_k_size; i++) {
-		auto it = &L_temp_595[v_k][i];
-		it->vertex = vertexID_new_to_old_595[it->vertex];
-	}
-	sort(L_temp_595[v_k].begin(), L_temp_595[v_k].end(), compare_two_hop_label_small_to_large);
-
-	(*output_L)[vertexID_new_to_old_595[v_k]] = L_temp_595[v_k];
-	vector<two_hop_label_v1>().swap(L_temp_595[v_k]); // clear new labels for RAM efficiency
-}
-
-vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs(int N, int max_N_ID, int num_of_threads) {
-
-	/*time complexity: O(V*L*logL), where L is average number of labels per vertex*/
-
-	vector<vector<two_hop_label_v1>> output_L(max_N_ID);
-
-	/*time complexity: O(V*L*logL), where L is average number of labels per vertex*/
-	ThreadPool pool(num_of_threads);
-	std::vector< std::future<int> > results; // return typename: xxx
-	vector<vector<two_hop_label_v1>>* p = &output_L;
-	for (int v_k = 0; v_k < N; v_k++) {
-		results.emplace_back(
-			pool.enqueue([p, v_k] { // pass const type value j to thread; [] can be empty
-				graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs_element(p, v_k);
-				return 1; // return to results; the return type must be the same with results
-				})
-		);
-	}
-	for (auto&& result : results)
-		result.get(); // all threads finish here
-
-	return output_L;
-}
-
-
 /*the following parallel PLL_with_non_adj_reduction code cannot be run parallelly, due to the above globel values*/
 
 void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info){
+	
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
+	
 	//cout << "step 1: initialization" << endl;
 
 	auto begin = std::chrono::high_resolution_clock::now();
@@ -303,27 +266,16 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	L_temp_595.resize(max_N_ID);
 	int N = input_graph.hash_of_vectors.size();
 
-
-	/*sorting vertices*/
+	/*change graphs*/
 	vector <vector<pair<int, double>>>().swap(adjs);
 	adjs.resize(max_N_ID);
 	vector<pair<int, double>>().swap(min_adjs);
 	min_adjs.resize(max_N_ID);
-	vector<pair<int, int>> sorted_vertices;
 	for (auto it = input_graph.hash_of_vectors.begin(); it != input_graph.hash_of_vectors.end(); it++) {
-		sorted_vertices.push_back({ it->first, input_graph.degree(it->first) });
 		adjs[it->first] = input_graph.adj_v_and_ec(it->first);
 		min_adjs[it->first] = input_graph.min_adj(it->first);
 	}
-	sort(sorted_vertices.begin(), sorted_vertices.end(), compare_pair_second_large_to_small);
-	unordered_map<int, int> vertexID_old_to_new;
-	vertexID_new_to_old_595.resize(N);
-	for (int i = 0; i < N; i++) {
-		vertexID_old_to_new[sorted_vertices[i].first] = i;
-		vertexID_new_to_old_595[i] = sorted_vertices[i].first;
-	}
-	vector<pair<int, int>>().swap(sorted_vertices);
-	ideal_graph_595 = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID(input_graph, vertexID_old_to_new);
+	ideal_graph_595 = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(input_graph, max_N_ID);
 
 
 	vector<pair<pair<int, int>, int>> new_edges_with_middle_v;	//Record newly added edges
@@ -379,7 +331,7 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 					//getchar();
 				}
 				case_info.reduce_V_num_2019R1++;
-				graph_v_of_v_idealID_remove_all_adjacent_edges(ideal_graph_595, vertexID_old_to_new[i]);
+				graph_v_of_v_idealID_remove_all_adjacent_edges(ideal_graph_595, i);
 			}
 		}
 		auto end = std::chrono::high_resolution_clock::now();
@@ -393,13 +345,13 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 		for (int x = 0; x < N; x++) {
 			if (ideal_graph_595[x].size() > 0) {										//Prevent memory overflow
 				if (x > ideal_graph_595[x][ideal_graph_595[x].size() - 1].first) {		//Here, only one comparison is needed. A little trick.
-					case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] = 2;
+					case_info.reduction_measures_2019R2[x] = 2;
 					//cout << "reduce " << vertexID_new_to_old_595[x] << endl;
 				}
 			}
 		}
 		for (int x = N - 1; x >= 0; x--) {
-			if (case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] == 2) {
+			if (case_info.reduction_measures_2019R2[x] == 2) {
 				/*add edge*/
 				auto it1 = ideal_graph_595[x].begin();
 				for (int m = ideal_graph_595[x].size() - 1; m > 0; m--)
@@ -427,29 +379,29 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 		for (int x = 0; x < N; x++) {
 			if (ideal_graph_595[x].size() > 0) {										//Prevent memory overflow
 				if (x > ideal_graph_595[x][ideal_graph_595[x].size() - 1].first) {		//Here, only one comparison is needed. A little trick.
-					case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] = 2;
+					case_info.reduction_measures_2019R2[x] = 2;
 					//cout << "reduce " << vertexID_new_to_old_595[x] << endl;
 				}
 			}
 		}
 		int bound = case_info.max_degree_MG_enhanced2019R2;
 		for (int x = N - 1; x >= 0; x--) { // from low ranking to high ranking
-			if (case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] == 0 && ideal_graph_595[x].size() <= bound) { // bound is the max degree for reduction
+			if (case_info.reduction_measures_2019R2[x] == 0 && ideal_graph_595[x].size() <= bound) { // bound is the max degree for reduction
 				bool no_adj_MG_vertices = true;
 				for (auto it = ideal_graph_595[x].begin(); it != ideal_graph_595[x].end(); it++) {
-					if (case_info.reduction_measures_2019R2[vertexID_new_to_old_595[it->first]] == 2) {
+					if (case_info.reduction_measures_2019R2[it->first] == 2) {
 						no_adj_MG_vertices = false;
 						break;
 					}
 				}
 				if (no_adj_MG_vertices) {
-					case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] = 2; // new reduction
+					case_info.reduction_measures_2019R2[x] = 2; // new reduction
 					//cout << "new reduce " << vertexID_new_to_old_595[x] << endl;
 				}
 			}
 		}
 		for (int x = N - 1; x >= 0; x--) {
-			if (case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] == 2) {
+			if (case_info.reduction_measures_2019R2[x] == 2) {
 				/*add edge*/
 				auto it1 = ideal_graph_595[x].begin();
 				for (int m = ideal_graph_595[x].size() - 1; m > 0; m--)
@@ -476,22 +428,22 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 		case_info.MG_num = 0;
 		int bound = case_info.max_degree_MG_enhanced2019R2;
 		for (int x = N - 1; x >= 0; x--) { // from low ranking to high ranking
-			if (case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] == 0 && ideal_graph_595[x].size() <= bound) { // bound is the max degree for reduction
+			if (case_info.reduction_measures_2019R2[x] == 0 && ideal_graph_595[x].size() <= bound) { // bound is the max degree for reduction
 				bool no_adj_MG_vertices = true;
 				for (auto it = ideal_graph_595[x].begin(); it != ideal_graph_595[x].end(); it++) {
-					if (case_info.reduction_measures_2019R2[vertexID_new_to_old_595[it->first]] == 2) {
+					if (case_info.reduction_measures_2019R2[it->first] == 2) {
 						no_adj_MG_vertices = false;
 						break;
 					}
 				}
 				if (no_adj_MG_vertices) {
-					case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] = 2; // new reduction
+					case_info.reduction_measures_2019R2[x] = 2; // new reduction
 					//cout << "new reduce " << vertexID_new_to_old_595[x] << endl;
 				}
 			}
 		}
 		for (int x = N - 1; x >= 0; x--) {
-			if (case_info.reduction_measures_2019R2[vertexID_new_to_old_595[x]] == 2) {
+			if (case_info.reduction_measures_2019R2[x] == 2) {
 				/*add edge*/
 				auto it1 = ideal_graph_595[x].begin();
 				for (int m = ideal_graph_595[x].size() - 1; m > 0; m--)
@@ -591,16 +543,13 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	/*canonical_repair based on the sorted new ID order, not the original ID order!*/
 	if (case_info.use_canonical_repair) {
 		begin = std::chrono::high_resolution_clock::now();
-		reduction_measures_2019R1_new_ID.resize(max_N_ID, 0);
-		reduction_measures_2019R2_new_ID.resize(max_N_ID, 0);
-		f_2019R1_new_ID.resize(max_N_ID, 0);
+		reduction_measures_2019R1_new_ID = case_info.reduction_measures_2019R1;
+		reduction_measures_2019R2_new_ID = case_info.reduction_measures_2019R2;
+		f_2019R1_new_ID = case_info.f_2019R1;
 		for (int i = 0; i < max_N_ID; i++) {
-			reduction_measures_2019R1_new_ID[vertexID_old_to_new[i]] = case_info.reduction_measures_2019R1[i];
-			reduction_measures_2019R2_new_ID[vertexID_old_to_new[i]] = case_info.reduction_measures_2019R2[i];
-			f_2019R1_new_ID[vertexID_old_to_new[i]] = vertexID_old_to_new[case_info.f_2019R1[i]];
 			sort(L_temp_595[i].begin(), L_temp_595[i].end(), compare_two_hop_label_small_to_large); // sort is necessary
 		}
-		graph_hash_of_mixed_weighted new_ID_g = graph_hash_of_mixed_weighted_update_vertexIDs(input_graph, vertexID_old_to_new);
+		graph_hash_of_mixed_weighted new_ID_g = input_graph;
 		vector <vector<pair<int, double>>>().swap(adjs_new_IDs);
 		adjs_new_IDs.resize(max_N_ID);
 		vector<pair<int, double>>().swap(min_adjs_new_IDs);
@@ -632,28 +581,7 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
 
-	//----------------------------------------------- step 5: update_old_IDs_in_labels ---------------------------------------------------------------
-	//cout << "step 5: update_old_IDs_in_labels" << endl;
-	begin = std::chrono::high_resolution_clock::now();
-
-	/*return L for old_IDs*/
-	case_info.L = graph_hash_of_mixed_weighted_HL_PLL_v1_transform_labels_to_old_vertex_IDs(N, max_N_ID, num_of_threads);
-
-	end = std::chrono::high_resolution_clock::now();
-	case_info.time_update_old_IDs_in_labels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-	//---------------------------------------------------------------------------------------------------------------------------------------
-
-
-	//cout << "print_case_info.L:" << endl;
-	//for (int i = 0; i < case_info.L.size(); i++) {
-	//	cout << "L[" << i << "]=";
-	//	for (int j = 0; j < case_info.L[i].size(); j++) {
-	//		cout << "{" << case_info.L[i][j].vertex << "," << case_info.L[i][j].distance << "}";
-	//	}
-	//	cout << endl;
-	//	//getchar();
-	//}
-
+	case_info.L = L_temp_595;
 
 	graph_hash_of_mixed_weighted_two_hop_clear_global_values();
 }

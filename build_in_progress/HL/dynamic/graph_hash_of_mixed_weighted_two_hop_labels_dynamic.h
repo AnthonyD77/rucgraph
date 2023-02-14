@@ -40,7 +40,6 @@ vector<vector<weightTYPE>> T_dij_595;
 vector<vector<int>> P_bfs_595;
 vector<vector<int>> T_bfs_595;
 vector<vector<int>> pre_595;
-vector<int> vertexID_new_to_old_595;
 vector<int> pos_595;
 vector<int> pos_2_595;
 vector<int> increment_595;
@@ -65,7 +64,6 @@ void graph_hash_of_mixed_weighted_two_hop_clear_global_values() {
 	vector<vector<int>>().swap(P_bfs_595);
 	vector<vector<int>>().swap(T_bfs_595);
 	vector<vector<int>>().swap(pre_595);
-	vector<int>().swap(vertexID_new_to_old_595);
 	vector<int>().swap(pos_595);
 	vector<int>().swap(pos_2_595);
 	vector<int>().swap(increment_595);
@@ -201,11 +199,6 @@ public:
 
 
 /*common functions shared by PLL and PSL*/
-bool compare_pair_second_large_to_small(const pair<int, int>& i, pair<int, int>& j)
-{
-	/*< is nearly 10 times slower than >*/
-	return i.second > j.second;  // < is from small to big; > is from big to small.  sort by the second item of pair<int, int>
-}
 
 bool compare_two_hop_label_small_to_large(two_hop_label_v1& i, two_hop_label_v1& j)
 {
