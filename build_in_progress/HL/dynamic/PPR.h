@@ -23,6 +23,21 @@ void PPR_insert(PPR_type& PPR, int v1, int v2, int v3) {
 
 }
 
+std::vector<int> PPR_retrieve(PPR_type& PPR, int v1, int v2) {
+
+	/*retrieve PPR(v1, v2)*/
+
+	int pos = graph_hash_of_mixed_weighted_binary_operations_search_position(PPR[v1], v2);
+	if (pos == -1) {
+		std::vector<int> x;
+		return x;
+	}
+	else {
+		return PPR[v1][pos].second;
+	}
+
+}
+
 
 void PPR_replace(PPR_type& PPR, int v1, int v2, std::vector<int>& loads) {
 
