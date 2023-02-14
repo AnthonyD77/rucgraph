@@ -49,8 +49,6 @@ vector<int> reduction_measures_2019R2_new_ID;
 vector<int> f_2019R1_new_ID;
 vector<vector<two_hop_label_v1>> incremental_label_vectors;
 vector<vector<int>> labels_to_be_removed;
-vector <vector<pair<int, double>>> adjs_new_IDs;
-vector<pair<int, double>> min_adjs_new_IDs;
 
 void graph_hash_of_mixed_weighted_two_hop_clear_global_values() {
 
@@ -73,8 +71,6 @@ void graph_hash_of_mixed_weighted_two_hop_clear_global_values() {
 	vector<int>().swap(f_2019R1_new_ID);
 	vector<vector<two_hop_label_v1>>().swap(incremental_label_vectors);
 	vector<vector<int>>().swap(labels_to_be_removed);
-	vector <vector<pair<int, double>>>().swap(adjs_new_IDs);
-	vector<pair<int, double>>().swap(min_adjs_new_IDs);
 }
 
 /*
@@ -216,6 +212,8 @@ graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for_canonical_
 graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_repair are generally the same with the non "for_canonical_repair" versions
 */
 
+
+
 weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(int source, int terminal, int target_v) {
 
 	/*return std::numeric_limits<double>::max() is not connected*/
@@ -276,10 +274,10 @@ weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1_for
 
 	weightTYPE min_selected_distance = std::numeric_limits<weightTYPE>::max(); // disconnected = std::numeric_limits<double>::max()
 	//vector<double> selected_distance = { std::numeric_limits<double>::max() }; // Store all path lengths to be selected; disconnected = std::numeric_limits<double>::max()
-	auto s_adj_begin = adjs_new_IDs[source].begin();
-	auto s_adj_end = adjs_new_IDs[source].end();
-	auto t_adj_begin = adjs_new_IDs[terminal].begin();
-	auto t_adj_end = adjs_new_IDs[terminal].end();
+	auto s_adj_begin = adjs[source].begin();
+	auto s_adj_end = adjs[source].end();
+	auto t_adj_begin = adjs[terminal].begin();
+	auto t_adj_end = adjs[terminal].end();
 	if (reduction_measures_2019R2_new_ID[source] == 2)
 	{
 		if (reduction_measures_2019R2_new_ID[terminal] == 2)
@@ -360,7 +358,7 @@ weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonica
 		{
 			if (f_2019R1_new_ID[source] == f_2019R1_new_ID[terminal])
 			{
-				return min_adjs_new_IDs[source].second * 2;
+				return min_adjs[source].second * 2;
 			}
 			else
 			{
@@ -393,7 +391,7 @@ weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonica
 			if (f_2019R1_new_ID[source] == f_2019R1_new_ID[terminal])
 			{
 				weightTYPE s_t_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, source, terminal);
-				return weightTYPE(min_adjs_new_IDs[source].second * 2) > s_t_weight ? s_t_weight : weightTYPE(min_adjs_new_IDs[source].second * 2);
+				return weightTYPE(min_adjs[source].second * 2) > s_t_weight ? s_t_weight : weightTYPE(min_adjs[source].second * 2);
 			}
 			else
 			{

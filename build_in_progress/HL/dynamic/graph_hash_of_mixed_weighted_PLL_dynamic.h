@@ -519,11 +519,9 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	case_info.time_generate_labels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-
-
-
+	for (int i = 0; i < max_N_ID; i++) {
+		sort(L_temp_595[i].begin(), L_temp_595[i].end(), compare_two_hop_label_small_to_large); // sort is necessary
+	}
 
 	//----------------------------------------------- step 4: canonical_repair ---------------------------------------------------------------
 	
@@ -545,25 +543,12 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 		begin = std::chrono::high_resolution_clock::now();
 		reduction_measures_2019R1_new_ID = case_info.reduction_measures_2019R1;
 		reduction_measures_2019R2_new_ID = case_info.reduction_measures_2019R2;
-		f_2019R1_new_ID = case_info.f_2019R1;
-		for (int i = 0; i < max_N_ID; i++) {
-			sort(L_temp_595[i].begin(), L_temp_595[i].end(), compare_two_hop_label_small_to_large); // sort is necessary
-		}
-		graph_hash_of_mixed_weighted new_ID_g = input_graph;
-		vector <vector<pair<int, double>>>().swap(adjs_new_IDs);
-		adjs_new_IDs.resize(max_N_ID);
-		vector<pair<int, double>>().swap(min_adjs_new_IDs);
-		min_adjs_new_IDs.resize(max_N_ID);
-		for (auto it = new_ID_g.hash_of_vectors.begin(); it != new_ID_g.hash_of_vectors.end(); it++) {
-			adjs_new_IDs[it->first] = new_ID_g.adj_v_and_ec(it->first);
-			min_adjs_new_IDs[it->first] = new_ID_g.min_adj(it->first);
-		}
+		f_2019R1_new_ID = case_info.f_2019R1;	
 		end = std::chrono::high_resolution_clock::now();
 		case_info.time_canonical_repair1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 
-
 		begin = std::chrono::high_resolution_clock::now();
-		canonical_repair_multi_threads(new_ID_g, case_info.label_size_before_canonical_repair, case_info.label_size_after_canonical_repair, case_info.canonical_repair_remove_label_ratio, num_of_threads);
+		canonical_repair_multi_threads(input_graph, case_info.label_size_before_canonical_repair, case_info.label_size_after_canonical_repair, case_info.canonical_repair_remove_label_ratio, num_of_threads);
 		end = std::chrono::high_resolution_clock::now();
 		case_info.time_canonical_repair2 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 	}
