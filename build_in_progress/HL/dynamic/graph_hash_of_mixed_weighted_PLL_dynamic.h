@@ -149,6 +149,7 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 			weightTYPE P_u = node.priority_value;
 			weightTYPE P_u_with_error = P_u + 1e-5;
 			weightTYPE query_v_k_u = std::numeric_limits<weightTYPE>::max();
+			int common_hub_for_query_v_k_u;
 
 #ifdef _WIN32
 			mtx_595[u].lock();
@@ -158,14 +159,14 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 				mtx_595[u].lock();      // put lock in for loop is very slow, but it may be the only way under Windows
 				weightTYPE dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];
 				mtx_595[u].unlock();
-				if (query_v_k_u > dis) { query_v_k_u = dis; }
+				if (query_v_k_u > dis) { query_v_k_u = dis; common_hub_for_query_v_k_u = L_temp_595[u][i].vertex; }
 			} //求query的值		
 #else
 			mtx_595[u].lock();
 			auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
 			for (int i = 0; i < L_u_size1; i++) {
 				weightTYPE dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
-				if (query_v_k_u > dis) { query_v_k_u = dis; }
+				if (query_v_k_u > dis) { query_v_k_u = dis; common_hub_for_query_v_k_u = L_temp_595[u][i].vertex; }
 			} //求query的值
 			mtx_595[u].unlock();
 #endif
@@ -203,6 +204,15 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 					}
 				}
 			}	
+			else {
+				/* add v_k into PPR(u,common_hub_for_query_v_k_u), and add u into PPR(v_k,common_hub_for_query_v_k_u)*/
+				mtx_595[u].lock();
+				PPR_insert(PPR_595, u, common_hub_for_query_v_k_u, v_k);
+				mtx_595[u].unlock();
+				mtx_595[v_k].lock();
+				PPR_insert(PPR_595, v_k, common_hub_for_query_v_k_u, u);
+				mtx_595[v_k].unlock();
+			}
 		}
 	}
 
@@ -264,6 +274,7 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
 	L_temp_595.resize(max_N_ID);
+	PPR_595.resize(max_N_ID);
 	int N = input_graph.hash_of_vectors.size();
 
 	/*change graphs*/
@@ -567,6 +578,7 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 
 
 	case_info.L = L_temp_595;
+	case_info.PPR = PPR_595;
 
 	graph_hash_of_mixed_weighted_two_hop_clear_global_values();
 }

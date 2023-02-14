@@ -34,6 +34,8 @@ rm A
 
 */
 #include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_PLL_dynamic.h>
+#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance.h>
+#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
@@ -143,11 +145,13 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			weightIncrease_time--;
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, selected_edge_weight * (1 + weightChange_ratio)); // increase weight
 			/*maintain labels*/
+			WeightIncreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, selected_edge_weight * (1 + weightChange_ratio));
 		}
 		else {
 			weightDecrease_time--;
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, selected_edge_weight * (1 - weightChange_ratio)); // decrease weight
 			/*maintain labels*/
+			WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, selected_edge_weight * (1 - weightChange_ratio));
 		}
 	}
 

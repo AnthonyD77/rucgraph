@@ -3,7 +3,7 @@
 #include <tool_functions/ThreadPool.h>
 #include <shared_mutex>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
-
+#include <build_in_progress/HL/dynamic/PPR.h>
 
 #define weightTYPE float // can be double or float (float barely cause precision errors in common cases; cannot be int, int causes precision errors, needs debug)
 
@@ -30,6 +30,7 @@ bool if_continue_595;
 graph_v_of_v_idealID ideal_graph_595;
 vector<vector<two_hop_label_v1>> L_595;
 vector<vector<two_hop_label_v1>> L_temp_595;
+PPR_type PPR_595;
 std::shared_mutex mtx_595_1, mtx_595_2;
 int max_N_ID_for_mtx_595 = 1e7;  // this is the max N to run
 vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595);  // std::mutex has no copy or move constructor, while std::vector::resize() requires that; you cannot resize mtx;    
@@ -56,6 +57,7 @@ void graph_hash_of_mixed_weighted_two_hop_clear_global_values() {
 	graph_v_of_v_idealID().swap(ideal_graph_595);
 	vector<vector<two_hop_label_v1>>().swap(L_595);
 	vector<vector<two_hop_label_v1>>().swap(L_temp_595);
+	PPR_type().swap(PPR_595);
 	queue<int>().swap(Qid_595);
 	vector<vector<weightTYPE>>().swap(P_dij_595);
 	vector<vector<weightTYPE>>().swap(T_dij_595);
@@ -124,7 +126,7 @@ public:
 	vector<int> reduction_measures_2019R1; // for 2019 R1;  11 means equivalent_1 relation (no edge between), 12 means equivalent_2 relation (edge between)
 	vector<int> f_2019R1; // for 2019 R1
 	vector<vector<two_hop_label_v1>> L;
-	
+	PPR_type PPR; // for dynamic maintenance
 
 	/*canonical_repair info*/
 	bool use_canonical_repair = false;
