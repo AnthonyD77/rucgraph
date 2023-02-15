@@ -1,6 +1,6 @@
 # rucgraph
 
-This is a library of cpp header files mainly used for performing graph computing tasks. Here is a [Table of Contents](assets/Introduction.pdf). Some other descriptions can be found on this [page](https://yahuisun.github.io/rucgraph/). <b>Welcome to joining the development of rucgraph by pulling requests!</b>
+This is a library of cpp header files mainly used for performing graph computing tasks. Here is a [Table of Contents](assets/Introduction.pdf). Some other descriptions can be found on this [page](https://yahuisun.github.io/rucgraph/). <b>Welcome to joining the development of rucgraph by pulling requests!</b> (Contact: yahuisun@ruc.edu.cn)
 
 
 
