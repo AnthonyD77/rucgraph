@@ -587,6 +587,7 @@ weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vec
 	}
 
 	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
+
 	auto vector1_check_pointer = L[source].begin();
 	auto vector2_check_pointer = L[terminal].begin();
 	auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
@@ -607,6 +608,41 @@ weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vec
 	}
 
 	return distance;
+
+}
+
+pair<weightTYPE, int> graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(vector<vector<two_hop_label_v1>>& L, int source, int terminal) {
+
+	/*return std::numeric_limits<double>::max() is not connected*/
+
+	if (source == terminal) {
+		return {0, source };
+	}
+
+	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
+	int common_hub;
+
+	auto vector1_check_pointer = L[source].begin();
+	auto vector2_check_pointer = L[terminal].begin();
+	auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
+	while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end) {
+		if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
+			weightTYPE dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
+			if (distance > dis) {
+				distance = dis;
+				common_hub = vector1_check_pointer->vertex;
+			}
+			vector1_check_pointer++;
+		}
+		else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex) {
+			vector2_check_pointer++;
+		}
+		else {
+			vector1_check_pointer++;
+		}
+	}
+
+	return { distance , common_hub };
 
 }
 
