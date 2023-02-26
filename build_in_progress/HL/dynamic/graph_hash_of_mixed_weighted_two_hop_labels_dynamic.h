@@ -203,7 +203,7 @@ bool compare_two_hop_label_small_to_large(two_hop_label_v1& i, two_hop_label_v1&
 	return i.vertex < j.vertex;  // < is from small to big; > is from big to small
 }
 
-void sorted_two_hop_label_v1_vector_binary_insert_or_update(std::vector<two_hop_label_v1>& input_vector, int key, weightTYPE value) {
+void insert_sorted_two_hop_label(std::vector<two_hop_label_v1>& input_vector, int key, weightTYPE value) {
 
 	int left = 0, right = input_vector.size() - 1;
 

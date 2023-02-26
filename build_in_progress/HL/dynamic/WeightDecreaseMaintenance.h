@@ -28,13 +28,13 @@ void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mix
 		auto neis = instance_graph.adj_v_and_ec(it->left);
 		for (auto nei = neis.begin(); nei != neis.end(); nei++) {
 			if (it->right < nei->first) {
-				auto query_result = Q2(nei->first, it->right);
+				auto query_result = Q2(nei->first, it->right); // query_result is {distance, common hub}
 				if (query_result.first > it->dis + nei->second) {
-					sorted_two_hop_label_v1_vector_binary_insert_or_update(mm.L[nei->first], it->right, it->dis + nei->second);
+					insert_sorted_two_hop_label(mm.L[nei->first], it->right, it->dis + nei->second);
 					xx.left = nei->first, xx.right = it->right, xx.dis = it->dis + nei->second;
 					CL_next.push_back(xx);
 				}
-				else {
+				else { // update PPR
 					PPR_insert(mm.PPR, nei->first, query_result.second, it->right);
 					PPR_insert(mm.PPR, it->right, query_result.second, nei->first);
 				}
@@ -53,20 +53,15 @@ void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 
 	for (auto it = mm.L[v1].begin(); it != mm.L[v1].end(); it++) {
 		if (it->vertex < v2 && Q(it->vertex, v2) > it->distance + w_new) {
-			sorted_two_hop_label_v1_vector_binary_insert_or_update(mm.L[v2], it->vertex, it->distance + w_new);
+			insert_sorted_two_hop_label(mm.L[v2], it->vertex, it->distance + w_new);
 			xx.left = v2, xx.right = it->vertex, xx.dis = it->distance + w_new;
 			CL_curr.push_back(xx);
 		}
 	}
 
 	for (auto it = mm.L[v2].begin(); it != mm.L[v2].end(); it++) {
-
-		//if (it->vertex == 1) {
-		//	cout << it->vertex << " " << it->distance << " " << v1 << endl;
-		//}
-
-		if (it->vertex < v1 && Q(it->vertex, v1) > it->distance + w_new) {
-			sorted_two_hop_label_v1_vector_binary_insert_or_update(mm.L[v1], it->vertex, it->distance + w_new);
+		if (it->vertex < v1 && Q(it->vertex, v1) > it->distance + w_new) { // comparing rank is required here, since the ranks of v1 and v2 are not sorted in this function
+			insert_sorted_two_hop_label(mm.L[v1], it->vertex, it->distance + w_new);
 			xx.left = v1, xx.right = it->vertex, xx.dis = it->distance + w_new;
 			CL_curr.push_back(xx);
 		}
