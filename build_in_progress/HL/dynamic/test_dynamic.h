@@ -149,7 +149,15 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 		}
 		else {
 			weightDecrease_time--;
+
+			/*debug*/
+			//selected_edge.first = 2, selected_edge.second = 1;
+			//selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, selected_edge_weight * (1 - weightChange_ratio)); // decrease weight
+
+			//cout << "ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
+
 			/*maintain labels*/
 			WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, selected_edge_weight * (1 - weightChange_ratio));
 		}
@@ -161,10 +169,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 500, precision = 1, thread_num = 5;
+	int V = 5, E = 5, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
-	int weightIncrease_time = 0, weightDecrease_time = 0;
+	int weightIncrease_time = 0, weightDecrease_time = 1;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
@@ -186,7 +194,7 @@ void test_dynamic() {
 		cout << i << endl;
 
 		/*input and output; below is for generating random new graph, or read saved graph*/
-		int generate_new_graph = 1;
+		int generate_new_graph = 0;
 		std::unordered_set<int> generated_group_vertices;
 		graph_hash_of_mixed_weighted instance_graph, generated_group_graph;
 		if (generate_new_graph == 1) {
@@ -198,7 +206,7 @@ void test_dynamic() {
 			double lambda;
 			graph_hash_of_mixed_weighted_read_graph_with_weight("simple_iterative_tests.txt", instance_graph, lambda);
 		}
-		//graph_hash_of_mixed_weighted_print(instance_graph);
+		graph_hash_of_mixed_weighted_print(instance_graph);
 
 
 		auto begin = std::chrono::high_resolution_clock::now();
@@ -226,6 +234,8 @@ void test_dynamic() {
 		avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
 		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
 
+
+		mm.print_L();
 		/*debug*/
 		if (0) {
 			graph_hash_of_mixed_weighted_print(instance_graph);

@@ -203,6 +203,31 @@ bool compare_two_hop_label_small_to_large(two_hop_label_v1& i, two_hop_label_v1&
 	return i.vertex < j.vertex;  // < is from small to big; > is from big to small
 }
 
+void sorted_two_hop_label_v1_vector_binary_insert_or_update(std::vector<two_hop_label_v1>& input_vector, int key, weightTYPE value) {
+
+	int left = 0, right = input_vector.size() - 1;
+
+	two_hop_label_v1 xx;
+	xx.vertex = key;
+	xx.distance = value;
+
+	while (left <= right) // it will be skept when input_vector.size() == 0
+	{
+		int mid = left + ((right - left) / 2); // mid is between left and right (may be equal); 
+		if (input_vector[mid].vertex == key) {
+			input_vector[mid] = xx;
+			return;
+		}
+		else if (input_vector[mid].vertex > key) {
+			right = mid - 1; // the elements after right are always either empty, or have larger keys than input key
+		}
+		else {
+			left = mid + 1; // the elements before left are always either empty, or have smaller keys than input key
+		}
+	}
+	input_vector.insert(input_vector.begin() + left, xx);
+}
+
 /*the following locks are used in PLL search process and canonical_repair*/
 
 /*
