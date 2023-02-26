@@ -27,7 +27,7 @@ void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mix
 	for (auto it = CL_curr.begin(); it != CL_curr.end(); it++) {
 		auto neis = instance_graph.adj_v_and_ec(it->left);
 		for (auto nei = neis.begin(); nei != neis.end(); nei++) {
-			//if (it->right < nei->first) {
+			if (it->right < nei->first) {
 				auto query_result = Q2(nei->first, it->right);
 				if (query_result.first > it->dis + nei->second) {
 					sorted_two_hop_label_v1_vector_binary_insert_or_update(mm.L[nei->first], it->right, it->dis + nei->second);
@@ -41,7 +41,6 @@ void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mix
 			}
 		}
 	}
-
 }
 
 void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new) {

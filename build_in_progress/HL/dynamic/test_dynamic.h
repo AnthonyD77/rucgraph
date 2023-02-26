@@ -169,10 +169,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 5, E = 5, precision = 1, thread_num = 5;
+	int V = 100, E = 150, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
-	int weightIncrease_time = 0, weightDecrease_time = 1;
+	int weightIncrease_time = 0, weightDecrease_time = 10;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
@@ -194,7 +194,7 @@ void test_dynamic() {
 		cout << i << endl;
 
 		/*input and output; below is for generating random new graph, or read saved graph*/
-		int generate_new_graph = 0;
+		int generate_new_graph = 1;
 		std::unordered_set<int> generated_group_vertices;
 		graph_hash_of_mixed_weighted instance_graph, generated_group_graph;
 		if (generate_new_graph == 1) {
@@ -206,7 +206,7 @@ void test_dynamic() {
 			double lambda;
 			graph_hash_of_mixed_weighted_read_graph_with_weight("simple_iterative_tests.txt", instance_graph, lambda);
 		}
-		graph_hash_of_mixed_weighted_print(instance_graph);
+		//graph_hash_of_mixed_weighted_print(instance_graph);
 
 
 		auto begin = std::chrono::high_resolution_clock::now();
@@ -235,7 +235,7 @@ void test_dynamic() {
 		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
 
 
-		mm.print_L();
+		//mm.print_L();
 		/*debug*/
 		if (0) {
 			graph_hash_of_mixed_weighted_print(instance_graph);
