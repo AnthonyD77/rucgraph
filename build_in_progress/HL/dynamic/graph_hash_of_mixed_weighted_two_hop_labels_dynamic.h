@@ -187,7 +187,18 @@ public:
 			cout << "f_2019R1[" << i << "]=" << f_2019R1[i] << endl;
 		}
 	}
-
+	void print_PPR() {
+		cout << "print_PPR:" << endl;
+		for (int i = 0; i < PPR.size(); i++) {
+			for (int j = 0; j < PPR[i].size(); j++) {
+				cout << "PPR(" << i << "," << PPR[i][j].first << "): ";
+				for (int k = 0; k < PPR[i][j].second.size(); k++) {
+					cout << PPR[i][j].second[k] << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
 };
 
 
@@ -226,6 +237,28 @@ void insert_sorted_two_hop_label(std::vector<two_hop_label_v1>& input_vector, in
 		}
 	}
 	input_vector.insert(input_vector.begin() + left, xx);
+}
+
+weightTYPE search_sorted_two_hop_label(std::vector<two_hop_label_v1>& input_vector, int key) {
+
+	/*return true if key is in vector; time complexity O(log n)*/
+
+	int left = 0, right = input_vector.size() - 1;
+
+	while (left <= right) {
+		int mid = left + ((right - left) / 2); // mid is between left and right (may be equal); 
+		if (input_vector[mid].vertex == key) {
+			return input_vector[mid].distance;
+		}
+		else if (input_vector[mid].vertex > key) {
+			right = mid - 1;
+		}
+		else {
+			left = mid + 1;
+		}
+	}
+
+	return std::numeric_limits<weightTYPE>::max();
 }
 
 /*the following locks are used in PLL search process and canonical_repair*/

@@ -185,6 +185,7 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 				for (int i = 0; i < u_adj_size; i++) {
 					int adj_v = ideal_graph_595[u][i].first; // this needs to be locked
 					weightTYPE ec = ideal_graph_595[u][i].second;
+
 					if (P_dij_595[used_id][adj_v] == std::numeric_limits<weightTYPE>::max()) { //尚未到达的点
 						node.vertex = adj_v;
 						node.parent_vertex = u;
@@ -200,6 +201,15 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 							node.priority_value = P_u + ec;
 							Q.update(Q_handles[adj_v], node);
 							P_dij_595[used_id][adj_v] = node.priority_value;
+						}
+						else {
+							/* add v_k into PPR(u,common_hub_for_query_v_k_u), and add u into PPR(v_k,common_hub_for_query_v_k_u)*/
+							mtx_595[u].lock();
+							PPR_insert(PPR_595, u, v_k, v_k);
+							mtx_595[u].unlock();
+							mtx_595[v_k].lock();
+							PPR_insert(PPR_595, v_k, v_k, u);
+							mtx_595[v_k].unlock();
 						}
 					}
 				}
