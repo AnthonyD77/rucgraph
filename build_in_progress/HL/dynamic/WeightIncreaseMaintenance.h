@@ -58,7 +58,6 @@ void PI12(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weig
 	for (auto it = al1_curr.begin(); it != al1_curr.end(); it++) {
 		std::vector<int> temp = PPR_retrieve(mm.PPR, it->first, it->second);
 		PPR_binary_operations_insert(temp, it->second);
-
 		for (auto t = temp.begin(); t != temp.end(); t++) {
 			if (it->first < *t) { //  && !nop.count(pair_label(*t, it->first))
 				weightTYPE d1 = std::numeric_limits<weightTYPE>::max();
