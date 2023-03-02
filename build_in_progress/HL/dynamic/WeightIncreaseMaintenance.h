@@ -24,53 +24,42 @@ public:
 		first = _first;
 		second = _second;
 	}
-	bool operator < (const pair_label other) const { // used to sort pair_label in set
-		if (first != other.first)
-			return first < other.first;
-		return second < other.second;
-	}
-	bool operator == (const pair_label other) const { // used to search pair_label in NoP
-		if (first != other.first)
-			return false;
-		return second == other.second;
-	}
+	//bool operator < (const pair_label other) const { // used to sort pair_label in set
+	//	if (first != other.first)
+	//		return first < other.first;
+	//	return second < other.second;
+	//}
+	//bool operator == (const pair_label other) const { // used to search pair_label in NoP
+	//	if (first != other.first)
+	//		return false;
+	//	return second == other.second;
+	//}
 };
 
 
 void PI11(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
 	std::vector<affected_label>& al1_curr, std::vector<affected_label>& al1_next, weightTYPE w_change) {
 
-	//weightTYPE d_nei_max = std::numeric_limits<weightTYPE>::max();
 	for (auto it = al1_curr.begin(); it != al1_curr.end(); it++) {
 		auto v_neis = instance_graph.adj_v_and_ec(it->first);
 		for (auto nei = v_neis.begin(); nei != v_neis.end(); nei++) {
-			//if (search_sorted_two_hop_label(mm.L[nei->first], it->second) + nei->second < d_nei_max) {
-			//	d_nei_max = search_sorted_two_hop_label(mm.L[nei->first], it->second) + nei->second;
-			//}
 			if (abs(it->dis + nei->second - search_sorted_two_hop_label(mm.L[nei->first], it->second)) < 1e-5) {
 				al1_next.push_back(affected_label(nei->first, it->second, it->dis + nei->second));
 			}
 		}
 		insert_sorted_two_hop_label(mm.L[it->first], it->second, it->dis + w_change);
-		//insert_sorted_two_hop_label(mm.L[it->first], it->second, min(it->dis + w_change, d_nei_max));
 	}
 
 }
 
 void PI12(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
-	std::vector<affected_label>& al1_curr, std::vector<pair_label>& al2_next, std::set<pair_label>& nop) {
+	std::vector<affected_label>& al1_curr, std::vector<pair_label>& al2_next) { //, std::set<pair_label>& nop) {
 
 	for (auto it = al1_curr.begin(); it != al1_curr.end(); it++) {
 		std::vector<int> temp = PPR_retrieve(mm.PPR, it->first, it->second);
-
-		temp.push_back(it->second);
-
+		PPR_binary_operations_insert(temp, it->second);
 
 		for (auto t = temp.begin(); t != temp.end(); t++) {
-
-			
-
-
 			if (it->first < *t) { //  && !nop.count(pair_label(*t, it->first))
 				weightTYPE d1 = std::numeric_limits<weightTYPE>::max();
 				auto neis = instance_graph.adj_v_and_ec(*t);
@@ -107,21 +96,13 @@ void PI12(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weig
 					PPR_insert(mm.PPR, it->first, query_result.second, *t);
 				}
 			}
-
-			//if (nop.count(pair_label(*t, it->first)) == 1) {
-			//	cout << "here" << endl;
-			//}
-
-			//if (nop.count(pair_label(it->first, *t)) == 1) {
-			//	cout << "here" << endl;
-			//}
 		}
 	}
 
 }
 
 void PI22(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
-	std::vector<pair_label>& al2_curr, std::vector<pair_label>& al2_next, std::set<pair_label>& nop) {
+	std::vector<pair_label>& al2_curr, std::vector<pair_label>& al2_next) { //, std::set<pair_label>& nop) {
 
 	for (auto it = al2_curr.begin(); it != al2_curr.end(); it++) {
 		auto v_neis = instance_graph.adj_v_and_ec(it->first);
@@ -148,13 +129,7 @@ void PI22(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weig
 
 void WeightIncreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new) {
 
-
-	//cout << "xx " << Q(v1, v2) << " " << w_old << endl;
-
-	//if (Q(v1, v2) + 1e-5 < w_old)
-	//	return;
-
-	std::set<pair_label> nop;
+	//std::set<pair_label> nop;
 	std::vector<affected_label> al1_curr, al1_next;
 	std::vector<pair_label> al2_curr, al2_next;
 
@@ -172,8 +147,8 @@ void WeightIncreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 
 	while (al1_curr.size() || al2_curr.size()) {
 		PI11(instance_graph, mm, al1_curr, al1_next, w_new - w_old);
-		PI12(instance_graph, mm, al1_curr, al2_next, nop);
-		PI22(instance_graph, mm, al2_curr, al2_next, nop);
+		PI12(instance_graph, mm, al1_curr, al2_next); //, nop);
+		PI22(instance_graph, mm, al2_curr, al2_next); //, nop);
 		al1_curr = al1_next;
 		al2_curr = al2_next;
 		std::vector<affected_label>().swap(al1_next);

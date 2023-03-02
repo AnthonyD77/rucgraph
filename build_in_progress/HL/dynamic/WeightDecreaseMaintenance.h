@@ -18,9 +18,6 @@ void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mix
 	changed_label xx;
 
 	for (auto it = CL_curr.begin(); it != CL_curr.end(); it++) {
-
-		//insert_sorted_two_hop_label(mm.L[it->left], it->right, it->dis);
-
 		auto neis = instance_graph.adj_v_and_ec(it->left);
 		for (auto nei = neis.begin(); nei != neis.end(); nei++) {
 			if (it->right < nei->first) {
@@ -40,9 +37,6 @@ void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mix
 }
 
 void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new) {
-
-	//if (Q(v1, v2) + 1e-5 < w_new)
-	//	return;
 
 	std::vector<changed_label> CL_curr, CL_next;
 	changed_label xx;

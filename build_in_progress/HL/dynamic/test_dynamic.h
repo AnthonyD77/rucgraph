@@ -205,7 +205,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 void test_dynamic() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e4, iteration_source_times = 10, iteration_terminal_times = 10;
+	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
 	int V = 100, E = 150, precision = 1, thread_num = 1;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
