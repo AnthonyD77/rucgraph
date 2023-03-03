@@ -24,15 +24,10 @@ public:
 		first = _first;
 		second = _second;
 	}
-	//bool operator < (const pair_label other) const { // used to sort pair_label in set
+	//bool operator < (const pair_label other) const { // used to sort/search pair_label in set
 	//	if (first != other.first)
 	//		return first < other.first;
 	//	return second < other.second;
-	//}
-	//bool operator == (const pair_label other) const { // used to search pair_label in NoP
-	//	if (first != other.first)
-	//		return false;
-	//	return second == other.second;
 	//}
 };
 
@@ -131,6 +126,7 @@ void WeightIncreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 	//std::set<pair_label> nop;
 	std::vector<affected_label> al1_curr, al1_next;
 	std::vector<pair_label> al2_curr, al2_next;
+
 
 	for (auto it = mm.L[v1].begin(); it != mm.L[v1].end(); it++) {
 		if (it->vertex <= v2 && abs(search_sorted_two_hop_label(mm.L[v2], it->vertex) - it->distance - w_old) < 1e-5) {
