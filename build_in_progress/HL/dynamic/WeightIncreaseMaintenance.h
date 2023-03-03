@@ -110,7 +110,7 @@ void PI22(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weig
 			if (nei->first > it->second) {
 				weightTYPE search_result = search_sorted_two_hop_label(mm.L[it->first], it->second) + nei->second;
 				auto query_result = Q2(nei->first, it->second);
-				if (query_result.first + 1e-5 >= search_result) {
+				if (query_result.first + 1e-3 >= search_result) {
 					insert_sorted_two_hop_label(mm.L[nei->first], it->second, search_result);
 					al2_next.push_back(pair_label(nei->first, it->second));
 					//nop.insert(pair_label(nei->first, it->second));
