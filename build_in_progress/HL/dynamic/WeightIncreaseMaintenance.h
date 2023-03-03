@@ -38,8 +38,9 @@ void PI11(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weig
 	for (auto it = al1_curr.begin(); it != al1_curr.end(); it++) {
 		auto v_neis = instance_graph.adj_v_and_ec(it->first);
 		for (auto nei = v_neis.begin(); nei != v_neis.end(); nei++) {
-			if (abs(it->dis + nei->second - search_sorted_two_hop_label(mm.L[nei->first], it->second)) < 1e-5) {
-				al1_next.push_back(affected_label(nei->first, it->second, it->dis + nei->second));
+			weightTYPE search_weight = search_sorted_two_hop_label(mm.L[nei->first], it->second);
+			if (abs(it->dis + nei->second - search_weight) < 1e-5) {
+				al1_next.push_back(affected_label(nei->first, it->second, search_weight));
 			}
 		}
 		insert_sorted_two_hop_label(mm.L[it->first], it->second, it->dis + w_change);

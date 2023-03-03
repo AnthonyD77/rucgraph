@@ -22,7 +22,8 @@ void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mix
 		for (auto nei = neis.begin(); nei != neis.end(); nei++) {
 			if (it->right < nei->first) {
 				auto query_result = Q2(nei->first, it->right); // query_result is {distance, common hub}
-				if (query_result.first > it->dis + nei->second || abs(search_sorted_two_hop_label(mm.L[nei->first], it->right) - it->dis - nei->second - weight_change) < 1e-5) {
+				weightTYPE search_weight = search_sorted_two_hop_label(mm.L[nei->first], it->right);
+				if (query_result.first > it->dis + nei->second || abs(it->dis + nei->second + weight_change - search_weight) < 1e-5) {
 					insert_sorted_two_hop_label(mm.L[nei->first], it->right, it->dis + nei->second);
 					xx.left = nei->first, xx.right = it->right, xx.dis = it->dis + nei->second;
 					CL_next.push_back(xx);
