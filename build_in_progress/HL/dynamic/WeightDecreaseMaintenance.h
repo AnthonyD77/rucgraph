@@ -50,6 +50,8 @@ void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 		}
 	}
 
+	//cout << "x" << endl;
+
 	for (auto it = mm.L[v2].begin(); it != mm.L[v2].end(); it++) {
 		if (it->vertex <= v1 && (Q(it->vertex, v1) > it->distance + w_new || abs(search_sorted_two_hop_label(mm.L[v1], it->vertex) - it->distance - w_old) < 1e-5)) { // comparing rank is required here, since the ranks of v1 and v2 are not sorted in this function
 			insert_sorted_two_hop_label(mm.L[v1], it->vertex, it->distance + w_new);
@@ -58,7 +60,11 @@ void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 		}
 	}
 
+	//cout << "y" << endl;
+
 	while (CL_curr.size()) {
+		//cout << "z" << endl;
+		//getchar();
 		ProDecrease(instance_graph, mm, CL_curr, CL_next, w_old - w_new);
 		CL_curr = CL_next;
 		std::vector<changed_label>().swap(CL_next);
