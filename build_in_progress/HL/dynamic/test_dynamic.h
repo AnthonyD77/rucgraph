@@ -206,10 +206,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 5, E = 7, precision = 1, thread_num = 1;
+	int V = 100, E = 150, precision = 1, thread_num = 1;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
-	int weightIncrease_time = 0, weightDecrease_time = 1;
+	int weightIncrease_time = 20, weightDecrease_time = 20;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
