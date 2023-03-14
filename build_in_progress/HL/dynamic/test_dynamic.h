@@ -206,10 +206,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 150, precision = 1, thread_num = 1;
+	int V = 10, E = 15, precision = 1, thread_num = 1;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
-	int weightIncrease_time = 20, weightDecrease_time = 20;
+	int weightIncrease_time = 10, weightDecrease_time = 0;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
@@ -231,7 +231,7 @@ void test_dynamic() {
 		cout << i << endl;
 
 		/*input and output; below is for generating random new graph, or read saved graph*/
-		int generate_new_graph = 0;
+		int generate_new_graph = 1;
 		std::unordered_set<int> generated_group_vertices;
 		graph_hash_of_mixed_weighted instance_graph, generated_group_graph;
 		if (generate_new_graph == 1) {
