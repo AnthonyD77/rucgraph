@@ -5,7 +5,7 @@
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 #include <build_in_progress/HL/dynamic/PPR.h>
 
-#define weightTYPE float // can be double or float (float barely cause precision errors in common cases; cannot be int, int causes precision errors, needs debug)
+#define weightTYPE double // float causes error due to "if (query_result.first + 1e-3 >= search_result)" in IncresseMaintenance code
 
 /*PLL label format*/
 class two_hop_label_v1 {
@@ -260,6 +260,29 @@ weightTYPE search_sorted_two_hop_label(std::vector<two_hop_label_v1>& input_vect
 
 	return std::numeric_limits<weightTYPE>::max();
 }
+
+pair<weightTYPE, int> search_sorted_two_hop_label2(std::vector<two_hop_label_v1>& input_vector, int key) {
+
+	/*return true if key is in vector; time complexity O(log n)*/
+
+	int left = 0, right = input_vector.size() - 1;
+
+	while (left <= right) {
+		int mid = left + ((right - left) / 2); // mid is between left and right (may be equal); 
+		if (input_vector[mid].vertex == key) {
+			return { input_vector[mid].distance, mid };
+		}
+		else if (input_vector[mid].vertex > key) {
+			right = mid - 1;
+		}
+		else {
+			left = mid + 1;
+		}
+	}
+
+	return { std::numeric_limits<weightTYPE>::max(), -1 };
+}
+
 
 /*the following locks are used in PLL search process and canonical_repair*/
 

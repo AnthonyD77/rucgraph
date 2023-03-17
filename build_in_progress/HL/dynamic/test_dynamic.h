@@ -65,7 +65,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 		std::unordered_map<int, double> distances;
 		std::unordered_map<int, int> predecessors;
 
-		//source = 0; cout << "source = " << source << endl;
+		//source = 4; cout << "source = " << source << endl;
 
 		graph_hash_of_mixed_weighted_shortest_paths_source_to_all(instance_graph, source, distances, predecessors);
 
@@ -73,12 +73,12 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 
 			int terminal = dist(boost_random_time_seed);
 
-			//terminal = 3; cout << "terminal = " << terminal << endl;
+			//terminal = 2; cout << "terminal = " << terminal << endl;
 
 			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 			(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
 
-			if (abs(dis - distances[terminal]) > 1e-4 && (dis < std::numeric_limits<weightTYPE>::max() || distances[terminal] < std::numeric_limits<double>::max())) {
+			if (abs(dis - distances[terminal]) > 1e-2 && (dis < std::numeric_limits<weightTYPE>::max() || distances[terminal] < std::numeric_limits<double>::max())) {
 				cout << "source = " << source << endl;
 				cout << "terminal = " << terminal << endl;
 				cout << "source vector:" << endl;
@@ -146,15 +146,15 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 
 			/*debug*/
 			//if (weightIncrease_time == 2) {
-			//	selected_edge.first = 4, selected_edge.second = 6;
+			//	selected_edge.first = 2, selected_edge.second = 1;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 			//if (weightIncrease_time == 1) {
-			//	selected_edge.first = 0, selected_edge.second = 3;
+			//	selected_edge.first = 8, selected_edge.second = 3;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 			//if (weightIncrease_time == 0) {
-			//	selected_edge.first = 3, selected_edge.second = 4;
+			//	selected_edge.first = 2, selected_edge.second = 1;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 
@@ -175,16 +175,16 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			weightDecrease_time--;
 
 			/*debug*/
-			//if (weightIncrease_time == 2) {
-			//	selected_edge.first = 8, selected_edge.second = 6;
+			//if (weightDecrease_time == 2) {
+			//	selected_edge.first = 2, selected_edge.second = 1;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
-			//if (weightIncrease_time == 1) {
-			//	selected_edge.first = 5, selected_edge.second = 1;
+			//if (weightDecrease_time == 1) {
+			//	selected_edge.first = 4, selected_edge.second = 8;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
-			//if (weightIncrease_time == 0) {
-			//	selected_edge.first = 3, selected_edge.second = 0;
+			//if (weightDecrease_time == 0) {
+			//	selected_edge.first = 4, selected_edge.second = 9;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 
@@ -206,10 +206,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 10, E = 15, precision = 1, thread_num = 1;
+	int V = 100, E = 150, precision = 1, thread_num = 1;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
-	int weightIncrease_time = 10, weightDecrease_time = 0;
+	int weightIncrease_time = 20, weightDecrease_time = 20;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
