@@ -18,7 +18,7 @@ void graph_v_of_v_idealID_read_for_GSTP(std::string instance_name, graph_v_of_v_
 			{
 				int V = std::stoi(Parsed_content[2]);
 				graph_v_of_v_idealID g(V);
-				input_graph = graph_v_of_v_idealID_copy_graph(g);
+				input_graph = g;
 			}
 			else if (!Parsed_content[0].compare("input_graph") && !Parsed_content[1].compare("Edge"))
 			{
@@ -31,7 +31,7 @@ void graph_v_of_v_idealID_read_for_GSTP(std::string instance_name, graph_v_of_v_
 			{
 				int V = std::stoi(Parsed_content[2]);
 				graph_v_of_v_idealID g(V);
-				group_graph = graph_v_of_v_idealID_copy_graph(g);
+				group_graph = g;
 			}
 			else if (!Parsed_content[0].compare("group_graph") && !Parsed_content[1].compare("Edge"))
 			{
