@@ -47,7 +47,6 @@ vector<int> reduction_measures_2019R1_new_ID;
 vector<int> reduction_measures_2019R2_new_ID;
 vector<int> f_2019R1_new_ID;
 vector<vector<two_hop_label_v1>> incremental_label_vectors;
-vector<vector<int>> labels_to_be_removed;
 vector <vector<pair<int, double>>> adjs_new_IDs;
 vector<pair<int, double>> min_adjs_new_IDs;
 
@@ -72,7 +71,6 @@ void graph_hash_of_mixed_weighted_two_hop_clear_global_values() {
 	vector<int>().swap(reduction_measures_2019R2_new_ID);
 	vector<int>().swap(f_2019R1_new_ID);
 	vector<vector<two_hop_label_v1>>().swap(incremental_label_vectors);
-	vector<vector<int>>().swap(labels_to_be_removed);
 	vector <vector<pair<int, double>>>().swap(adjs_new_IDs);
 	vector<pair<int, double>>().swap(min_adjs_new_IDs);
 }
@@ -150,7 +148,6 @@ public:
 		return size;
 	}
 
-
 	/*clear labels*/
 	void clear_labels() {
 		vector<int>().swap(reduction_measures_2019R2);
@@ -158,8 +155,6 @@ public:
 		vector<int>().swap(f_2019R1);
 		vector<vector<two_hop_label_v1>>().swap(L);	
 	}
-
-
 
 	/*printing*/
 	void print_L() {
@@ -190,7 +185,6 @@ public:
 			cout << "f_2019R1[" << i << "]=" << f_2019R1[i] << endl;
 		}
 	}
-
 };
 
 
@@ -434,48 +428,6 @@ double graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_re
 
 }
 
-void sorted_int_vector_binary_insert(std::vector<int>& input_vector, int key) {
-
-	int left = 0, right = input_vector.size() - 1;
-
-	while (left <= right) // it will be skept when input_vector.size() == 0
-	{
-		int mid = left + ((right - left) / 2); // mid is between left and right (may be equal); 
-		if (input_vector[mid] == key) {
-			return;
-		}
-		else if (input_vector[mid] > key) {
-			right = mid - 1; // the elements after right are always either empty, or have larger keys than input key
-		}
-		else {
-			left = mid + 1; // the elements before left are always either empty, or have smaller keys than input key
-		}
-	}
-	input_vector.insert(input_vector.begin() + left, key);
-}
-
-bool sorted_int_vector_binary_search(std::vector<int>& input_vector, int key) {
-
-	/*return true if key is in vector; time complexity O(log n)*/
-
-	int left = 0, right = input_vector.size() - 1;
-
-	while (left <= right) {
-		int mid = left + ((right - left) / 2); // mid is between left and right (may be equal); 
-		if (input_vector[mid] == key) {
-			return true;
-		}
-		else if (input_vector[mid] > key) {
-			right = mid - 1;
-		}
-		else {
-			left = mid + 1;
-		}
-	}
-
-	return false;
-}
-
 void canonical_repair_element1(graph_hash_of_mixed_weighted* instance_graph_pointer, int target_v) {
 
 	auto& instance_graph = *instance_graph_pointer;
@@ -484,9 +436,9 @@ void canonical_repair_element1(graph_hash_of_mixed_weighted* instance_graph_poin
 	for (; begin != end; begin++) {
 		int vertex = begin->vertex;
 		if (vertex == target_v) {
+			incremental_label_vectors[target_v].push_back(*begin);
 			continue;
 		}
-		double distance = begin->distance;
 		double query_dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_for_canonical_repair
 		(instance_graph, target_v, vertex, target_v);
 
@@ -497,31 +449,15 @@ void canonical_repair_element1(graph_hash_of_mixed_weighted* instance_graph_poin
 		//cout << "reduction_measures_2019R1_new_ID[vertex] " << reduction_measures_2019R1_new_ID[vertex] << endl;
 		//cout << "reduction_measures_2019R2_new_ID[vertex] " << reduction_measures_2019R2_new_ID[vertex] << endl;
 
-		if (query_dis < distance + 1e-5) { // 1e-5 is precision
-			sorted_int_vector_binary_insert(labels_to_be_removed[target_v], vertex); // this is not a canonical label
-		}
-		else {
-			incremental_label_vectors[target_v].push_back(*begin);
+		if (query_dis >= begin->distance + 1e-5) { // 1e-5 is precision
+			incremental_label_vectors[target_v].push_back(*begin); // this is a canonical label
 		}
 	}
-
 }
 
 void canonical_repair_element2(int target_v) {
-
-
-	auto& it = labels_to_be_removed[target_v];
-	vector<two_hop_label_v1> new_label_vector;
-	auto begin = L_temp_595[target_v].begin(), end = L_temp_595[target_v].end();
-	for (; begin != end; begin++) {
-		int vertex = begin->vertex;
-		if (sorted_int_vector_binary_search(it, vertex) == false) {
-			new_label_vector.push_back(*begin);
-		}
-	}
-	L_temp_595[target_v] = new_label_vector;
+	L_temp_595[target_v] = incremental_label_vectors[target_v];
 	vector<two_hop_label_v1>(L_temp_595[target_v]).swap(L_temp_595[target_v]);
-
 }
 
 void canonical_repair_multi_threads(graph_hash_of_mixed_weighted& instance_graph, long long int& label_size_before_canonical_repair,
@@ -529,7 +465,6 @@ void canonical_repair_multi_threads(graph_hash_of_mixed_weighted& instance_graph
 
 	int max_N_ID = L_temp_595.size();
 	incremental_label_vectors.resize(max_N_ID);
-	labels_to_be_removed.resize(max_N_ID); // this is like a sorted directed adjacenct list; labels_to_be_removed[i].contain(j) means L[i].(label.vertex == j) should be removed
 
 	ThreadPool pool(num_of_threads);
 	std::vector< std::future<int> > results; // return typename: xxx
@@ -557,11 +492,11 @@ void canonical_repair_multi_threads(graph_hash_of_mixed_weighted& instance_graph
 	label_size_before_canonical_repair = 0;
 	label_size_after_canonical_repair = 0;
 	for (int target_v = 0; target_v < max_N_ID; target_v++) {
-		label_size_before_canonical_repair = label_size_before_canonical_repair + L_temp_595[target_v].size();
-		label_size_after_canonical_repair = label_size_after_canonical_repair + L_temp_595[target_v].size();
-		int size = labels_to_be_removed[target_v].size();		
-		if (size > 0) {
-			label_size_after_canonical_repair = label_size_after_canonical_repair - size;
+		int old_size = L_temp_595[target_v].size();
+		int new_size = incremental_label_vectors[target_v].size();
+		label_size_before_canonical_repair = label_size_before_canonical_repair + old_size;
+		label_size_after_canonical_repair = label_size_after_canonical_repair + new_size;		
+		if (new_size < old_size) {
 			results.emplace_back(
 				pool.enqueue([target_v] { // pass const type value j to thread; [] can be empty
 						canonical_repair_element2(target_v);

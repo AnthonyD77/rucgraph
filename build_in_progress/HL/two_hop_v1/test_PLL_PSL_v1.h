@@ -142,9 +142,9 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 void test_PLL_PSL() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 500, precision = 1, thread_num = 5;
-	double ec_min = 2, ec_max = 2; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
+	int iteration_graph_times = 1e0, iteration_source_times = 10, iteration_terminal_times = 10;
+	int V = 1000, E = 5000, precision = 1, thread_num = 5;
+	double ec_min = 2, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
 	bool use_PLL = 1; // 1: PLL 0: PSL
 
@@ -195,7 +195,7 @@ void test_PLL_PSL() {
 			else {
 				graph_hash_of_mixed_weighted_PSL_v1(instance_graph, V + 1, thread_num, mm);
 			}
-			if (0) {
+			if (1) {
 				cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
 				cout << "mm.time_2019R1: " << mm.time_2019R1 << "s" << endl;
 				cout << "mm.time_2019R2_or_enhanced_pre: " << mm.time_2019R2_or_enhanced_pre << "s" << endl;
