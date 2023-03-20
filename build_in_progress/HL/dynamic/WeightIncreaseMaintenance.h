@@ -44,6 +44,7 @@ void PI11(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weig
 			}
 		}
 
+		/*it's not clear why (or whether) the following codes are required*/
 		pair<weightTYPE, int> search_result = search_sorted_two_hop_label2(mm.L[it->first], it->second);
 		int size = mm.L[it->first].size();
 		for (int enu = search_result.second + 1; enu < size; enu++) {
