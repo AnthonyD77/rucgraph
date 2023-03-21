@@ -48,6 +48,12 @@ void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mix
 					CL_next.push_back(xx);
 				}
 				else {
+					auto search_result = search_sorted_two_hop_label2(mm.L[nei->first], it->right);
+					if (search_result.first != std::numeric_limits<weightTYPE>::max() && search_result.first > it->dis + nei->second) {
+						mm.L[nei->first][search_result.second].distance = it->dis + nei->second;
+						xx.left = nei->first, xx.right = it->right, xx.dis = it->dis + nei->second;
+						CL_next.push_back(xx);
+					}
 					PPR_insert(mm.PPR, nei->first, query_result.second, it->right);
 					PPR_insert(mm.PPR, it->right, query_result.second, nei->first);
 				}
@@ -84,7 +90,6 @@ void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 		CL_curr = CL_next;
 		std::vector<changed_label>().swap(CL_next);
 	}
-
 
 
 	for (auto it = mm.L[v1].begin(); it != mm.L[v1].end(); it++) {	

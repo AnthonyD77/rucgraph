@@ -44,18 +44,18 @@ void PI11(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weig
 			}
 		}
 
-		/*it's not clear why (or whether) the following codes are required*/
-		pair<weightTYPE, int> search_result = search_sorted_two_hop_label2(mm.L[it->first], it->second);
-		int size = mm.L[it->first].size();
-		for (int enu = search_result.second + 1; enu < size; enu++) {
-			int u = mm.L[it->first][enu].vertex;
-			weightTYPE dis = mm.L[it->first][enu].distance;
-			if (search_result.first + search_sorted_two_hop_label(mm.L[u], it->second) < dis) {
-				mm.L[it->first][enu].distance = std::numeric_limits<weightTYPE>::max();
-				PPR_insert(mm.PPR, it->first, it->second, u);
-				PPR_insert(mm.PPR, u, it->second, it->first);
-			}
-		}
+		/*it's not clear whether the following codes are required (probably not)*/
+		//pair<weightTYPE, int> search_result = search_sorted_two_hop_label2(mm.L[it->first], it->second);
+		//int size = mm.L[it->first].size();
+		//for (int enu = search_result.second + 1; enu < size; enu++) {
+		//	int u = mm.L[it->first][enu].vertex;
+		//	weightTYPE dis = mm.L[it->first][enu].distance;
+		//	if (search_result.first + search_sorted_two_hop_label(mm.L[u], it->second) < dis) {
+		//		mm.L[it->first][enu].distance = std::numeric_limits<weightTYPE>::max();
+		//		PPR_insert(mm.PPR, it->first, it->second, u);
+		//		PPR_insert(mm.PPR, u, it->second, it->first);
+		//	}
+		//}
 
 		insert_sorted_two_hop_label(mm.L[it->first], it->second, std::numeric_limits<weightTYPE>::max());
 	}
