@@ -12,26 +12,6 @@ public:
 	weightTYPE dis;
 };
 
-void CLEAR(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
-	std::vector<changed_label>& CL_curr, std::vector<changed_label>& CL_next, weightTYPE weight_change) {
-
-	changed_label xx;
-
-	for (auto it = CL_curr.begin(); it != CL_curr.end(); it++) {
-		auto neis = instance_graph.adj_v_and_ec(it->left);
-		for (auto nei = neis.begin(); nei != neis.end(); nei++) {
-			if (it->right < nei->first) {
-				weightTYPE search_weight = search_sorted_two_hop_label(mm.L[nei->first], it->right);
-				if (abs(it->dis + nei->second + weight_change - search_weight) < 1e-5) {
-					insert_sorted_two_hop_label(mm.L[nei->first], it->right, std::numeric_limits<weightTYPE>::max());
-					xx.left = nei->first, xx.right = it->right, xx.dis = it->dis + nei->second;
-					CL_next.push_back(xx);
-				}
-			}
-		}
-	}
-}
-
 void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
 	std::vector<changed_label>& CL_curr, std::vector<changed_label>& CL_next, weightTYPE weight_change) {
 
@@ -67,31 +47,6 @@ void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 	std::vector<changed_label> CL_curr, CL_next;
 	changed_label xx;
 
-	for (auto it = mm.L[v1].begin(); it != mm.L[v1].end(); it++) {
-		if (it->vertex <= v2) {
-			if (abs(search_sorted_two_hop_label(mm.L[v2], it->vertex) - it->distance - w_old) < 1e-5) {
-				insert_sorted_two_hop_label(mm.L[v2], it->vertex, std::numeric_limits<weightTYPE>::max());
-				xx.left = v2, xx.right = it->vertex, xx.dis = it->distance + w_new;
-				CL_curr.push_back(xx);
-			}
-		}
-	}
-	for (auto it = mm.L[v2].begin(); it != mm.L[v2].end(); it++) {
-		if (it->vertex <= v1) {
-			if (abs(search_sorted_two_hop_label(mm.L[v1], it->vertex) - it->distance - w_old) < 1e-5) {
-				insert_sorted_two_hop_label(mm.L[v1], it->vertex, std::numeric_limits<weightTYPE>::max());
-				xx.left = v1, xx.right = it->vertex, xx.dis = it->distance + w_new;
-				CL_curr.push_back(xx);
-			}
-		}
-	}
-	while (CL_curr.size()) {
-		CLEAR(instance_graph, mm, CL_curr, CL_next, w_old - w_new);
-		CL_curr = CL_next;
-		std::vector<changed_label>().swap(CL_next);
-	}
-
-
 	for (auto it = mm.L[v1].begin(); it != mm.L[v1].end(); it++) {	
 		if (it->vertex <= v2) {
 			auto query_result = Q2(it->vertex, v2); // query_result is {distance, common hub}
@@ -101,6 +56,12 @@ void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 				CL_curr.push_back(xx);
 			}
 			else {
+				auto search_result = search_sorted_two_hop_label2(mm.L[v2], it->vertex);
+				if (search_result.first != std::numeric_limits<weightTYPE>::max() && search_result.first > it->distance + w_new) {
+					mm.L[v2][search_result.second].distance = it->distance + w_new;
+					xx.left = v2, xx.right = it->vertex, xx.dis = it->distance + w_new;
+					CL_next.push_back(xx);
+				}
 				PPR_insert(mm.PPR, v2, query_result.second, it->vertex);
 				PPR_insert(mm.PPR, it->vertex, query_result.second, v2);
 			}
@@ -115,6 +76,12 @@ void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 				CL_curr.push_back(xx);
 			}
 			else {
+				auto search_result = search_sorted_two_hop_label2(mm.L[v1], it->vertex);
+				if (search_result.first != std::numeric_limits<weightTYPE>::max() && search_result.first > it->distance + w_new) {
+					mm.L[v1][search_result.second].distance = it->distance + w_new;
+					xx.left = v1, xx.right = it->vertex, xx.dis = it->distance + w_new;
+					CL_next.push_back(xx);
+				}
 				PPR_insert(mm.PPR, v1, query_result.second, it->vertex);
 				PPR_insert(mm.PPR, it->vertex, query_result.second, v1);
 			}
