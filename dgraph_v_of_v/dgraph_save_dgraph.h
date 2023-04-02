@@ -9,7 +9,7 @@
  * @param input_graph   : dgraph to be stored
  */
 template <typename weight_type>
-void dgraph_save_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph)
+void dgraph_save_dgraph(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph)
 {
 
     std::ofstream outputFile;
@@ -20,24 +20,14 @@ void dgraph_save_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<wei
 
     outputFile << "SECTION Comments" << std::endl;
     outputFile << "Name \"" << instance_name << "\"" << std::endl;
-    outputFile << "Creator \"save_dgraph_with_weight\"" << std::endl;
+    outputFile << "Creator \"save_dgraph\"" << std::endl;
     outputFile << "END" << std::endl;
     outputFile << std::endl;
 
     // print to file
     int V = input_graph.INs.size();
     outputFile << "input_graph |V|= " << V << " |E|= " << input_graph.edge_number() << std::endl;
-
     outputFile << std::endl;
-
-    // for (int i = 0; i < V; i++)
-    // {
-    //     if ( input_graph.degree(i) > 0 )
-    //     {
-    //         outputFile << "Vertex " << i << '\n';
-    //     }
-    // }
-    // outputFile << std::endl;
 
     for (int i = 0; i < V; i++)
     {

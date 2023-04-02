@@ -146,6 +146,8 @@ dgraph_v_of_v<weight_type> dgraph_v_of_v<weight_type>::reverse_graph()
 }
 
 
+
+
 /*
 examples
 ----------------------

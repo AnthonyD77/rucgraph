@@ -14,10 +14,9 @@
  */
 
 template <typename weight_type>
-void dgraph_read_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph)
+void dgraph_read_dgraph(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph)
 {
     input_graph.clear();
-
     std::string line_content;
     std::ifstream myfile(instance_name);
     if (myfile.is_open())
@@ -29,14 +28,14 @@ void dgraph_read_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<wei
             if (!Parsed_content[0].compare("input_graph"))
             // when it's equal, compare returns 0
             {
-                int v = std::stoi(Parsed_content[2]);
-                input_graph = dgraph_v_of_v<weight_type>(v);
+                int V = std::stoi(Parsed_content[2]);
+                input_graph = dgraph_v_of_v<weight_type>(V);
             }
             else if (!Parsed_content[0].compare("Edge"))
             {
                 int v1 = std::stoi(Parsed_content[1]);
                 int v2 = std::stoi(Parsed_content[2]);
-                double ec = std::stod(Parsed_content[3]);
+                weight_type ec = std::stod(Parsed_content[3]);
                 input_graph.add_edge(v1, v2, ec);
             }
         }
