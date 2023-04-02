@@ -1,5 +1,4 @@
 #pragma once
-#include "dgraph_v_of_v.h"
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 #include <boost/random.hpp>
 
@@ -15,7 +14,8 @@
  * @return dgraph_v_of_v<double>
  */
 
-dgraph_v_of_v<double> generate_random_dgraph(long long int V, long long int E, double ec_min, double ec_max,
+template <typename weight_type>
+dgraph_v_of_v<weight_type> dgraph_generate_random_dgraph(long long int V, long long int E, weight_type ec_min, weight_type ec_max,
                                              int input_precision, boost::random::mt19937 &boost_random_time_seed)
 {
     /*time complexity: O(|E|)*/
@@ -24,7 +24,7 @@ dgraph_v_of_v<double> generate_random_dgraph(long long int V, long long int E, d
     boost::random::uniform_int_distribution<> dist_ec{static_cast<int>(ec_min * precision),
                                                       static_cast<int>(ec_max * precision)};
 
-    dgraph_v_of_v<double> random_graph(V);
+    dgraph_v_of_v<weight_type> random_graph(V);
 
     long long int max_E = V * (V - 1); // edge number of dgraph should double
 
@@ -67,7 +67,7 @@ dgraph_v_of_v<double> generate_random_dgraph(long long int V, long long int E, d
             boost::random::uniform_int_distribution<> dist_id{static_cast<int>(0),
                                                               static_cast<int>(not_full_vertices.size() - 1)};
             int RAND = dist_id(boost_random_time_seed); // generate int random number  0, not_full_vertices.size()-1
-            if (random_graph.degree_out(not_full_vertices[RAND]) < V - 1)
+            if (random_graph.OUTs[not_full_vertices[RAND]].size() < V - 1)
             { // here, we only need to check the out degree; later the 'contain_edge' will check the in degree
                 /*time complexity: O(|V|)*/
                 std::vector<int> unchecked(V);
@@ -104,12 +104,11 @@ dgraph_v_of_v<double> generate_random_dgraph(long long int V, long long int E, d
 }
 
 
-
-void example_generate_random_dgraph()
+void example_dgraph_generate_random_dgraph()
 {
     int V = 7, E = 20;
     double ec_min = 0.1, ec_max = 1;
     int precision = 1;
     
-    dgraph_v_of_v<double> instance_graph = generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+    dgraph_v_of_v<double> instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
 }

@@ -8,7 +8,8 @@
  * @param instance_name : file name of storage dgraph
  * @param input_graph   : dgraph to be stored
  */
-void save_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<double> &input_graph)
+template <typename weight_type>
+void dgraph_save_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph)
 {
 
     std::ofstream outputFile;
@@ -24,7 +25,7 @@ void save_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<double> &i
     outputFile << std::endl;
 
     // print to file
-    int V = input_graph.node_number();
+    int V = input_graph.INs.size();
     outputFile << "input_graph |V|= " << V << " |E|= " << input_graph.edge_number() << std::endl;
 
     outputFile << std::endl;
@@ -40,7 +41,7 @@ void save_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<double> &i
 
     for (int i = 0; i < V; i++)
     {
-        int out_size = input_graph.degree_out(i);
+        int out_size = input_graph.OUTs[i].size();
         for (int j = 0; j < out_size; j++)
         {
             outputFile << "Edge " << i << " " << input_graph.OUTs[i][j].first << " "

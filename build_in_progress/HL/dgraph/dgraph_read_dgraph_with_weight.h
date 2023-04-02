@@ -12,7 +12,9 @@
  * @param instance_name : file name of storage dgraph
  * @param input_graph   : dgraph to be read in
  */
-void read_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<double> &input_graph)
+
+template <typename weight_type>
+void dgraph_read_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph)
 {
     input_graph.clear();
 
@@ -28,7 +30,7 @@ void read_dgraph_with_weight(std::string instance_name, dgraph_v_of_v<double> &i
             // when it's equal, compare returns 0
             {
                 int v = std::stoi(Parsed_content[2]);
-                input_graph = dgraph_v_of_v<double>(v);
+                input_graph = dgraph_v_of_v<weight_type>(v);
             }
             else if (!Parsed_content[0].compare("Edge"))
             {

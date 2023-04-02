@@ -31,6 +31,8 @@ public:
 	inline weight_type edge_weight(int, int);
 	inline bool contain_edge(int, int); // whether there is an edge
 	inline long long int edge_number(); // the total number of edges
+	inline void clear();
+	inline dgraph_v_of_v<weight_type> reverse_graph();
 };
 
 
@@ -117,9 +119,31 @@ long long int dgraph_v_of_v<weight_type>::edge_number() {
 }
 
 
+template <typename weight_type>
+void dgraph_v_of_v<weight_type>::clear() {
+	std::vector<std::vector<std::pair<int, weight_type>>>().swap(INs);
+	std::vector<std::vector<std::pair<int, weight_type>>>().swap(OUTs);
+}
 
+template <typename weight_type>
+dgraph_v_of_v<weight_type> dgraph_v_of_v<weight_type>::reverse_graph()
+{
+	int graph_size = INs.size();
+	dgraph_v_of_v<weight_type> re_graph(graph_size);
 
+	for (int i = 0; i < graph_size; i++)
+	{
+		int size = INs[i].size();
+		for (int j = 0; j < size; j++)
+		{
+			int start = INs[i][j].first;
+			weight_type w = INs[i][j].second;
+			re_graph.add_edge(i, start, w);
+		}
+	}
 
+	return re_graph;
+}
 
 
 /*
