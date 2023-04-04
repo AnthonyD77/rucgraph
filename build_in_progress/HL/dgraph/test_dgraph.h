@@ -40,7 +40,6 @@ rm A
 /*not optimized; this file has been optimized*/
 #include <build_in_progress/HL/dgraph/dgraph_PLL.h>
 #include <build_in_progress/HL/dgraph/dgraph_PSL.h>
-#include <build_in_progress/HL/dgraph/dHL_base.h>
 #include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
 
 template <typename weight_type>
@@ -60,7 +59,7 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_v_of_v<w
             int terminal = dist(boost_random_time_seed);
             //terminal = 4; //cout << "terminal = " << terminal << endl;
 
-            weight_type dis = dgraph_v1_extract_shortest_distance(case_info.L_in, case_info.L_out, instance_graph, source, terminal);
+            weight_type dis = dgraph_v1_extract_shortest_distance(case_info.L_in, case_info.L_out, source, terminal);
 
             if (abs(dis - distances[terminal]) > 1e-4) {
                 cout << "source = " << source << endl;
@@ -120,7 +119,7 @@ void test_dgraph_PLL_PSL()
         auto begin = std::chrono::high_resolution_clock::now();
         try {
             if (use_PLL) {
-                dgraph_PLL(instance_graph, V, thread_num, mm);
+                dgraph_PLL(instance_graph, thread_num, mm);
             }
             else {
                 dgraph_PSL_v3(instance_graph, V, thread_num, mm);
