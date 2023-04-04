@@ -12,11 +12,11 @@ using namespace std;
 #include <boost/random.hpp>
 boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
 
-#include <dgraph_v_of_v/test_dgraph.h>
+#include <build_in_progress/HL/dgraph/test_dgraph.h>
 
 int main()
 {
-    test_dgraph();
+    test_dgraph_PLL_PSL();
 }
 
 ------------------------------------------------------------------------------------------
