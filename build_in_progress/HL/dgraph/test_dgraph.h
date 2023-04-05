@@ -112,7 +112,7 @@ void test_dgraph_PLL_PSL()
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
         else {
-            dgraph_read_dgraph("PLL_test.txt", instance_graph);
+            dgraph_read_dgraph("random_dgraph_test.txt", instance_graph);
         }
 
         auto begin = std::chrono::high_resolution_clock::now();
