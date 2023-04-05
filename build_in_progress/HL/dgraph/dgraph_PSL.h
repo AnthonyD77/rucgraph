@@ -6,362 +6,214 @@
 #include <boost/heap/fibonacci_heap.hpp>
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 
-void print_label_set(const std::vector<std::vector<two_hop_label>> &_L)
-{
-    for (int i = 0; i < _L.size(); i++)
-    {
-        std::cout << "[" << i << "] ";
-        for (auto &cur : _L[i])
-        {
-            std::cout << "(" << cur.vertex << "," << cur.distance << ") ";
-        }
-        std::cout << "\n";
-    }
+void propagate(dgraph_v_of_v<two_hop_weight_type>* input_graph, int k, int u) {
+
+	mtx.lock();
+	int current_tid = Qid_595.front();
+	Qid_595.pop();
+	mtx.unlock();
+
+	int N = input_graph->INs.size();
+	vector<int> dist_dirt_change;
+	vector<vector<two_hop_label>>* Lit; vector<vector<two_hop_label>>* Lit2;
+	std::vector<std::pair<int, two_hop_weight_type>>* adj_list;
+	if (k == 1) {
+		Lit = &L_temp_in;
+		Lit2 = &L_temp_out;
+		adj_list = &(input_graph->INs)[u];
+	}
+	else if (k == 0) {
+		Lit = &L_temp_out;
+		Lit2 = &L_temp_in;
+		adj_list = &(input_graph->OUTs)[u];
+	}
+
+	for (auto& cur : (*Lit)[u]) {
+		int v = cur.vertex;
+		two_hop_weight_type d = cur.distance;
+		dist[current_tid][v] = std::min(dist[current_tid][v], d);
+		if (dirt[current_tid][v]) { // using dirt is slightly faster than not using dirt
+			dirt[current_tid][v] = false;
+			dist[current_tid][v] = d;
+			dist_dirt_change.push_back(v);
+		}
+		else {
+			dist[current_tid][v] = std::min(dist[current_tid][v], d);
+		}
+	}
+
+	for (auto label : *adj_list) {
+		int v = label.first;
+		two_hop_weight_type dd = label.second;
+		for (int i = pos_595[k][v]; i < pos_595[k][v] + increment[k][v]; i++) {
+			int x = (*Lit)[v][i].vertex;
+			if (x <= u) { // lower ID has higher rank
+				two_hop_weight_type d_temp = dd + (*Lit)[v][i].distance;
+				bool flag = false;
+				for (auto it : (*Lit2)[x]) {
+					int y = it.vertex;
+					if (dist[current_tid][y] + it.distance <= d_temp) {
+						flag = true;
+						break;
+					}
+				}
+				if (flag) {
+					continue;
+				}
+				L_PSL_temp[k][u].push_back({ x, d_temp });
+			}
+		}
+	}
+
+	for (int v : dist_dirt_change) {
+		dist[current_tid][v] = std::numeric_limits<two_hop_weight_type>::max();
+		dirt[current_tid][v] = true;
+	}
+
+	mtx.lock();
+	Qid_595.push(current_tid);
+	mtx.unlock();
 }
 
-void propagate(const std::vector<dgraph_v_of_v<two_hop_weight_type>> &G, int k, int u)
-{
-    mtx.lock();
-    int current_tid = thread_id.front();    
-    //std::cout << "thread id:" << current_tid << " k:"
-    //          <<k << " u:" << u <<endl;
-    //cout << endl;
-    thread_id.pop();
-    mtx.unlock();
+void append(int k, int u) {
+	pos_2_595[k][u] = pos_595[k][u];
+	pos_595[k][u] += increment[k][u];
+	increment[k][u] = L_PSL_temp[k][u].size();
 
-    for (auto &cur : L_PSL[k][u])
-    {
-        int v = cur.vertex;
-        two_hop_weight_type d = cur.distance;
-        if (dirt[current_tid][v])
-        {
-            dirt[current_tid][v] = 0;
-            dmin[current_tid][v] = d;
-        }
-        else
-        {
-            dmin[current_tid][v] = std::min(dmin[current_tid][v], d);
-        }
-    }
+	if (k == 1) {
+		L_temp_in[u].insert(L_temp_in[u].end(), L_PSL_temp[k][u].begin(), L_PSL_temp[k][u].end());
+	}
+	else {
+		L_temp_out[u].insert(L_temp_out[u].end(), L_PSL_temp[k][u].begin(), L_PSL_temp[k][u].end());
+	}
 
-    for (auto label : G[k].OUTs[u])
-    {
-        int v = label.first;
-        two_hop_weight_type dd = label.second;
-
-        for (int i = pos_595[k][v]; i < pos_595[k][v] + increment[k][v]; i++)
-        //for (int i = 0; i < pos_595[k][v] + increment[k][v]; i++)
-        {
-            int x = L_PSL[k][v][i].vertex;
-            if (x > u)
-            { // higher rank means lower value of `rank`
-                continue;
-            }
-            two_hop_weight_type d_temp = dd + L_PSL[k][v][i].distance;
-
-            bool flag = false;
-            for (int j = 0; j < L_PSL[k ^ 1][x].size(); j++)
-            {
-                int y = L_PSL[k ^ 1][x][j].vertex;
-                if (!dirt[current_tid][y] && ((dmin[current_tid][y] + L_PSL[k ^ 1][x][j].distance) <= d_temp))
-                {
-                    flag = true;
-                    break;
-                }
-            }
-            if (flag)
-            {
-                continue;
-            }
-
-            // Line 17
-            L_PSL_temp[k][u].push_back({x, d_temp});
-        }
-    }
-
-    for (auto &cur : L_PSL[k][u])
-    {
-        int v = cur.vertex;
-        dirt[current_tid][v] = 1;
-    }
-
-    mtx.lock();
-    thread_id.push(current_tid);
-    mtx.unlock();
+	if (increment[k][u]) {
+		no_new_label_PSL = false;
+	}
+	vector<two_hop_label>().swap(L_PSL_temp[k][u]);
 }
 
-void propagate_v1(const std::vector<dgraph_v_of_v<two_hop_weight_type>> &G, int k, int u)
-{
-    mtx.lock();
-    int current_tid = thread_id.front();
-    // std::cout << "thread id:" << current_tid << " k:"
-    //           <<k << " u:" << u <<endl;
-    // cout << endl;
-    thread_id.pop();
-    mtx.unlock();
+void clean_incorrect_labels(int N, int num_of_threads) {
 
-    int N = G[0].INs.size();
+	ThreadPool pool(num_of_threads);
+	std::vector<std::future<int>> results;
 
-    vector<two_hop_weight_type> dmin(N, std::numeric_limits<two_hop_weight_type>::max());
-    vector<int> dirt(N, std::numeric_limits<two_hop_weight_type>::max());
+	for (int u = 0; u < N; u++) {
+		results.emplace_back(pool.enqueue([u, N] {
 
+			mtx.lock();
+			int current_tid = Qid_595.front();
+			Qid_595.pop();
+			mtx.unlock();
+			vector<two_hop_label>* Lit;
+			for (int k = 0; k < 2; k++) {
+				if (k == 1) {
+					Lit = &L_temp_in[u];
+				}
+				else if (k == 0) {
+					Lit = &L_temp_out[u];
+				}
+				/* save the smallest label for each hub of u in T */
+				vector<two_hop_label> L_temp;
+				vector<int> dirt_change;
+				int u_label_size = Lit->size();
+				for (int i = 0; i < u_label_size; i++) {
+					int w = (*Lit)[i].vertex;
+					two_hop_weight_type dis = (*Lit)[i].distance;
+					if (dirt[current_tid][w]) { // the same hub may have redundancy, record the shortest distance            
+						dirt[current_tid][w] = false;
+						dirt_change.push_back(w);
+						dist[current_tid][w] = dis;
+					}
+					else if (dis < dist[current_tid][w]) {
+						dist[current_tid][w] = dis;
+					}
+				}
+				sort(dirt_change.begin(), dirt_change.end());
+				for (int i : dirt_change) {
+					dirt[current_tid][i] = true;
+					two_hop_label xx;
+					xx.vertex = i;
+					xx.distance = dist[current_tid][i];
+					L_temp.push_back(xx);
+				}
+				*Lit = L_temp;
+			}
+			mtx.lock();
+			Qid_595.push(current_tid);
+			mtx.unlock();
 
-    for (auto &cur : L_PSL[k][u])
-    {
-        int v = cur.vertex;
-        two_hop_weight_type d = cur.distance;
-        if (dirt[v])
-        {
-            dirt[v] = 0;
-            dmin[v] = d;
-        }
-        else
-        {
-            dmin[v] = std::min(dmin[v], d);
-        }
-    }
-
-    for (auto label : G[k].OUTs[u])
-    {
-        int v = label.first;
-        two_hop_weight_type dd = label.second;
-
-        for (int i = pos_595[k][v]; i < pos_595[k][v] + increment[k][v]; i++)
-        // for (int i = 0; i < pos_595[k][v] + increment[k][v]; i++)
-        {
-            int x = L_PSL[k][v][i].vertex;
-            if (x > u)
-            { // higher rank means lower value of `rank`
-                continue;
-            }
-            two_hop_weight_type d_temp = dd + L_PSL[k][v][i].distance;
-
-            bool flag = false;
-            for (int j = 0; j < L_PSL[k ^ 1][x].size(); j++)
-            {
-                int y = L_PSL[k ^ 1][x][j].vertex;
-                if (!dirt[y] && ((dmin[y] + L_PSL[k ^ 1][x][j].distance) <= d_temp))
-                {
-                    flag = true;
-                    break;
-                }
-            }
-            if (flag)
-            {
-                continue;
-            }
-
-            // Line 17
-            L_PSL_temp[k][u].push_back({x, d_temp});
-        }
-    }
-
-    /*
-    for (auto &cur : L_PSL[k][u])
-    {
-        int v = cur.vertex;
-        dirt[v] = 1;
-    }
-    */
-
-    mtx.lock();
-    thread_id.push(current_tid);
-    mtx.unlock();
+			return 1; }));
+	}
 }
 
-void append(int k, int u)
-{   
-    pos_2_595[k][u] = pos_595[k][u];
-    pos_595[k][u] += increment[k][u];
-    increment[k][u] = L_PSL_temp[k][u].size();
+void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_threads, dgraph_case_info_v1& case_info) {
 
-    L_PSL[k][u].insert(L_PSL[k][u].end(), L_PSL_temp[k][u].begin(), L_PSL_temp[k][u].end());
-    vector<two_hop_label>(L_PSL[k][u]).swap(L_PSL[k][u]);
-}
+	int N = input_graph.INs.size();
+	L_temp_in.resize(N);
+	L_temp_out.resize(N);
 
-void shrink(int k, int u, int N)
-{
-    mtx.lock();
-    int current_tid = thread_id.front();
-    thread_id.pop();
-    mtx.unlock();
+	// prepare for thread pool
+	dist.resize(num_of_threads);
+	dist2.resize(num_of_threads);
+	dirt.resize(num_of_threads);
+	for (int i = 0; i < num_of_threads; i++) {
+		dist[i].resize(N, std::numeric_limits<two_hop_weight_type>::max());
+		dist2[i].resize(N, std::numeric_limits<two_hop_weight_type>::max());
+		dirt[i].resize(N, true);
+		Qid_595.push(i);
+	}
+	for (int k = 0; k < 2; k++) {
+		L_PSL_temp[k].resize(N);
+		pos_595[k].resize(N, 0);
+		pos_2_595[k].resize(N, 0);
+		increment[k].resize(N, 1);
+	}
 
-    vector<int> in_psl(N,0);
-    vector<two_hop_weight_type> min_distance_in_hub(N);
+	/*label generation*/
+	ThreadPool pool(num_of_threads);
+	std::vector<std::future<int>> results;
+	for (int i = 0; i < N; i++) {
+		L_temp_in[i].push_back({ i, 0 });
+		L_temp_out[i].push_back({ i, 0 });
+	}
+	dgraph_v_of_v<two_hop_weight_type>* g_it = &input_graph;
+	no_new_label_PSL = false;
+	while (!no_new_label_PSL) {
+		no_new_label_PSL = true;
+		for (int u = 0; u < N; u++) {
+			results.emplace_back(pool.enqueue([u, g_it] {
+				propagate(g_it, 0, u);
+				propagate(g_it, 1, u);
+				return 1; }));
+		}
+		for (auto&& result : results) {
+			result.get();
+		}
+		results.clear();
+		for (int u = 0; u < N; u++) {
+			results.emplace_back(pool.enqueue([u] {
+				append(0, u);
+				append(1, u);
+				return 1; }));
+		}
+		for (auto&& result : results) {
+			result.get();
+		}
+		results.clear();
+	} 
 
-    for (auto &cur : L_PSL[k][u])
-    {
-        int v = cur.vertex;
-        two_hop_weight_type d = cur.distance;
-        if (!in_psl[v])
-        {
-            in_psl[v] = 1;
-            min_distance_in_hub[v] = d;
-        }
-        else if (d < min_distance_in_hub[v])
-        {
-            min_distance_in_hub[v] = d;
-        }
-    }
+	clean_incorrect_labels(N, num_of_threads); /*clean out incorrect labels*/
 
-    for (int i = 0; i < N; i++)
-    {
-        if (!in_psl[i])
-        {
-            continue;
-        }
-        L_PSL[k][u].clear();
-        L_PSL_temp[k][u].push_back({i, min_distance_in_hub[i]});
-    }
+	if (case_info.use_canonical_repair) {
+		case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
+		canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);
+		case_info.label_size_after_canonical_repair = compute_label_bit_size(case_info.L_in, case_info.L_out);
+	}
+	else {
+		case_info.L_in = L_temp_in;
+		case_info.L_out = L_temp_out;
+	}
 
-    mtx.lock();
-    thread_id.push(current_tid);
-    mtx.unlock();
-}
-
-void dgraph_PSL_v3(dgraph_v_of_v<two_hop_weight_type> &input_graph, int N, int num_of_threads, dgraph_case_info_v1 &case_info)
-{
-    std::vector<dgraph_v_of_v<two_hop_weight_type>> G(2);
-    G[0] = input_graph;
-    G[1] = input_graph.reverse_graph();
-
-    // int N = ideal_dgraph.INs.size();
-
-    // prepare for thread pool
-    dmin.resize(num_of_threads);
-    dirt.resize(num_of_threads);
-    for (int i = 0; i < num_of_threads; i++)
-    {
-        dmin[i].resize(N);
-        dirt[i].resize(N);
-        for (int j = 0; j < N; j++)
-            dirt[i][j] = true;
-        thread_id.push(i);
-    }
-
-    for (int k = 0; k < 2; k++)
-    {
-        L_PSL[k].resize(N);
-        L_PSL_temp[k].resize(N);
-        // endpos1[k].resize(N);
-        pos_595[k].resize(N);
-        pos_2_595[k].resize(N);
-        increment[k].resize(N);
-        for (int i = 0; i < N; i++)
-        {
-            L_PSL[k][i].push_back({i, 0});
-            pos_595[k][i] = 0;
-            pos_2_595[k][i] = 0;
-            increment[k][i] = 1;
-        }
-    }
-
-    ThreadPool pool(num_of_threads);
-    std::vector<std::future<int>> results;
-
-    while (true)
-    {
-        // Line 4-20
-        bool is_empty[2] = {true, true};
-        for (int k = 0; k < 2; k++)
-        {
-            for (int u = 0; u < N; u++)
-            {
-
-                results.emplace_back(pool.enqueue([u,k ,&G] {
-                    propagate_v1(G, k, u);                   
-                    return 1;
-                }));
-            }
-            for (auto &&result : results)
-            {
-                result.get();
-            }
-            results.clear();
-
-            for (int u = 0; u < N; u++)
-            {
-                results.emplace_back(pool.enqueue([k,u] {
-                    append(k, u);                   
-                    return 1;
-                }));
-            }
-            for (auto &&result : results)
-            {
-                result.get();
-            }
-            results.clear();
-            
-            for (int u = 0; u < N; u++)
-            {
-                if (!L_PSL_temp[k][u].empty())
-                {
-                    is_empty[k] = false;
-                }
-                // endpos1[k][u] = L_PSL[k][u].size() - L_PSL_temp[k][u].size();
-                vector<two_hop_label>().swap(L_PSL_temp[k][u]);
-            }
-        }
-
-        if (is_empty[0] && is_empty[1])
-        {
-            break;
-        }
-    } // while loop
-
-    for (int k = 0; k < 2; k++)
-    {
-        for (int u = 0; u < N; u++)
-        {
-            /* save the smallest label for each hub of u in T */
-            int u_label_size = L_PSL[k][u].size();
-            for (int i = 0; i < u_label_size; i++)
-            {
-                int w = L_PSL[k][u][i].vertex;
-                double dis = L_PSL[k][u][i].distance;
-                if (dirt[0][w]) // the same hub may have redundancy, record the shortest distance
-                {
-                    dirt[0][w] = false;
-                    dmin[0][w] = dis;
-                }
-                else if (dis < dmin[0][w])
-                {
-                    dmin[0][w] = dis;
-                }
-            }
-
-            for (int i = 0; i < N; i++)
-            {
-                if (!dirt[0][i])
-                {
-                    dirt[0][i] = true;
-                    two_hop_label xx;
-                    xx.vertex = i;
-                    xx.distance = dmin[0][i];
-                    L_PSL_temp[k][u].push_back(xx);
-                }
-            }
-
-            vector<two_hop_label>().swap(L_PSL[k][u]); // do not have two L in RAM simultaneously
-        }
-    }
-
-    L_temp_in = L_PSL_temp[1];
-    L_temp_out = L_PSL_temp[0];
-
-    if (case_info.use_canonical_repair)
-    {
-        case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
-        canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);  
-        case_info.label_size_after_canonical_repair = compute_label_bit_size(case_info.L_in, case_info.L_out);
-    }
-    else {
-        case_info.L_in = L_temp_in;
-        case_info.L_out = L_temp_out;
-    }
-
-    vector<vector<two_hop_label>>().swap(L_temp_in);
-    vector<vector<two_hop_label>>().swap(L_temp_out);
-
-    dgraph_clear_global_values_PSL();
+	dgraph_clear_global_values_PLL_PSL();
 }

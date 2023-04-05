@@ -33,7 +33,7 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
     Qid_595.pop();
     mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
-    vector<int> dij_dist_changed_vertices, L_vk_changed_vertices; 
+    vector<int> dist_changed_vertices, L_vk_changed_vertices; 
 
     /*hash label distances in L_temp_in[v_k] or L_temp_out[v_k]*/
     mtx_595[v_k].lock();
@@ -41,7 +41,7 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
         int L_out_vk_size = L_temp_out[v_k].size();
         for (int i = 0; i < L_out_vk_size; i++) {
             int x = L_temp_out[v_k][i].vertex;
-            L_vk_tmp[thread_id][x] = L_temp_out[v_k][i].distance;
+            dist2[thread_id][x] = L_temp_out[v_k][i].distance;
             L_vk_changed_vertices.push_back(x);
         }
     }
@@ -49,7 +49,7 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
         int L_in_vk_size = L_temp_in[v_k].size();
         for (int i = 0; i < L_in_vk_size; i++) {
             int x = L_temp_in[v_k][i].vertex;
-            L_vk_tmp[thread_id][x] = L_temp_in[v_k][i].distance;
+            dist2[thread_id][x] = L_temp_in[v_k][i].distance;
             L_vk_changed_vertices.push_back(x);
         }
     }
@@ -63,8 +63,8 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
     node.priority_value = 0;
     Q_pointers[thread_id][v_k] = Q.push(node);
 
-    dij_dist[thread_id][v_k] = 0;
-    dij_dist_changed_vertices.push_back(v_k);
+    dist[thread_id][v_k] = 0;
+    dist_changed_vertices.push_back(v_k);
 
     long long int new_label_num = 0;
 
@@ -80,7 +80,7 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
             if (in_out == 0) {
                 int L_in_u_size = L_temp_in[u].size();
                 for (int i = 0; i < L_in_u_size; i++) {
-                    two_hop_weight_type dis = L_temp_in[u][i].distance + L_vk_tmp[thread_id][L_temp_in[u][i].vertex];
+                    two_hop_weight_type dis = L_temp_in[u][i].distance + dist2[thread_id][L_temp_in[u][i].vertex];
                     if (query_vk_u > dis) {
                         query_vk_u = dis;
                     }
@@ -89,7 +89,7 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
             else { // reverse case
                 int L_out_u_size = L_temp_out[u].size();
                 for (int i = 0; i < L_out_u_size; i++) {
-                    two_hop_weight_type dis = L_temp_out[u][i].distance + L_vk_tmp[thread_id][L_temp_out[u][i].vertex];
+                    two_hop_weight_type dis = L_temp_out[u][i].distance + dist2[thread_id][L_temp_out[u][i].vertex];
                     if (query_vk_u > dis) {
                         query_vk_u = dis;
                     }
@@ -112,19 +112,19 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
                 for (int i = 0; i < u_adj_size; i++) {
                     int adj_v = input_graph->OUTs[u][i].first;
                     two_hop_weight_type new_dist = input_graph->OUTs[u][i].second + dist_u;
-                    if (dij_dist[thread_id][adj_v] == std::numeric_limits<two_hop_weight_type>::max()) {
+                    if (dist[thread_id][adj_v] == std::numeric_limits<two_hop_weight_type>::max()) {
                         node.vertex = adj_v;
                         node.priority_value = new_dist;
                         Q_pointers[thread_id][adj_v] = Q.push(node);
-                        dij_dist[thread_id][adj_v] = new_dist;
-                        dij_dist_changed_vertices.push_back(adj_v);
+                        dist[thread_id][adj_v] = new_dist;
+                        dist_changed_vertices.push_back(adj_v);
                     }
-                    else { // v is already in the dij_dist, only need to check if update the dij_dist
-                        if (dij_dist[thread_id][adj_v] > new_dist) {
+                    else { // v is already in the dist, only need to check if update the dist
+                        if (dist[thread_id][adj_v] > new_dist) {
                             node.vertex = adj_v;
                             node.priority_value = new_dist;
                             Q.update(Q_pointers[thread_id][adj_v], node);
-                            dij_dist[thread_id][adj_v] = new_dist;
+                            dist[thread_id][adj_v] = new_dist;
                         }
                     }
                 }
@@ -138,19 +138,19 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
                 for (int i = 0; i < u_adj_size; i++) {
                     int adj_v = input_graph->INs[u][i].first;
                     two_hop_weight_type new_dist = input_graph->INs[u][i].second + dist_u;
-                    if (dij_dist[thread_id][adj_v] == std::numeric_limits<two_hop_weight_type>::max()) {
+                    if (dist[thread_id][adj_v] == std::numeric_limits<two_hop_weight_type>::max()) {
                         node.vertex = adj_v;
                         node.priority_value = new_dist;
                         Q_pointers[thread_id][adj_v] = Q.push(node);
-                        dij_dist[thread_id][adj_v] = new_dist;
-                        dij_dist_changed_vertices.push_back(adj_v);
+                        dist[thread_id][adj_v] = new_dist;
+                        dist_changed_vertices.push_back(adj_v);
                     }
-                    else { // v is already in the dij_dist, only need to check if update the dij_dist
-                        if (dij_dist[thread_id][adj_v] > new_dist) {
+                    else { // v is already in the dist, only need to check if update the dist
+                        if (dist[thread_id][adj_v] > new_dist) {
                             node.vertex = adj_v;
                             node.priority_value = new_dist;
                             Q.update(Q_pointers[thread_id][adj_v], node);
-                            dij_dist[thread_id][adj_v] = new_dist;
+                            dist[thread_id][adj_v] = new_dist;
                         }
                     }
                 }
@@ -159,11 +159,11 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
     }
 
     /*recover global hash vectors*/
-    for (int i : dij_dist_changed_vertices) {
-        dij_dist[thread_id][i] = std::numeric_limits<two_hop_weight_type>::max();
+    for (int i : dist_changed_vertices) {
+        dist[thread_id][i] = std::numeric_limits<two_hop_weight_type>::max();
     }
     for (int i : L_vk_changed_vertices) {
-        L_vk_tmp[thread_id][i] = std::numeric_limits<two_hop_weight_type>::max();
+        dist2[thread_id][i] = std::numeric_limits<two_hop_weight_type>::max();
     }
 
     /* recycle Qid_595 and update labal_size_595*/
@@ -183,13 +183,12 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
     std::vector<std::future<int>> results;
 
     /*dgraph_pruned_dijkstra*/
-    queue<int>().swap(Qid_595);
-    dij_dist.resize(num_of_threads);
-    L_vk_tmp.resize(num_of_threads);
+    dist.resize(num_of_threads);
+    dist2.resize(num_of_threads);
     Q_pointers.resize(num_of_threads);
     for (int i = 0; i < num_of_threads; i++) {
-        dij_dist[i].resize(N, std::numeric_limits<two_hop_weight_type>::max());
-        L_vk_tmp[i].resize(N, std::numeric_limits<two_hop_weight_type>::max());
+        dist[i].resize(N, std::numeric_limits<two_hop_weight_type>::max());
+        dist2[i].resize(N, std::numeric_limits<two_hop_weight_type>::max());
         Q_pointers[i].resize(N);
         Qid_595.push(i);
     }
@@ -228,6 +227,6 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
         case_info.L_out = L_temp_out;
     }
 
-    dgraph_clear_global_values_PLL();
+    dgraph_clear_global_values_PLL_PSL();
     vector<vector<dgraph_heap_pointer>>().swap(Q_pointers);
 }

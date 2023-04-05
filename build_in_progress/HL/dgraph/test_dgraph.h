@@ -36,11 +36,10 @@ rm A
 #include <dgraph_v_of_v/dgraph_read_dgraph.h>
 #include <build_in_progress/HL/dgraph/dgraph_change_IDs.h>
 #include <dgraph_v_of_v/dgraph_shortest_paths.h>
-
-/*not optimized; this file has been optimized*/
+#include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
 #include <build_in_progress/HL/dgraph/dgraph_PLL.h>
 #include <build_in_progress/HL/dgraph/dgraph_PSL.h>
-#include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
+
 
 template <typename weight_type>
 void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_v_of_v<weight_type>& instance_graph, int iteration_source_times, int iteration_terminal_times) {
@@ -93,7 +92,7 @@ void test_dgraph_PLL_PSL()
 
     double avg_index_time = 0, avg_index_size_per_v = 0;
 
-    bool use_PLL = 1; // 1: PLL 0: PSL
+    bool use_PLL = 0; // 1: PLL 0: PSL
 
     dgraph_case_info_v1 mm;
     mm.use_canonical_repair = 1;
@@ -122,16 +121,12 @@ void test_dgraph_PLL_PSL()
                 dgraph_PLL(instance_graph, thread_num, mm);
             }
             else {
-                dgraph_PSL_v3(instance_graph, V, thread_num, mm);
+                dgraph_PSL(instance_graph, thread_num, mm);
             }
         }
         catch (string s) {
             cout << s << endl;
-            if (use_PLL)
-                dgraph_clear_global_values_PLL();
-            else
-                dgraph_clear_global_values_PSL();
-
+            dgraph_clear_global_values_PLL_PSL();
             continue;
         }
         auto end = std::chrono::high_resolution_clock::now();

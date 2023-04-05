@@ -72,65 +72,41 @@ void label_output_to_file(std::string instance_name, vector<vector<two_hop_label
 
 
 
-
-
-
-//定义全局变量
-/* two hop label and its parameters */
-vector<vector<two_hop_label>> L_595;
-vector<vector<two_hop_label>> L_temp_in;
-vector<vector<two_hop_label>> L_temp_out;
+/*定义全局变量*/
 long long int max_labal_size_595;
 long long int labal_size_595;
-/* multi thread parameters */
-std::shared_mutex mtx_595_1, mtx_595_2;
-int max_N_ID_for_mtx_595 = 1e7;
-vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595);
-/* dijkstra parameters */
+int max_N_ID_for_mtx_595 = 1e7; vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595); /* multi thread parameters */
 queue<int> Qid_595;
-vector<vector<two_hop_weight_type>> dij_dist;
-vector<vector<two_hop_weight_type>> L_vk_tmp;
-//special for PSL          0 out    1 in //vector<int> endpos1[2];
+vector<vector<two_hop_weight_type>> dist;
+vector<vector<two_hop_weight_type>> dist2;
 vector<int> increment[2];
 vector<int> pos_595[2];
 vector<int> pos_2_595[2];
-queue<int> thread_id;
 shared_mutex mtx;
-vector<std::vector<int>> dirt;
-vector<std::vector<two_hop_weight_type>> dmin;
-vector<vector<two_hop_label>> L_PSL[2];
+bool no_new_label_PSL;
+vector<vector<bool>> dirt;
+vector<vector<two_hop_label>> L_temp_in;
+vector<vector<two_hop_label>> L_temp_out;
 vector<vector<two_hop_label>> L_PSL_temp[2];
 
-
-
-
-
-
-
-
-//清除全局变量
-void dgraph_clear_global_values_PLL()
-{
-    vector<vector<two_hop_label>>().swap(L_595);
+/*清除全局变量*/
+void dgraph_clear_global_values_PLL_PSL() {
+    queue<int>().swap(Qid_595);
+    vector<vector<bool>>().swap(dirt);
     vector<vector<two_hop_label>>().swap(L_temp_in);
     vector<vector<two_hop_label>>().swap(L_temp_out);
-    vector<vector<two_hop_weight_type>>().swap(dij_dist);
-    vector<vector<two_hop_weight_type>>().swap(L_vk_tmp);
-}
-
-void dgraph_clear_global_values_PSL()
-{   
-    for (int k=0;k<2;k++)
-    {
+    vector<vector<two_hop_weight_type>>().swap(dist);
+    vector<vector<two_hop_weight_type>>().swap(dist2);
+    for (int k=0; k<2; k++) {
         vector<int>().swap(increment[k]);
         vector<int>().swap(pos_595[k]);
         vector<int>().swap(pos_2_595[k]);
-        vector<vector<two_hop_label>>().swap(L_PSL[k]);
         vector<vector<two_hop_label>>().swap(L_PSL_temp[k]);
-    }
-    vector<vector<int>>().swap(dirt);
-    vector<std::vector<two_hop_weight_type>>().swap(dmin);
+    }   
 }
+
+
+
 
 
 
