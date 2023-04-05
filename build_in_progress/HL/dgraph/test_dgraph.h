@@ -41,6 +41,9 @@ rm A
 #include <build_in_progress/HL/dgraph/dgraph_PSL.h>
 
 
+
+/*check_correctness*/
+
 template <typename weight_type>
 void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_v_of_v<weight_type>& instance_graph, int iteration_source_times, int iteration_terminal_times) {
 
@@ -157,3 +160,88 @@ void test_dgraph_PLL_PSL() {
         cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PSL avg_index_time = " << avg_index_time << "s" << endl;
     }
 }
+
+
+
+
+/*compare_different_sorting_method*/
+
+void compare_different_sorting_method() {
+    /*parameters*/
+    int iteration_graph_times = 100;
+    int V = 1000, E = 5000, precision = 1, thread_num = 10;
+    two_hop_weight_type ec_min = 0.1, ec_max = 1;
+
+    double degree_order_avg_index_time = 0, degree_order_avg_label_bit_size = 0,
+        weighted_degree_order_avg_index_time = 0, weighted_degree_order_avg_label_bit_size = 0;
+
+    bool use_PLL = 0; // 1: PLL 0: PSL
+
+    dgraph_case_info_v1 mm;
+    mm.use_canonical_repair = 1;
+
+    /*iteration*/
+    for (int i = 0; i < iteration_graph_times; i++) {
+        cout << i << endl;
+
+        dgraph_v_of_v<two_hop_weight_type> instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+
+        /*degree order*/
+        if (1) {
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph); 
+            auto begin = std::chrono::high_resolution_clock::now();
+            try {
+                if (use_PLL) {
+                    dgraph_PLL(instance_graph, thread_num, mm);
+                }
+                else {
+                    dgraph_PSL(instance_graph, thread_num, mm);
+                }
+            }
+            catch (string s) {
+                cout << s << endl;
+                dgraph_clear_global_values_PLL_PSL();
+                continue;
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+            degree_order_avg_index_time += runningtime / iteration_graph_times;
+            degree_order_avg_label_bit_size += (double)compute_label_bit_size(mm.L_in,mm.L_out) / iteration_graph_times;
+            mm.clear_labels();
+        }
+
+        /*weighted degree order*/
+        if (1) {
+            dgraph_change_IDs_weighted_degrees(instance_graph);
+            auto begin = std::chrono::high_resolution_clock::now();
+            try {
+                if (use_PLL) {
+                    dgraph_PLL(instance_graph, thread_num, mm);
+                }
+                else {
+                    dgraph_PSL(instance_graph, thread_num, mm);
+                }
+            }
+            catch (string s) {
+                cout << s << endl;
+                dgraph_clear_global_values_PLL_PSL();
+                continue;
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+            weighted_degree_order_avg_index_time += runningtime / iteration_graph_times;
+            weighted_degree_order_avg_label_bit_size += (double)compute_label_bit_size(mm.L_in, mm.L_out) / iteration_graph_times;
+            mm.clear_labels();
+        }
+
+    }
+
+    cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " use_PLL = " << use_PLL << endl;
+    cout << "degree_order_avg_index_time = " << degree_order_avg_index_time << "s" << " degree_order_avg_label_bit_size = " << degree_order_avg_label_bit_size << "bit" << endl;
+    cout << "weighted_degree_order_avg_index_time = " << weighted_degree_order_avg_index_time << "s" << " weighted_degree_order_avg_label_bit_size = " << weighted_degree_order_avg_label_bit_size << "bit" << endl;
+}
+
+
+
+
+
