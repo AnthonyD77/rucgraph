@@ -166,16 +166,34 @@ void test_dgraph_PLL_PSL() {
 
 /*compare_different_sorting_method*/
 
+double avg_query_time(int query_times, int N, vector<vector<two_hop_label>>& L_in, vector<vector<two_hop_label>>& L_out) {
+
+    boost::random::uniform_int_distribution<> dist{ static_cast<int>(0), static_cast<int>(N-1) };
+
+    double avg_query_time_ms = 0;
+
+    for (int i = 0; i < query_times; i++) {
+        int source = dist(boost_random_time_seed), terminal = dist(boost_random_time_seed);;
+        auto begin = std::chrono::high_resolution_clock::now();
+        dgraph_v1_extract_shortest_distance(L_in, L_out, source, terminal);
+        auto end = std::chrono::high_resolution_clock::now();
+        double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e6; // ms
+        avg_query_time_ms+= runningtime / query_times;
+    }
+
+    return avg_query_time_ms;
+}
+
 void compare_different_sorting_method() {
     /*parameters*/
-    int iteration_graph_times = 100;
+    int iteration_graph_times = 100, query_times_per_g = 1e4;
     int V = 1000, E = 5000, precision = 1, thread_num = 10;
     two_hop_weight_type ec_min = 0.1, ec_max = 1;
 
-    double degree_order_avg_index_time = 0, degree_order_avg_label_bit_size = 0,
-        weighted_degree_order_avg_index_time = 0, weighted_degree_order_avg_label_bit_size = 0;
+    double degree_order_avg_index_time = 0, degree_order_avg_label_bit_size = 0, degree_order_avg_query_time = 0,
+        weighted_degree_order_avg_index_time = 0, weighted_degree_order_avg_label_bit_size = 0, weighted_degree_order_avg_query_time = 0;
 
-    bool use_PLL = 0; // 1: PLL 0: PSL
+    bool use_PLL = 1; // 1: PLL 0: PSL
 
     dgraph_case_info_v1 mm;
     mm.use_canonical_repair = 1;
@@ -207,6 +225,7 @@ void compare_different_sorting_method() {
             double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
             degree_order_avg_index_time += runningtime / iteration_graph_times;
             degree_order_avg_label_bit_size += (double)compute_label_bit_size(mm.L_in,mm.L_out) / iteration_graph_times;
+            degree_order_avg_query_time += (double)avg_query_time(query_times_per_g, V, mm.L_in, mm.L_out) / iteration_graph_times;
             mm.clear_labels();
         }
 
@@ -231,14 +250,17 @@ void compare_different_sorting_method() {
             double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
             weighted_degree_order_avg_index_time += runningtime / iteration_graph_times;
             weighted_degree_order_avg_label_bit_size += (double)compute_label_bit_size(mm.L_in, mm.L_out) / iteration_graph_times;
+            weighted_degree_order_avg_query_time += (double)avg_query_time(query_times_per_g, V, mm.L_in, mm.L_out) / iteration_graph_times;
             mm.clear_labels();
         }
 
     }
 
     cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " use_PLL = " << use_PLL << endl;
-    cout << "degree_order_avg_index_time = " << degree_order_avg_index_time << "s" << " degree_order_avg_label_bit_size = " << degree_order_avg_label_bit_size << "bit" << endl;
-    cout << "weighted_degree_order_avg_index_time = " << weighted_degree_order_avg_index_time << "s" << " weighted_degree_order_avg_label_bit_size = " << weighted_degree_order_avg_label_bit_size << "bit" << endl;
+    cout << "degree_order:  avg_index_time = " << degree_order_avg_index_time << "s" << " avg_label_bit_size = " << degree_order_avg_label_bit_size << "bit" 
+        << " avg_query_time = " << degree_order_avg_query_time << "ms" << endl;
+    cout << "weighted_degree_order: avg_index_time = " << weighted_degree_order_avg_index_time << "s" << " avg_label_bit_size = " << weighted_degree_order_avg_label_bit_size << "bit" 
+        << " avg_query_time = " << weighted_degree_order_avg_query_time << "ms" << endl;
 }
 
 
