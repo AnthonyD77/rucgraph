@@ -1,10 +1,8 @@
 #pragma once
 #include <iostream>
-#include <tool_functions/ThreadPool.h>
-#include <shared_mutex>
 #include <chrono>
 #include <boost/heap/fibonacci_heap.hpp>
-#include <dgraph_v_of_v/dgraph_v_of_v.h>
+#include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
 
 void propagate(dgraph_v_of_v<two_hop_weight_type>* input_graph, int k, int u) {
 
@@ -163,6 +161,7 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 		dirt[i].resize(N, true);
 		Qid_595.push(i);
 	}
+
 	for (int k = 0; k < 2; k++) {
 		L_PSL_temp[k].resize(N);
 		pos_595[k].resize(N, 0);

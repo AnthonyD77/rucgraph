@@ -1,6 +1,8 @@
 #pragma once
 #include <fstream>
 #include <string>
+#include <shared_mutex>
+#include <tool_functions/ThreadPool.h>
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 
 #define two_hop_weight_type float
