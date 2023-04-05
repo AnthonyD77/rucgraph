@@ -83,8 +83,7 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_v_of_v<w
     }
 }
 
-void test_dgraph_PLL_PSL()
-{
+void test_dgraph_PLL_PSL() {
     /*parameters*/
     int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
     int V = 1000, E = 5000, precision = 1, thread_num = 10;
