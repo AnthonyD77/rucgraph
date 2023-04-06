@@ -205,8 +205,6 @@ public:
 
 
 
-
-
 /*common functions shared by PLL and PSL*/
 
 bool compare_two_hop_label_small_to_large(two_hop_label_v1& i, two_hop_label_v1& j)
@@ -282,6 +280,8 @@ pair<weightTYPE, int> search_sorted_two_hop_label2(std::vector<two_hop_label_v1>
 
 	return { std::numeric_limits<weightTYPE>::max(), -1 };
 }
+
+
 
 
 /*the following locks are used in PLL search process and canonical_repair*/
