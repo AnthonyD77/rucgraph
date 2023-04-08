@@ -2,12 +2,12 @@
 
 #include <set>
 #include <queue>
-#include <map>
+#include <unordered_map>
 #include <boost/heap/fibonacci_heap.hpp> 
 #include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_PLL_dynamic.h>
 
-#define Q(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, x, y) // reduction is not used here
-#define Q2(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, x, y) // reduction is not used here
+#define Q21(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, x, y) // reduction is not used here
+#define Q22(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(L, x, y) // reduction is not used here
 
 class affected_label2 {
 public:
@@ -49,31 +49,32 @@ public:
 		return dis < other.dis;
 	}
 };
+typedef typename boost::heap::fibonacci_heap<pq_label>::handle_type handle_for_SPREAD3;
 
 
 
-void SPREAD1(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
-	std::vector<affected_label2>& al1, std::vector<pair_label2>& al2, weightTYPE w_change, std::set<pair_label2>& nop) {
+void SPREAD1(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop_label_v1>>& L,
+	std::vector<affected_label2>& al1, std::vector<pair_label2>& al2, weightTYPE w_change) {
 
-	for (auto it = al1.begin(); it != al1.end(); it++) {
+	for (auto it : al1) {
 		queue<pair<int, weightTYPE> > q; //(u,d)
-		int v = it->second;
-		q.push(pair<int, weightTYPE>(it->first, it->dis));
+		int v = it.second;
+		q.push(pair<int, weightTYPE>(it.first, it.dis));
 		while (!q.empty()) {
 			pair<int, weightTYPE> fr = q.front();
 			int x = fr.first;
 			weightTYPE dx = fr.second;
 			q.pop();
-			insert_sorted_two_hop_label(mm.L[x], v, dx + w_change);
+			insert_sorted_two_hop_label(L[x], v, std::numeric_limits<weightTYPE>::max());
 			//cout<<"spread1: "<<v<<' '<<x<<' '<<dx+w_change<<endl;
 			al2.push_back(pair_label2(x, v));
 			//cout<<"al2: "<<x<<' '<<v<<endl;
 			auto v_neis = instance_graph.adj_v_and_ec(x);
-			for (auto nei = v_neis.begin(); nei != v_neis.end(); nei++) {
-				pair_label2 xnv(nei->first, v);
-				weightTYPE search_weight = search_sorted_two_hop_label(mm.L[nei->first], v);
-				if (find(al2.begin(), al2.end(), xnv) == al2.end() && abs(dx + nei->second - search_weight) < 1e-5) {
-					q.push(pair<int, weightTYPE>(nei->first, dx + nei->second));
+			for (auto nei : v_neis) {
+				pair_label2 xnv(nei.first, v);
+				weightTYPE search_weight = search_sorted_two_hop_label(L[nei.first], v);
+				if (find(al2.begin(), al2.end(), xnv) == al2.end() && abs(dx + nei.second - search_weight) < 1e-5) { // al2 find is extremely slow here! (maybe just remove it?)
+					q.push(pair<int, weightTYPE>(nei.first, dx + nei.second));
 				}
 			}
 		}
@@ -81,75 +82,101 @@ void SPREAD1(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_w
 
 }
 
-void SPREAD2(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
+void SPREAD2(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop_label_v1>>& L, PPR_type& PPR,
 	std::vector<pair_label2>& al2, std::vector<affected_label2>& al3, std::set<pair_label2>& nop) {
-	for (auto it = al2.begin(); it != al2.end(); it++) {
-		std::vector<int> temp = PPR_retrieve(mm.PPR, it->first, it->second);
-		PPR_binary_operations_insert(temp, it->second);
+
+	for (auto it : al2) {
+		int v = it.first, u = it.second;
+		std::vector<int> temp = PPR_retrieve(PPR, v, u);
+		PPR_binary_operations_insert(temp, u);
 		//cout<<"sp2: "<<it->first<<' '<<it->second<<endl;
 
-		for (auto t = temp.begin(); t != temp.end(); t++) {
-			if (it->first < *t && (!nop.count(pair_label2(*t, it->first)))) {
+		for (auto t : temp) {
+			if (v < t && nop.count(pair_label2(t, v)) == 0) {
 				weightTYPE d1 = std::numeric_limits<weightTYPE>::max();
-				auto neis = instance_graph.adj_v_and_ec(*t);
-				for (auto nei = neis.begin(); nei != neis.end(); nei++) {
-					d1 = min(d1, search_sorted_two_hop_label(mm.L[nei->first], it->first) + (weightTYPE)nei->second);
+				auto neis = instance_graph.adj_v_and_ec(t);
+				for (auto nei : neis) {
+					d1 = min(d1, search_sorted_two_hop_label(L[nei.first], v) + (weightTYPE)nei.second);
 				}
-				auto query_result = Q2(*t, it->first);
-				if (query_result.first - d1 > -1e-5) {
-					al3.push_back(affected_label2(*t, it->first, d1));
-					//cout<<"spread21: "<<*t<<' '<<it->first<<endl;
-					nop.insert(pair_label2(*t, it->first));
+				auto query_result = Q22(t, v);
+				if (query_result.first > d1 + 1e-5) { // only add new label when it's absolutely necessary
+					al3.push_back(affected_label2(t, v, d1));
+					//cout<<"spread21: "<<t<<' '<<v << ' ' << d1 << ' ' << query_result.first << endl;
+					nop.insert(pair_label2(t, v));
+				}
+				else {
+					PPR_insert(PPR, t, query_result.second, v);
+					PPR_insert(PPR, v, query_result.second, t);
 				}
 			}
-			else if (*t < it->first && (!nop.count(pair_label2(it->first, *t)))) {
+			if (t < v && nop.count(pair_label2(v, t)) == 0) {
 				weightTYPE d1 = std::numeric_limits<weightTYPE>::max();
-				auto neis = instance_graph.adj_v_and_ec(it->first);
-				for (auto nei = neis.begin(); nei != neis.end(); nei++) {
-					d1 = min(d1, search_sorted_two_hop_label(mm.L[nei->first], *t) + (weightTYPE)nei->second);
+				auto neis = instance_graph.adj_v_and_ec(v);
+				for (auto nei : neis) {
+					d1 = min(d1, search_sorted_two_hop_label(L[nei.first], t) + (weightTYPE)nei.second);
 				}
-				auto query_result = Q2(it->first, *t);
-				if (query_result.first - d1 > -1e-5) {
-					al3.push_back(affected_label2(it->first, *t, d1));
-					//cout<<"spread22: "<<it->first<<' '<<*t<<endl;
-					nop.insert(pair_label2(it->first, *t));
+				auto query_result = Q22(v, t);
+				if (query_result.first > d1 + 1e-5) {
+					al3.push_back(affected_label2(v, t, d1));
+					//cout << "spread22: " << v << ' ' << t << ' ' << d1 << ' ' << query_result.first << endl;
+					nop.insert(pair_label2(v, t));
+				}
+				else {
+					PPR_insert(PPR, t, query_result.second, v);
+					PPR_insert(PPR, v, query_result.second, t);
 				}
 			}
 		}
 	}
 }
 
-void SPREAD3(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, std::vector<affected_label2>& al3, std::set<pair_label2>& nop) {
+void SPREAD3(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, 
+	std::vector<affected_label2>& al3, std::set<pair_label2>& nop) {
 
-	for (auto it = al3.begin(); it != al3.end(); it++) {
-		map<int, pair<weightTYPE, int> > dis; //pair<distance,hub>
-		dis[it->first] = pair(it->dis, it->second);
+	for (auto it : al3) {
+		int u = it.first, v = it.second;
+		weightTYPE du = it.dis;
+		auto query_result = Q22(u, v);
+		if (query_result.first < du + 1e-5) {
+			PPR_insert(PPR, u, query_result.second, v);
+			PPR_insert(PPR, v, query_result.second, u);
+			continue;
+		}
+		unordered_map<int, pair<weightTYPE, int> > dis; //pair<distance,hub>
+		dis[u] = pair(du, v);
 		boost::heap::fibonacci_heap<pq_label> pq;
-		pq.push(pq_label(it->first, it->dis));
-		int v = it->second;
+		unordered_map <int, handle_for_SPREAD3> handles;
+		handles[u] = pq.push(pq_label(u, du));
+		//cout << "spread3 0: " << u << ' ' << v << " " << du << endl;
+
 		while (!pq.empty()) {
 			int x = pq.top().u;
 			weightTYPE dx = pq.top().dis;
-			insert_sorted_two_hop_label(mm.L[x], v, dx);
-			//cout<<"spread3: "<<x<<' '<<v<<' '<<dx<<endl;
 			pq.pop();
+			insert_sorted_two_hop_label(L[x], v, dx);
+			//cout << "spread3 1: " << x << ' ' << v << ' ' << dx << endl;
 			auto neis = instance_graph.adj_v_and_ec(x);
-			for (auto nei = neis.begin(); nei != neis.end(); nei++) {
-				if (v < nei->first) {
+			for (auto nei : neis) {
+				if (v < nei.first) {
 					//cout<<"spread nei: "<<nei->first<<' '<<v<<endl;
-					if (!dis.count(nei->first)) {
-						auto query_result = Q2(nei->first, v);
-						dis[nei->first] = pair(query_result.first, query_result.second);
+					if (dis.count(nei.first) == 0) {
+						auto query_result = Q22(nei.first, v);
+						dis[nei.first] = pair(query_result.first, query_result.second);
 						//cout<<"1: "<<query_result.first<<' '<<query_result.second<<endl;
 					}
-					if (dis[nei->first].first - dx - nei->second > -1e-5) {
-						dis[nei->first] = pair(dx + nei->second, v);
-						pq.push(pq_label(nei->first, dx + nei->second));
-						//cout<<"2: "<<dx+nei->second<<' '<<v<<endl;
+					if (dis[nei.first].first > dx + nei.second - 1e-5) {
+						dis[nei.first] = pair(dx + nei.second, v);
+						if (handles.count(nei.first) == 0) {
+							pq.push(pq_label(nei.first, dx + nei.second));
+							//cout<<"2: "<<dx+nei->second<<' '<<v<<endl;
+						}
+						else {
+							pq.update(handles[nei.first], pq_label(nei.first, dx + nei.second));
+						}
 					}
 					else {
-						PPR_insert(mm.PPR, nei->first, dis[nei->first].second, v);
-						PPR_insert(mm.PPR, v, dis[nei->first].second, nei->first);
+						PPR_insert(PPR, nei.first, dis[nei.first].second, v);
+						PPR_insert(PPR, v, dis[nei.first].second, nei.first);
 					}
 				}
 			}
@@ -177,8 +204,8 @@ void WeightIncreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_gra
 		}
 	}
 
-	SPREAD1(instance_graph, mm, al1, al2, w_new - w_old, nop);
-	SPREAD2(instance_graph, mm, al2, al3, nop);
-	SPREAD3(instance_graph, mm, al3, nop);
+	SPREAD1(instance_graph, mm.L, al1, al2, w_new - w_old);
+	SPREAD2(instance_graph, mm.L, mm.PPR, al2, al3, nop);
+	SPREAD3(instance_graph, mm.L, mm.PPR, al3, nop);
 }
 
