@@ -3,7 +3,7 @@
 #include <set>
 #include <queue>
 #include <unordered_map>
-#include <boost/heap/fibonacci_heap.hpp> 
+#include <boost/heap/pairing_heap.hpp> 
 #include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_PLL_dynamic.h>
 
 #define Q21(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, x, y) // reduction is not used here
@@ -49,7 +49,7 @@ public:
 		return dis < other.dis;
 	}
 };
-typedef typename boost::heap::fibonacci_heap<pq_label>::handle_type handle_for_SPREAD3;
+typedef typename boost::heap::pairing_heap<pq_label>::handle_type handle_for_SPREAD3;
 
 
 
@@ -144,7 +144,7 @@ void SPREAD3(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop
 		}
 		unordered_map<int, pair<weightTYPE, int> > dis; //pair<distance,hub>
 		dis[u] = pair(du, v);
-		boost::heap::fibonacci_heap<pq_label> pq;
+		boost::heap::pairing_heap<pq_label> pq;
 		unordered_map <int, handle_for_SPREAD3> handles;
 		handles[u] = pq.push(pq_label(u, du));
 		//cout << "spread3 0: " << u << ' ' << v << " " << du << endl;
@@ -153,22 +153,22 @@ void SPREAD3(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop
 			int x = pq.top().u;
 			weightTYPE dx = pq.top().dis;
 			pq.pop();
+			handles.erase(x);
 			insert_sorted_two_hop_label(L[x], v, dx);
 			//cout << "spread3 1: " << x << ' ' << v << ' ' << dx << endl;
 			auto neis = instance_graph.adj_v_and_ec(x);
 			for (auto nei : neis) {
 				if (v < nei.first) {
-					//cout<<"spread nei: "<<nei->first<<' '<<v<<endl;
 					if (dis.count(nei.first) == 0) {
 						auto query_result = Q22(nei.first, v);
 						dis[nei.first] = pair(query_result.first, query_result.second);
-						//cout<<"1: "<<query_result.first<<' '<<query_result.second<<endl;
+
 					}
 					if (dis[nei.first].first > dx + nei.second - 1e-5) {
 						dis[nei.first] = pair(dx + nei.second, v);
+						//pq.push(pq_label(nei.first, dx + nei.second));
 						if (handles.count(nei.first) == 0) {
-							pq.push(pq_label(nei.first, dx + nei.second));
-							//cout<<"2: "<<dx+nei->second<<' '<<v<<endl;
+							handles[nei.first] = pq.push(pq_label(nei.first, dx + nei.second));
 						}
 						else {
 							pq.update(handles[nei.first], pq_label(nei.first, dx + nei.second));

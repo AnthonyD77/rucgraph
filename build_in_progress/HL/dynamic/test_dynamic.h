@@ -37,6 +37,7 @@ rm A
 #include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance.h>
 #include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance.h>
 #include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
+#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
@@ -66,7 +67,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 		std::unordered_map<int, double> distances;
 		std::unordered_map<int, int> predecessors;
 
-		//source = 7; cout << "source = " << source << endl;
+		//source = 2; cout << "source = " << source << endl;
 
 		graph_hash_of_mixed_weighted_shortest_paths_source_to_all(instance_graph, source, distances, predecessors);
 
@@ -74,7 +75,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 
 			int terminal = dist(boost_random_time_seed);
 
-			//terminal = 9; cout << "terminal = " << terminal << endl;
+			//terminal = 1; cout << "terminal = " << terminal << endl;
 
 			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 			(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
@@ -225,23 +226,23 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 			//if (weightDecrease_time == 4) {
-			//	selected_edge.first = 5, selected_edge.second = 2;
+			//	selected_edge.first = 1, selected_edge.second = 2;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 			//if (weightDecrease_time == 3) {
-			//	selected_edge.first = 9, selected_edge.second = 1;
+			//	selected_edge.first = 3, selected_edge.second = 5;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 			//if (weightDecrease_time == 2) {
-			//	selected_edge.first = 5, selected_edge.second = 1;
+			//	selected_edge.first = 0, selected_edge.second = 1;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 			//if (weightDecrease_time == 1) {
-			//	selected_edge.first = 7, selected_edge.second = 4;
+			//	selected_edge.first = 0, selected_edge.second = 3;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 			//if (weightDecrease_time == 0) {
-			//	selected_edge.first = 2, selected_edge.second = 5;
+			//	selected_edge.first = 1, selected_edge.second = 2;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 
@@ -249,7 +250,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 
 			/*maintain labels*/
-			WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec);
+			WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec);
 
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
 			//mm.print_L();
