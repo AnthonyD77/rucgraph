@@ -4,6 +4,7 @@
 #include <shared_mutex>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 #include <build_in_progress/HL/dynamic/PPR.h>
+#include <boost/heap/fibonacci_heap.hpp> 
 
 #define weightTYPE double // float causes error due to "if (query_result.first + 1e-3 >= search_result)" in IncresseMaintenance code
 
@@ -205,7 +206,7 @@ public:
 
 
 
-/*common functions shared by PLL and PSL*/
+/*common functions*/
 
 bool compare_two_hop_label_small_to_large(two_hop_label_v1& i, two_hop_label_v1& j)
 {
@@ -280,6 +281,66 @@ pair<weightTYPE, int> search_sorted_two_hop_label2(std::vector<two_hop_label_v1>
 
 	return { std::numeric_limits<weightTYPE>::max(), -1 };
 }
+
+#define Query(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, x, y) // reduction is not used here
+#define Query2(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(L, x, y) // reduction is not used here
+#define MAX_VALUE std::numeric_limits<weightTYPE>::max()
+
+
+class affected_label {
+public:
+	int first, second;
+	weightTYPE dis;
+	affected_label(int _first, int _second, weightTYPE _dis) {
+		first = _first;
+		second = _second;
+		dis = _dis;
+	}
+};
+
+// dij initialization
+struct node_for_DIFFUSE {
+	int index;
+	weightTYPE disx;
+	node_for_DIFFUSE() {
+	}
+	node_for_DIFFUSE(int _u, weightTYPE _dis) {
+		index = _u;
+		disx = _dis;
+	}
+}; // define the node in the queue
+
+bool operator<(node_for_DIFFUSE const& x, node_for_DIFFUSE const& y) {
+	return x.disx > y.disx; // < is the max-heap; > is the min heap
+}
+typedef typename boost::heap::fibonacci_heap<node_for_DIFFUSE>::handle_type handle_t_for_DIFFUSE;
+
+vector<std::shared_mutex> mtx_5952(max_N_ID_for_mtx_595);
+vector<vector<pair<weightTYPE, int>>> Dis;
+vector<vector<weightTYPE>> Q_value;
+vector<vector<handle_t_for_DIFFUSE>> Q_handles;
+
+void initialize_global_values_dynamic(int N, int thread_num) {
+	Dis.resize(thread_num);
+	Q_value.resize(thread_num);
+	Q_handles.resize(thread_num);
+	queue<int>().swap(Qid_595);
+	for (int i = 0; i < thread_num; i++) {
+		Dis[i].resize(N, {-1, -1});
+		Q_value[i].resize(N, std::numeric_limits<weightTYPE>::max());
+		Q_handles[i].resize(N);
+		Qid_595.push(i);
+	}
+}
+
+
+
+
+
+
+
+
+
 
 
 

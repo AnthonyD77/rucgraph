@@ -6,17 +6,6 @@
 #define Q(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, x, y) // reduction is not used here
 #define Q2(x, y) graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, x, y) // reduction is not used here
 
-class affected_label {
-public:
-	int first, second;
-	weightTYPE dis;
-	affected_label(int _first, int _second, weightTYPE _dis) {
-		first = _first;
-		second = _second;
-		dis = _dis;
-	}
-};
-
 class pair_label { // pair_label is stored in NoP
 public:
 	int first, second;
@@ -140,7 +129,6 @@ void WeightIncreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, gra
 	//std::set<pair_label> nop;
 	std::vector<affected_label> al1_curr, al1_next;
 	std::vector<pair_label> al2_curr, al2_next;
-
 
 	for (auto it = mm.L[v1].begin(); it != mm.L[v1].end(); it++) {
 		if (it->vertex <= v2 && abs(search_sorted_two_hop_label(mm.L[v2], it->vertex) - it->distance - w_old) < 1e-5) {

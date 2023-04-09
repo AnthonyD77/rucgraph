@@ -505,6 +505,7 @@ void graph_hash_of_mixed_weighted_PLL_dynamic(graph_hash_of_mixed_weighted& inpu
 	int num_of_threads_per_push = num_of_threads * 100; // 每次push进去 num_of_threads_per_push 线程，如果没有异常，继续push进去num_of_threads_per_push线程；如果全都一起push进去必须全部线程都结束才能catch异常
 	P_dij_595.resize(num_of_threads);
 	T_dij_595.resize(num_of_threads);
+	queue<int>().swap(Qid_595);
 	for (int i = 0; i < num_of_threads; i++)
 	{
 		P_dij_595[i].resize(N);
