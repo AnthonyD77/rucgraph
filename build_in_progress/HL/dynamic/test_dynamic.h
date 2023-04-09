@@ -378,7 +378,7 @@ void compare_speed() {
 	int iteration_graph_times = 5e0, weightChange_time = 30; 
 	double weightChange_ratio = 0.2;
 
-	int V = 2000, E = 10000, precision = 1, thread_num = 50;
+	int V = 10000, E = 100000, precision = 1, thread_num = 50;
 	double ec_min = 1, ec_max = 10;
 	
 	bool use_WeightIncreaseMaintenance = 0, use_WeightIncreaseMaintenance_improv = 0, 

@@ -28,7 +28,7 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 
 }
 
-void WeightDecreaseMaintenance_improv_step1_2(int v1, int v2, weightTYPE w_new, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>* CL, int thread_num) {
+void WeightDecreaseMaintenance_improv_step1_parallelVersion(int v1, int v2, weightTYPE w_new, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>* CL, int thread_num) {
 
 	ThreadPool pool(thread_num);
 	std::vector<std::future<int>> results;
@@ -182,7 +182,8 @@ void WeightDecreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_gra
 	//auto begin = std::chrono::high_resolution_clock::now();
 
 	std::vector<affected_label> CL;
-	WeightDecreaseMaintenance_improv_step1(v1, v2, w_new, mm.L, mm.PPR, CL, thread_num);
+	//WeightDecreaseMaintenance_improv_step1(v1, v2, w_new, mm.L, mm.PPR, CL, thread_num);
+	WeightDecreaseMaintenance_improv_step1_parallelVersion(v1, v2, w_new, &mm.L, &mm.PPR, &CL, thread_num);
 
 	//auto end = std::chrono::high_resolution_clock::now();
 	//double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
