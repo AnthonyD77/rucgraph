@@ -106,6 +106,9 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
 	int V, int weightIncrease_time, int weightDecrease_time, double weightChange_ratio, int thread_num) {
 
+	ThreadPool pool_dynamic(thread_num);
+	std::vector<std::future<int>> results_dynamic;
+
 	while (weightIncrease_time + weightDecrease_time) {
 
 		/*randomly select an edge*/
@@ -250,7 +253,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 
 			/*maintain labels*/
-			WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, thread_num);
+			WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
 			//mm.print_L();
@@ -378,7 +381,7 @@ void compare_speed() {
 	int iteration_graph_times = 5e0, weightChange_time = 30; 
 	double weightChange_ratio = 0.2;
 
-	int V = 10000, E = 100000, precision = 1, thread_num = 50;
+	int V = 2000, E = 20000, precision = 1, thread_num = 50;
 	double ec_min = 1, ec_max = 10;
 	
 	bool use_WeightIncreaseMaintenance = 0, use_WeightIncreaseMaintenance_improv = 0, 
@@ -398,6 +401,8 @@ void compare_speed() {
 		instance_graph = graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees_large_to_small(instance_graph); // sort vertices
 		graph_hash_of_mixed_weighted_PLL_dynamic(instance_graph, V + 1, thread_num, mm);
 		initialize_global_values_dynamic(V, thread_num);
+		ThreadPool pool_dynamic(thread_num);
+		std::vector<std::future<int>> results_dynamic;
 
 		/*selected_edge*/
 		vector<pair<int, int>> selected_edges;
@@ -484,7 +489,7 @@ void compare_speed() {
 				double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
 				graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
 				auto begin = std::chrono::high_resolution_clock::now();
-				WeightDecreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, thread_num);
+				WeightDecreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, pool_dynamic, results_dynamic);
 				auto end = std::chrono::high_resolution_clock::now();
 				double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 				avg_time_WeightDecreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;

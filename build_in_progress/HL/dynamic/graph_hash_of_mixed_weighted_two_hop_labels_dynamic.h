@@ -320,6 +320,7 @@ vector<vector<pair<weightTYPE, int>>> Dis;
 vector<vector<weightTYPE>> Q_value;
 vector<vector<handle_t_for_DIFFUSE>> Q_handles;
 
+
 void initialize_global_values_dynamic(int N, int thread_num) {
 	Dis.resize(thread_num);
 	Q_value.resize(thread_num);
@@ -332,6 +333,22 @@ void initialize_global_values_dynamic(int N, int thread_num) {
 		Qid_595.push(i);
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
