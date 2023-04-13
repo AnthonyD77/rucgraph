@@ -2,7 +2,7 @@
 
 #include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_PLL_dynamic.h>
 
-void WeightDecreaseMaintenance_improv_step1_parallelVersion(int v1, int v2, weightTYPE w_new, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>* CL, 
+void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>* CL, 
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	for (int sl = 0; sl < 2; sl++) {
@@ -26,12 +26,16 @@ void WeightDecreaseMaintenance_improv_step1_parallelVersion(int v1, int v2, weig
 							CL->push_back(affected_label{ v2, it.vertex, it.distance + w_new });
 							mtx_595_1.unlock();
 						}
-						mtx_5952[v2].lock();
-						PPR_insert(*PPR, v2, query_result.second, it.vertex);
-						mtx_5952[v2].unlock();
-						mtx_5952[it.vertex].lock();
-						PPR_insert(*PPR, it.vertex, query_result.second, v2);
-						mtx_5952[it.vertex].unlock();
+						if (query_result.second != it.vertex) {
+							mtx_5952[v2].lock();
+							PPR_insert(*PPR, v2, query_result.second, it.vertex);
+							mtx_5952[v2].unlock();
+						}
+						if (query_result.second != v2) {
+							mtx_5952[it.vertex].lock();
+							PPR_insert(*PPR, it.vertex, query_result.second, v2);
+							mtx_5952[it.vertex].unlock();
+						}
 					}
 
 					return 1; }));
@@ -66,7 +70,7 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 			auto& DIS = Dis[current_tid];
 			auto& Q_HANDLES = Q_handles[current_tid];
 			auto& Q_VALUE = Q_value[current_tid];
-			DIS[u] = pair(du, v);
+			DIS[u] = pair(du, v); // <distance, hub responsible for this distance>
 			Dis_changed.push_back(u);
 
 			boost::heap::fibonacci_heap<node_for_DIFFUSE> Q;
@@ -91,7 +95,7 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 
 					if (v < xnei) {
 						if (DIS[xnei].first == -1) {
-							mtx_595[xnei].lock(), mtx_595[v].lock();
+							mtx_595[xnei].lock(), mtx_595[v].lock(); // xnei != v here, otherwise you cannot lock the same lock twice!
 							DIS[xnei] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, xnei, v);
 							mtx_595[xnei].unlock(), mtx_595[v].unlock();
 							Dis_changed.push_back(xnei);
@@ -119,12 +123,16 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 								}
 								Q_VALUE[xnei] = d_new;
 							}
-							mtx_5952[xnei].lock();
-							PPR_insert(*PPR, xnei, DIS[xnei].second, v);
-							mtx_5952[xnei].unlock();
-							mtx_5952[v].lock();
-							PPR_insert(*PPR, v, DIS[xnei].second, xnei);
-							mtx_5952[v].unlock();
+							if (DIS[xnei].second != v) {
+								mtx_5952[xnei].lock();
+								PPR_insert(*PPR, xnei, DIS[xnei].second, v);
+								mtx_5952[xnei].unlock();
+							}
+							if (DIS[xnei].second != xnei) {
+								mtx_5952[v].lock();
+								PPR_insert(*PPR, v, DIS[xnei].second, xnei);
+								mtx_5952[v].unlock();
+							}
 						}
 					}
 				}
@@ -154,7 +162,7 @@ void WeightDecreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_gra
 	//auto begin = std::chrono::high_resolution_clock::now();
 
 	std::vector<affected_label> CL;
-	WeightDecreaseMaintenance_improv_step1_parallelVersion(v1, v2, w_new, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic);
+	WeightDecreaseMaintenance_improv_step1(v1, v2, w_new, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic);
 
 	//auto end = std::chrono::high_resolution_clock::now();
 	//double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s

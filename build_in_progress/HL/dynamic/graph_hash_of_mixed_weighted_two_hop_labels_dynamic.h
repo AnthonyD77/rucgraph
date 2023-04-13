@@ -291,6 +291,7 @@ class affected_label {
 public:
 	int first, second;
 	weightTYPE dis;
+	affected_label(){}
 	affected_label(int _first, int _second, weightTYPE _dis) {
 		first = _first;
 		second = _second;
@@ -328,7 +329,7 @@ void initialize_global_values_dynamic(int N, int thread_num) {
 	queue<int>().swap(Qid_595);
 	for (int i = 0; i < thread_num; i++) {
 		Dis[i].resize(N, {-1, -1});
-		Q_value[i].resize(N, std::numeric_limits<weightTYPE>::max());
+		Q_value[i].resize(N, MAX_VALUE);
 		Q_handles[i].resize(N);
 		Qid_595.push(i);
 	}
