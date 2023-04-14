@@ -270,7 +270,7 @@ void test_dynamic() {
 	int V = 100, E = 500, precision = 1, thread_num = 1;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 0, weightDecrease_time = 50;
+	int weightIncrease_time = 30, weightDecrease_time = 0;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
@@ -335,14 +335,6 @@ void test_dynamic() {
 
 		//mm.print_L();
 		//mm.print_PPR();
-		/*debug*/
-		if (0) {
-			graph_hash_of_mixed_weighted_print(instance_graph);
-			mm.print_L();
-			mm.print_reduction_measures_2019R1();
-			mm.print_reduction_measures_2019R2();
-			mm.print_f_2019R1();
-		}
 
 		/*dynamic maintenance*/
 		initialize_global_values_dynamic(V, thread_num);
@@ -379,13 +371,13 @@ void test_dynamic() {
 void compare_speed() {
 
 	/*parameters*/
-	int iteration_graph_times = 5e0, weightChange_time = 30; 
+	int iteration_graph_times = 5e0, weightChange_time = 50; 
 	double weightChange_ratio = 0.2;
 
 	int V = 5000, E = 50000, precision = 1, thread_num = 50;
 	double ec_min = 1, ec_max = 10;
 	
-	bool use_WeightIncreaseMaintenance = 0, use_WeightIncreaseMaintenance_improv = 0, 
+	bool use_WeightIncreaseMaintenance = 1, use_WeightIncreaseMaintenance_improv = 1, 
 		use_WeightDecreaseMaintenance = 1, use_WeightDecreaseMaintenance_improv = 1;
 	double avg_time_WeightIncreaseMaintenance = 0, avg_time_WeightIncreaseMaintenance_improv = 0,
 		avg_time_WeightDecreaseMaintenance = 0, avg_time_WeightDecreaseMaintenance_improv = 0;
@@ -414,9 +406,6 @@ void compare_speed() {
 				if (instance_graph.hash_of_vectors[v1].adj_vertices.size() > 0) {
 					boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors[v1].adj_vertices.size() - 1) };
 					int v2 = instance_graph.hash_of_vectors[v1].adj_vertices[dist_v2(boost_random_time_seed)].first;
-					//if (mm.L[v1].size() < 50 || mm.L[v2].size() < 50) {
-					//	continue;
-					//}
 					selected_edges.push_back({ v1, v2 });
 				}
 				else {

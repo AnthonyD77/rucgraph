@@ -235,6 +235,7 @@ void insert_sorted_two_hop_label(std::vector<two_hop_label_v1>& input_vector, in
 			left = mid + 1; // the elements before left are always either empty, or have smaller keys than input key
 		}
 	}
+	//cout << "h 4.3 " << left << " " << key << " " << value << " " << input_vector.size() << " " << &input_vector << endl;
 	input_vector.insert(input_vector.begin() + left, xx);
 }
 
@@ -296,6 +297,23 @@ public:
 		first = _first;
 		second = _second;
 		dis = _dis;
+	}
+};
+
+class pair_label { // pair_label2 is stored in NoP
+public:
+	int first, second;
+	pair_label(int _first, int _second) {
+		first = _first;
+		second = _second;
+	}
+	bool operator == (const pair_label other) const {
+		return (first == other.first && second == other.second);
+	}
+	bool operator < (const pair_label other) const { // used to sort/search pair_label2 in set
+		if (first != other.first)
+			return first < other.first;
+		return second < other.second;
 	}
 };
 
