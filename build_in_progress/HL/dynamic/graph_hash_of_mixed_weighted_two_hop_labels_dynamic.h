@@ -332,7 +332,7 @@ struct node_for_DIFFUSE {
 bool operator<(node_for_DIFFUSE const& x, node_for_DIFFUSE const& y) {
 	return x.disx > y.disx; // < is the max-heap; > is the min heap
 }
-typedef typename boost::heap::fibonacci_heap<node_for_DIFFUSE>::handle_type handle_t_for_DIFFUSE;
+typedef typename boost::heap::fibonacci_heap<node_for_DIFFUSE>::handle_type handle_t_for_DIFFUSE; // pairing heap has a similar speed with fibonacci_heap here
 
 vector<std::shared_mutex> mtx_5952(max_N_ID_for_mtx_595);
 vector<vector<pair<weightTYPE, int>>> Dis;

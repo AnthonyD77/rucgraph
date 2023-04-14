@@ -49,7 +49,6 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 	results_dynamic.clear();
 }
 
-
 void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& CL, 
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
@@ -159,19 +158,8 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 void WeightDecreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new, 
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
-	//auto begin = std::chrono::high_resolution_clock::now();
-
 	std::vector<affected_label> CL;
 	WeightDecreaseMaintenance_improv_step1(v1, v2, w_new, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic);
 
-	//auto end = std::chrono::high_resolution_clock::now();
-	//double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-	//cout << "runningtime1 = " << runningtime << "s" << endl;
-	//begin = std::chrono::high_resolution_clock::now();
-
 	DIFFUSE(&instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic);
-
-	//end = std::chrono::high_resolution_clock::now();
-	//runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-	//cout << "runningtime2 = " << runningtime << "s" << endl;
 }
