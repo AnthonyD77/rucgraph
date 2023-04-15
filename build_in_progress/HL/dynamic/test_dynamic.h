@@ -67,7 +67,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 		std::unordered_map<int, double> distances;
 		std::unordered_map<int, int> predecessors;
 
-		source = 6; cout << "source = " << source << endl;
+		//source = 6; cout << "source = " << source << endl;
 
 		graph_hash_of_mixed_weighted_shortest_paths_source_to_all(instance_graph, source, distances, predecessors);
 
@@ -75,7 +75,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 
 			int terminal = dist(boost_random_time_seed);
 
-			terminal = 0; cout << "terminal = " << terminal << endl;
+			//terminal = 0; cout << "terminal = " << terminal << endl;
 
 			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 			(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
@@ -199,9 +199,9 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			//WeightIncreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
 			WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
 
-			cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 + weightChange_ratio) << endl;
-			mm.print_L();
-			mm.print_PPR();
+			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 + weightChange_ratio) << endl;
+			//mm.print_L();
+			//mm.print_PPR();
 		}
 		else {
 			weightDecrease_time--;
@@ -252,7 +252,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 
 			/*maintain labels*/
-			//WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+			WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 			//WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
@@ -266,10 +266,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 10, E = 15, precision = 1, thread_num = 5;
+	int V = 100, E = 150, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 1, weightDecrease_time = 0;
+	int weightIncrease_time = 50, weightDecrease_time = 50;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
@@ -291,7 +291,7 @@ void test_dynamic() {
 		mm.use_canonical_repair = false; // canonical_repair needs to modify for PPR
 
 		/*input and output; below is for generating random new graph, or read saved graph*/
-		int generate_new_graph = 0; // this value is for debug
+		int generate_new_graph = 1; // this value is for debug
 		std::unordered_set<int> generated_group_vertices;
 		graph_hash_of_mixed_weighted instance_graph, generated_group_graph;
 		if (generate_new_graph == 1) {
@@ -324,8 +324,6 @@ void test_dynamic() {
 		avg_reduce_V_num_2019R1 = avg_reduce_V_num_2019R1 + (double)mm.reduce_V_num_2019R1 / iteration_graph_times;
 		avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
 		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
-
-		
 
 		/*dynamic maintenance*/
 		initialize_global_values_dynamic(V, thread_num);

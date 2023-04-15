@@ -168,9 +168,8 @@ void SPREAD3(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 				Q_VALUE[x] = MAX_VALUE;
 
 				mtx_595[x].lock();
-				insert_sorted_two_hop_label((*L)[x], v, dx);
+				insert_sorted_two_hop_label((*L)[x], v, std::min(dx, search_sorted_two_hop_label((*L)[x], v)));
 				mtx_595[x].unlock();
-				//cout << "spread3 1: " << x << ' ' << v << ' ' << dx << endl;
 				auto neis = instance_graph->adj_v_and_ec(x);
 				for (auto nei : neis) {
 					int xnei = nei.first;
@@ -249,5 +248,12 @@ void WeightIncreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_gra
 	SPREAD1(&instance_graph, &mm.L, al1, &al2, pool_dynamic, results_dynamic);
 	SPREAD2(&instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic);
 	SPREAD3(&instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic);
+
+	//for (auto it : al2) {
+	//	cout << "al2 " << it.first << " " << it.second << endl;
+	//}
+	//for (auto it : al3) {
+	//	cout << "al3 " << it.first << " " << it.second << " " << it.dis << endl;
+	//}
 }
 
