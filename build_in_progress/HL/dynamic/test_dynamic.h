@@ -266,10 +266,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 150, precision = 1, thread_num = 5;
+	int V = 100, E = 500, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 50, weightDecrease_time = 50;
+	int weightIncrease_time = 30, weightDecrease_time = 30;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
