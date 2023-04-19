@@ -32,6 +32,7 @@ public:
 	inline bool contain_edge(int, int); // whether there is an edge
 	inline long long int edge_number(); // the total number of edges
 	inline void clear();
+	inline int degree(int);
 };
 
 
@@ -123,6 +124,14 @@ void dgraph_v_of_v<weight_type>::clear() {
 	std::vector<std::vector<std::pair<int, weight_type>>>().swap(INs);
 	std::vector<std::vector<std::pair<int, weight_type>>>().swap(OUTs);
 }
+
+
+template <typename weight_type>
+int dgraph_v_of_v<weight_type>::degree(int v)
+{
+	return OUTs[v].size() + INs[v].size();
+};
+
 
 
 

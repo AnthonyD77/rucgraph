@@ -41,11 +41,13 @@ rm A
 #include <build_in_progress/HL/dgraph/dgraph_PSL.h>
 
 
+#include <build_in_progress/HL/dgraph/dgraph_CT.h>
+
 
 /*check_correctness*/
 
 template <typename weight_type>
-void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_v_of_v<weight_type>& instance_graph, int iteration_source_times, int iteration_terminal_times) {
+void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_case_info_v2& case_info2, dgraph_v_of_v<weight_type>& instance_graph, int iteration_source_times, int iteration_terminal_times, bool use_CT) {
 
     /*below is for checking whether the above labels are right (by randomly computing shortest distances)*/
 
@@ -61,9 +63,18 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_v_of_v<w
             int terminal = dist(boost_random_time_seed);
             //terminal = 4; //cout << "terminal = " << terminal << endl;
 
-            weight_type dis = dgraph_v1_extract_shortest_distance(case_info.L_in, case_info.L_out, source, terminal);
+            weight_type dis;
+            if (use_CT) {
+                dis = CT_extract_distance(case_info2, source, terminal);
+            }
+            else {
+                dis = dgraph_v1_extract_shortest_distance(case_info.L_in, case_info.L_out, source, terminal);
+            }
 
             if (abs(dis - distances[terminal]) > 1e-4) {
+                cout << "dis = " << dis << endl;
+                cout << "distances[terminal] = " << distances[terminal] << endl;
+                cout << "abs(dis - distances[terminal]) > 1e-5!" << endl;
                 cout << "source = " << source << endl;
                 cout << "terminal = " << terminal << endl;
                 cout << "source vector:" << endl;
@@ -76,10 +87,6 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_v_of_v<w
                     cout << "<" << it->vertex << "," << it->distance << ">";
                 }
                 cout << endl;
-
-                cout << "dis = " << dis << endl;
-                cout << "distances[terminal] = " << distances[terminal] << endl;
-                cout << "abs(dis - distances[terminal]) > 1e-5!" << endl;
                 getchar();
             }
         }
@@ -97,6 +104,7 @@ void test_dgraph_PLL_PSL() {
     bool use_PLL = 0; // 1: PLL 0: PSL
 
     dgraph_case_info_v1 mm;
+    dgraph_case_info_v2 mm2;
     mm.use_canonical_repair = 1;
 
     /*iteration*/
@@ -135,7 +143,7 @@ void test_dgraph_PLL_PSL() {
         double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
         avg_index_time = avg_index_time + runningtime / iteration_graph_times;
 
-        dgraph_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);
+        dgraph_v1_check_correctness(mm, mm2, instance_graph, iteration_source_times, iteration_terminal_times, 0);
 
         long long int index_size = 0;
         for (auto it = mm.L_in.begin(); it != mm.L_in.end(); it++)
@@ -160,6 +168,78 @@ void test_dgraph_PLL_PSL() {
         cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PSL avg_index_time = " << avg_index_time << "s" << endl;
     }
 }
+
+
+
+void test_dgraph_CT()
+{
+    /*parameters*/
+    int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
+
+    int generate_new_graph = 1;
+
+    int V = 100, E = 200, precision = 1, thread_num = 1;
+    two_hop_weight_type ec_min = 0.1, ec_max = 1;
+    double avg_index_time = 0, avg_index_size_per_v = 0;
+
+    bool use_PLL = 1; // 1: PLL 0: PSL
+
+    /*reduction method selection*/
+    dgraph_case_info_v1 mm;
+    dgraph_case_info_v2 ct_info;
+    ct_info.thread_num = thread_num;
+    ct_info.d = 5;
+    ct_info.use_PLL = use_PLL;
+
+    /*iteration*/
+    for (int i = 0; i < iteration_graph_times; i++)
+    {
+        cout << "iteration_graph_times:" << i << endl;
+
+        dgraph_v_of_v<two_hop_weight_type> instance_graph;
+
+        if (generate_new_graph == 1)
+        {
+            instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+            dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
+        }
+        else
+        {
+            dgraph_read_dgraph("random_dgraph_test.txt", instance_graph);
+        }
+
+        auto begin = std::chrono::high_resolution_clock::now();
+        try {
+            CT_dgraph(instance_graph, V, ct_info);
+        }
+        catch (string s)
+        {
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+        avg_index_time += runningtime;
+
+        if (0)
+        {
+            ct_info.two_hop_case_info.print_L();
+            ct_info.print_Bags();
+            ct_info.print_isIntree();
+            ct_info.print_root();
+        }
+        dgraph_v1_check_correctness(mm, ct_info, instance_graph, iteration_source_times, iteration_terminal_times, 1);
+
+        ct_info.clear_labels();
+    }
+
+    cout << "avg_index_time: " << avg_index_time / iteration_graph_times << endl;
+}
+
+
+
+
+
+
+
 
 
 
@@ -247,7 +327,7 @@ void compare_different_sorting_method() {
                 continue;
             }
             auto end = std::chrono::high_resolution_clock::now();
-            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9;
             weighted_degree_order_avg_index_time += runningtime / iteration_graph_times;
             weighted_degree_order_avg_label_bit_size += (double)compute_label_bit_size(mm.L_in, mm.L_out) / iteration_graph_times;
             weighted_degree_order_avg_query_time += (double)avg_query_time(query_times_per_g, V, mm.L_in, mm.L_out) / iteration_graph_times;
