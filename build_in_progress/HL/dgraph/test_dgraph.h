@@ -55,15 +55,16 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_case_inf
 
     for (int yy = 0; yy < iteration_source_times; yy++) {
         int source = dist(boost_random_time_seed);
-        //source = 3; //cout << "source = " << source << endl;
+        // source = 27; //cout << "source = " << source << endl;
 
         auto distances = dgraph_shortest_distances_source_to_all(instance_graph, source);
 
         for (int xx = 0; xx < iteration_terminal_times; xx++) {
             int terminal = dist(boost_random_time_seed);
-            //terminal = 4; //cout << "terminal = " << terminal << endl;
+            // terminal = 4; //cout << "terminal = " << terminal << endl;
 
             weight_type dis;
+
             if (use_CT) {
                 dis = CT_extract_distance(case_info2, source, terminal);
             }
@@ -118,7 +119,7 @@ void test_dgraph_PLL_PSL() {
 
         if (generate_new_graph == 1) {          
             instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph); //idÊÇÅÅÐòºÃµÄ
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph); //idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
         else {
@@ -174,21 +175,21 @@ void test_dgraph_PLL_PSL() {
 void test_dgraph_CT()
 {
     /*parameters*/
-    int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
+    int iteration_graph_times = 10, iteration_source_times = 1000, iteration_terminal_times = 1000;
 
     int generate_new_graph = 1;
 
-    int V = 100, E = 200, precision = 1, thread_num = 1;
+    int V = 1000, E = 5000, precision = 1, thread_num = 10;
     two_hop_weight_type ec_min = 0.1, ec_max = 1;
     double avg_index_time = 0, avg_index_size_per_v = 0;
 
-    bool use_PLL = 1; // 1: PLL 0: PSL
+    bool use_PLL = 0; // 1: PLL 0: PSL
 
     /*reduction method selection*/
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 ct_info;
     ct_info.thread_num = thread_num;
-    ct_info.d = 5;
+    ct_info.d = 3;
     ct_info.use_PLL = use_PLL;
 
     /*iteration*/
@@ -201,11 +202,11 @@ void test_dgraph_CT()
         if (generate_new_graph == 1)
         {
             instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
-            dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
+            dgraph_save_dgraph("random_dgraph_test_CT.txt", instance_graph);
         }
         else
         {
-            dgraph_read_dgraph("random_dgraph_test.txt", instance_graph);
+            dgraph_read_dgraph("random_dgraph_test_CT.txt", instance_graph);
         }
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -226,6 +227,7 @@ void test_dgraph_CT()
             ct_info.print_isIntree();
             ct_info.print_root();
         }
+        
         dgraph_v1_check_correctness(mm, ct_info, instance_graph, iteration_source_times, iteration_terminal_times, 1);
 
         ct_info.clear_labels();

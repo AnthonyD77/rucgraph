@@ -11,11 +11,6 @@
 #include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
 #include <build_in_progress/HL/dgraph/dgraph_PLL.h>
 
-/*
-    to include this file, please copy
-    #include <dgraph_v_of_v/dgraph_CT.h>
-*/
-
 struct node_degree
 {
     int vertex, degree;
@@ -25,12 +20,13 @@ struct node_degree
     }
 };
 
-class dgraph_case_info_v2 {
+class dgraph_case_info_v2
+{
   public:
     /* parameters */
-    int thread_num = 1;
-    bool use_PLL = true;
-    int d = 3;
+    int thread_num;
+    bool use_PLL;
+    int d;
 
     /* labels */
     dgraph_case_info_v1 two_hop_case_info;
@@ -50,6 +46,12 @@ class dgraph_case_info_v2 {
     double max_run_time_seconds = 1e12; // s
 
     /*compute label size*/
+    // long long int compute_label_bit_size()
+    // {
+    //     long long int size = 0;
+    //     size = size + two_hop_case_info.compute_label_bit_size();
+    //     return size;
+    // }
 
     /*clear labels*/
     void clear_labels()
@@ -115,66 +117,6 @@ class dgraph_case_info_v2 {
     }
 
     /*record_all_details*/
-    // void record_all_details(std::string save_name) {
-
-    // 	ofstream outputFile;
-    // 	outputFile.precision(6);
-    // 	outputFile.setf(ios::fixed);
-    // 	outputFile.setf(ios::showpoint);
-    // 	outputFile.open(save_name + ".txt");
-
-    // 	outputFile << "CT info:" << endl;
-    // 	outputFile << "thread_num=" << thread_num << endl;
-    // 	outputFile << "use_PLL=" << use_PLL << endl;
-    // 	outputFile << "max_non_dummy_ID=" << max_non_dummy_ID << endl;
-    // 	outputFile << "d=" << d << endl;
-
-    // 	outputFile << "max_bit_size=" << max_bit_size << endl;
-    // 	outputFile << "max_run_time_seconds=" << max_run_time_seconds << endl;
-
-    // 	outputFile << "compute_label_bit_size()=" << compute_label_bit_size() << endl;
-
-    // 	outputFile << "time1_initialization=" << time1_initialization << endl;
-    // 	outputFile << "time2_tree_decomposition=" << time2_tree_decomposition << endl;
-    // 	outputFile << "time3_tree_indexs=" << time3_tree_indexs << endl;
-    // 	outputFile << "time4_lca=" << time4_lca << endl;
-    // 	outputFile << "time5_core_indexs=" << time5_core_indexs << endl;
-    // 	outputFile << "time6_post=" << time6_post << endl;
-    // 	outputFile << "time_total=" << time_total << endl;
-
-    // 	outputFile << endl << endl;
-    // 	outputFile << "Core info:" << endl;
-    // 	outputFile << "use_2019R1=" << two_hop_case_info.use_2019R1 << endl;
-    // 	outputFile << "use_2019R2=" << two_hop_case_info.use_2019R2 << endl;
-    // 	outputFile << "use_enhanced2019R2=" << two_hop_case_info.use_enhanced2019R2 << endl;
-    // 	outputFile << "use_non_adj_reduc_degree=" << two_hop_case_info.use_non_adj_reduc_degree << endl;
-    // 	outputFile << "max_degree_MG_enhanced2019R2=" << two_hop_case_info.max_degree_MG_enhanced2019R2 << endl;
-    // 	outputFile << "use_dummy_dij_search_in_PLL=" << two_hop_case_info.use_dummy_dij_search_in_PLL << endl;
-    // 	outputFile << "reduce_V_num_2019R1=" << two_hop_case_info.reduce_V_num_2019R1 << endl;
-    // 	outputFile << "MG_num=" << two_hop_case_info.MG_num << endl;
-
-    // 	outputFile << "time_2019R1=" << two_hop_case_info.time_2019R1 << endl;
-    // 	outputFile << "time_2019R2_or_enhanced_pre=" << two_hop_case_info.time_2019R2_or_enhanced_pre << endl;
-    // 	outputFile << "time_2019R2_or_enhanced_fixlabels=" << two_hop_case_info.time_2019R2_or_enhanced_fixlabels <<
-    // endl; 	outputFile << "time_initialization=" << two_hop_case_info.time_initialization << endl; 	outputFile <<
-    // "time_generate_labels=" << two_hop_case_info.time_generate_labels << endl; 	outputFile <<
-    // "time_canonical_repair1=" << two_hop_case_info.time_canonical_repair1 << endl; 	outputFile <<
-    // "time_canonical_repair2=" << two_hop_case_info.time_canonical_repair2 << endl; 	outputFile <<
-    // "time_update_old_IDs_in_labels=" << two_hop_case_info.time_update_old_IDs_in_labels << endl;
-
-    // 	outputFile << "max_labal_size=" << two_hop_case_info.max_labal_size << endl;
-    // 	outputFile << "max_run_time_seconds=" << two_hop_case_info.max_run_time_seconds << endl;
-
-    // 	outputFile << "use_canonical_repair=" << two_hop_case_info.use_canonical_repair << endl;
-    // 	outputFile << "label_size_before_canonical_repair=" << two_hop_case_info.label_size_before_canonical_repair <<
-    // endl; 	outputFile << "label_size_after_canonical_repair=" <<
-    // two_hop_case_info.label_size_after_canonical_repair
-    // << endl; 	outputFile << "canonical_repair_remove_label_ratio=" <<
-    // two_hop_case_info.canonical_repair_remove_label_ratio << endl;
-
-    // 	outputFile << "compute_label_bit_size()=" << two_hop_case_info.compute_label_bit_size() << endl;
-
-    // }
 };
 
 /*global values*/
@@ -187,36 +129,27 @@ void clear_gloval_values_CT()
     std::vector<std::pair<int, int>>().swap(added_max_edge);
 }
 
-void substitute_parallel(int u, int w, two_hop_weight_type ec) {
-    // mtx_595[u].lock();
-    // mtx_595[w].lock();
-    if (global_dgraph_CT.edge_weight(u, w) > ec) {
+void substitute_parallel(int u, int w, two_hop_weight_type ec)
+{
+    if (global_dgraph_CT.contain_edge(u, w) == 0) {
         global_dgraph_CT.add_edge(u, w, ec);
     }
-    // mtx_595[w].unlock();
-    // mtx_595[u].unlock();
+    else{
+        if (global_dgraph_CT.edge_weight(u, w) > ec)
+            global_dgraph_CT.add_edge(u, w, ec);
+    }
 }
 
-void substitute_parallel_2(int u, int w) {
-    // mtx_595[u].lock();
-    // mtx_595[w].lock();
+void substitute_parallel_2(int u, int w, two_hop_weight_type ec)
+{
     if (global_dgraph_CT.contain_edge(u, w) == 0 && global_dgraph_CT.contain_edge(w, u) == 0) {
         global_dgraph_CT.add_edge(u, w, std::numeric_limits<two_hop_weight_type>::max());
     }
-    // mtx_595[w].unlock();
-    // mtx_595[u].unlock();
 }
 
 void remove_parallel(int u, int w)
 {
-    //cout << "remove edge " << u << " " << w << endl;
     global_dgraph_CT.remove_edge(u, w);
-    std::pair<int, int> tmp = {u, w};
-    auto it = std::find(added_max_edge.begin(), added_max_edge.end(), tmp);
-    if (it != added_max_edge.end())
-    {
-        added_max_edge.erase(it);
-    }
 }
 
 void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, vector<int> &dfn)
@@ -234,11 +167,11 @@ void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, ve
 }
 
 /*indexing function*/
-void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dgraph_case_info_v2& case_info)
+void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dgraph_case_info_v2 &case_info)
 {
 
     //--------------------------- step 1: initialization ---------------------------
-    //cout << "step 1: initialization" << endl;
+    // cout << "step 1: initialization" << endl;
     auto begin1 = std::chrono::high_resolution_clock::now();
 
     auto &Bags_in = case_info.Bags_in;
@@ -272,7 +205,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     //---------------------------------------------------------------------------------
 
     //--------------------------- step 2: MDE-based tree decomposition ---------------------------
-    //cout << "step 2: MDE-based tree decomposition" << endl;
+    // cout << "step 2: MDE-based tree decomposition" << endl;
     auto begin2 = std::chrono::high_resolution_clock::now();
 
     /* MDE */
@@ -334,8 +267,9 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 for (int u2 = u + 1; u2 < in_size; u2++)
                 {
                     int _u2 = vi_in[u2].first;
-                    results.emplace_back(pool.enqueue([_u, _u2] {
-                        substitute_parallel_2(_u, _u2);
+                    two_hop_weight_type new_ec = std::numeric_limits<two_hop_weight_type>::max();
+                    results.emplace_back(pool.enqueue([_u, _u2, new_ec] {
+                        substitute_parallel_2(_u, _u2, new_ec);
                         return 1;
                     }));
                 }
@@ -351,8 +285,9 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 for (int w2 = w + 1; w2 < out_size; w2++)
                 {
                     int _w2 = vi_out[w2].first;
-                    results.emplace_back(pool.enqueue([_w, _w2] {
-                        substitute_parallel_2(_w, _w2);
+                    two_hop_weight_type new_ec = std::numeric_limits<two_hop_weight_type>::max();
+                    results.emplace_back(pool.enqueue([_w, _w2, new_ec] {
+                        substitute_parallel_2(_w, _w2, new_ec);
                         return 1;
                     }));
                 }
@@ -407,7 +342,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     // cout << "case_info.time2_tree_decomposition = " << case_info.time2_tree_decomposition << endl;
 
     //--------------------------- step 3: generate CT-tree indexs ---------------------------
-    //cout << "step 3: generate CT-tree indexs" << endl;
+    // cout << "step 3: generate CT-tree indexs" << endl;
     auto begin3 = std::chrono::high_resolution_clock::now();
 
     /* some variables */
@@ -439,7 +374,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
         while (1)
         {
             nd = q.top();
-            //cout << nd.vertex << endl;
             q.pop();
             if (!isIntree[nd.vertex] && !popped_isIncore_node[nd.vertex] &&
                 global_dgraph_CT.degree(nd.vertex) == nd.degree)
@@ -449,8 +383,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
         popped_isIncore_node[nd.vertex] = 1;
         order_mapping[nd.vertex] = i;
     }
-
-    //cout << "bound_lambda: " << bound_lambda << endl;
 
     /* tree node index */
     for (int i = bound_lambda; i >= 1; i--)
@@ -470,7 +402,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
         /* interface nodes */
         if (fa[v_i] > bound_lambda || Bags_size == 0) // a root in the forest, interface
         {
-            //cout << "---construct interface L[" << v_i << "]---" << endl;
             root[v_i] = v_i; // original ID
             fa[v_i] = -1;
             dep[v_i] = 0;
@@ -481,21 +412,17 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 xx.vertex = it->first;
                 xx.distance = it->second;
                 L1_in[v_i].push_back(xx);
-                //cout << "add in hub " << it->first << endl;
             }
             for (auto it = Bags_out[v_i].begin(); it != Bags_out[v_i].end(); it++)
             {
                 xx.vertex = it->first;
                 xx.distance = it->second;
                 L1_out[v_i].push_back(xx);
-                //cout << "add out hub " << it->first << endl;
             }
         }
         /* non-root tree nodes */
         else
         {
-            //cout << "---construct tree L[" << v_i << "]---" << endl;
-
             fa[v_i] = node_order[fa[v_i]];
             root[v_i] = root[fa[v_i]];
             dep[v_i] = dep[fa[v_i]] + 1;
@@ -519,7 +446,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 index_node_num_out++;
                 index_node_out[index_node_num_out] = it->first;
                 temp_dis_out[it->first] = std::numeric_limits<two_hop_weight_type>::max();
-                //cout << "add inter's in&out hub " << it->first << endl;
             }
             for (auto it = Bags_out[r].begin(); it != Bags_out[r].end(); it++)
             {
@@ -531,7 +457,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 index_node_num_out++;
                 index_node_out[index_node_num_out] = it->first;
                 temp_dis_out[it->first] = std::numeric_limits<two_hop_weight_type>::max();
-                //cout << "add inter's in&out hub " << it->first << endl;
             }
 
             /* add ancestor */
@@ -544,7 +469,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                     index_node_num_in++;
                     index_node_in[index_node_num_in] = tmp;
                     temp_dis_in[tmp] = std::numeric_limits<two_hop_weight_type>::max();
-                    //cout << "add ancestor in hub " << tmp << endl;
                 }
 
                 if (islabel_out[tmp] != labelnum)
@@ -553,7 +477,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                     index_node_num_out++;
                     index_node_out[index_node_num_out] = tmp;
                     temp_dis_out[tmp] = std::numeric_limits<two_hop_weight_type>::max();
-                    //cout << "add ancestor out hub " << tmp << endl;
                 }
 
                 if (tmp == r)
@@ -571,12 +494,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                     index_node_num_in++;
                     index_node_in[index_node_num_in] = it->first;
                     temp_dis_in[it->first] = it->second;
-                    //cout << "add in hub " << it->first << endl;
                 }
                 else
                 { // line ?
                     temp_dis_in[it->first] = it->second;
-                    //cout << "update in hub " << it->first << " to " << it->second << endl;
                 }
             }
             /* delta(w) */
@@ -588,12 +509,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                     index_node_num_out++;
                     index_node_out[index_node_num_out] = it->first;
                     temp_dis_out[it->first] = it->second;
-                    //cout << "add out hub " << it->first << endl;
                 }
                 else
                 { // line ?
                     temp_dis_out[it->first] = it->second;
-                    //cout << "update out hub " << it->first << " to " << it->second << endl;
                 }
             }
 
@@ -606,20 +525,14 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                     two_hop_weight_type delta_vj = Bags_in[v_i][j].second;
                     int Lj_in_size = L1_in[v_j].size();
 
-                    //cout << "mid node vj: " << v_j << endl;
-                    //cout << "L[vj] in size: " << Lj_in_size << endl;
-
                     for (int k = 0; k < Lj_in_size; k++)
                     {
                         int u = L1_in[v_j][k].vertex;
-
-                        //cout << "node: " << u << endl;
 
                         two_hop_weight_type delta_uvj = L1_in[v_j][k].distance;
                         if (islabel_in[u] == labelnum && delta_vj + delta_uvj < temp_dis_in[u])
                         {
                             temp_dis_in[u] = delta_vj + delta_uvj;
-                            //cout << "update in hub " << u << endl;
                         }
                     }
                 }
@@ -633,9 +546,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                     two_hop_weight_type delta_vj = Bags_out[v_i][j].second;
                     int Lj_out_size = L1_out[v_j].size();
 
-                    //cout << "mid node vj: " << v_j << endl;
-                    //cout << "L[vj] out size: " << Lj_out_size << endl;
-
                     for (int k = 0; k < Lj_out_size; k++)
                     {
                         int w = L1_out[v_j][k].vertex;
@@ -643,14 +553,12 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                         if (islabel_out[w] == labelnum && delta_vj + delta_vjw < temp_dis_out[w])
                         {
                             temp_dis_out[w] = delta_vj + delta_vjw;
-                            //cout << "update out hub " << w << endl;
                         }
                     }
                 }
             }
 
             /*add correct indexes of Lines 29-30 of CT into L1, and possibly wrong distances for Lines 31-32 into L1*/
-            //cout << "--------in-" << v_i << "--------" << endl;
             int delete_num = 0;
             L1_in[v_i].resize(index_node_num_in);
             for (int j = 1; j <= index_node_num_in; j++)
@@ -660,16 +568,13 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 xx.distance = temp_dis_in[index_node_in[j]];
                 if (xx.distance == std::numeric_limits<two_hop_weight_type>::max())
                 {
-                    //cout << "skip " << xx.vertex << endl;
                     delete_num++;
                     continue;
                 }
-                //cout << "insert " << xx.vertex << endl;
                 L1_in[v_i][j - 1 - delete_num] = xx;
             }
             L1_in[v_i].resize(index_node_num_in - delete_num);
 
-            //cout << "--------out-" << v_i << "--------" << endl;
             delete_num = 0;
             L1_out[v_i].resize(index_node_num_out);
             for (int j = 1; j <= index_node_num_out; j++)
@@ -679,11 +584,9 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 xx.distance = temp_dis_out[index_node_out[j]];
                 if (xx.distance == std::numeric_limits<two_hop_weight_type>::max())
                 {
-                    //cout << "skip " << xx.vertex << endl;
                     delete_num++;
                     continue;
                 }
-                //cout << "insert " << xx.vertex << endl;
                 L1_out[v_i][j - 1 - delete_num] = xx;
             }
             L1_out[v_i].resize(index_node_num_out - delete_num);
@@ -709,19 +612,16 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     //-------------------------------------------------------------------------------------------------------
 
     //--------------------------- step 4: LCA ---------------------------
-   // cout << "step 4: LCA" << endl;
+    // cout << "step 4: LCA" << endl;
     auto begin4 = std::chrono::high_resolution_clock::now();
 
     /* LCA code; already get the root, the father and the depth, here is the preprocessing of querying LCA */
     int total = 0;
 
-    //cout << "bound_lambda: " << bound_lambda << endl;
-
     vector<int> dfn(2 * N + 5);
     for (int i = 1; i <= bound_lambda; i++)
     {
         int v_i = node_order[i];
-        //cout << "v_i: " << v_i << endl;
         if (root[v_i] == v_i)
             dfs(total, first_pos, v_i, son, dfn);
     }
@@ -789,34 +689,19 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     //---------------------------------------------------------------------------------
 
     //--------------------------- step 5: 2-hop labeling ---------------------------
-    //cout << "step 5: 2-hop labeling" << endl;
+    // cout << "step 5: 2-hop labeling" << endl;
     auto begin5 = std::chrono::high_resolution_clock::now();
 
     /*update limits*/
-    // double to_date_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end4 - begin1).count() / 1e9;
-    // case_info.two_hop_case_info.max_run_time_seconds = case_info.max_run_time_seconds - to_date_time;
-    // if (case_info.two_hop_case_info.max_run_time_seconds < 0) {
-    // 	throw reach_limit_error_string_time;
-    // }
-    // long long int to_date_bit_size = case_info.compute_label_bit_size();
-    // case_info.two_hop_case_info.max_labal_size = (case_info.max_bit_size - to_date_bit_size) /
-    // sizeof(two_hop_label_v1); // this is slightly inaccurate, since reduction measures of R1 R2 are not counted if
-    // (case_info.two_hop_case_info.max_labal_size < 0) { 	throw reach_limit_error_string_MB;
-    // }
-
-    /* this part cause bug */
-    /* remove max-weighted egdes */
-    // int tmp_size = added_max_edge.size();
-    // for (int i = 0; i < tmp_size; i++)
-    // {
-    //     global_dgraph_CT.remove_edge(added_max_edge[i].first, added_max_edge[i].second);
-    // }
 
     /* construct 2-hop labels on core */
     case_info.core_graph = global_dgraph_CT;
     if (case_info.use_PLL)
     {
-        dgraph_PLL(global_dgraph_CT, max_N_ID, case_info.two_hop_case_info);
+        dgraph_PLL(global_dgraph_CT, case_info.thread_num, case_info.two_hop_case_info);
+    }
+    else {
+    	dgraph_PSL(global_dgraph_CT, case_info.thread_num, case_info.two_hop_case_info);
     }
 
     auto end5 = std::chrono::high_resolution_clock::now();
@@ -825,7 +710,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     //--------------------------------------------------------------------------------------------------------------------
 
     //--------------------------- step 6: ---------------------------
-    //cout << "step 6: postprocessing" << endl;
+    // cout << "step 6: postprocessing" << endl;
     auto begin6 = std::chrono::high_resolution_clock::now();
 
     /* merge tree_index: L1 into case_info.two_hop_case_info.L */
@@ -854,7 +739,9 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     case_info.time_total = std::chrono::duration_cast<std::chrono::nanoseconds>(end6 - begin1).count() / 1e9;
 }
 
-/*query function*/
+/*
+query function
+*/
 
 int lca(dgraph_case_info_v2 &case_info, int x, int y)
 {
@@ -894,23 +781,12 @@ two_hop_weight_type CT_extract_distance(dgraph_case_info_v2 &case_info, int sour
 
     if (!isIntree[source] && !isIntree[terminal])
     { /* both in core */
-        //cout << "case 1" << endl;
+        // cout << "case 1" << endl;
         return dgraph_v1_extract_shortest_distance(L_in, L_out, source, terminal);
     }
     else if (!isIntree[source] && isIntree[terminal])
     { /* source in core, terminal in tree ; s -> root(t) -> t */
-        //cout << "case 2.1" << endl;
-        // int t_in_size = L_in[terminal].size();
-        // for (int i = 0; i < t_in_size; i++)
-        // {
-        //     if (L_in[terminal][i].vertex == source)
-        //         distance = L_in[terminal][i].distance;
-        // }
-
-        // int r = root[terminal];
-        // int r_size = Bags_in[r].size();
-        // if (r_size > L_in[terminal].size())
-        //     r_size = L_in[terminal].size();
+        // cout << "case 2.1" << endl;
         int r_size = L_in[terminal].size();
         for (int i = 0; i < r_size; i++)
         {
@@ -922,160 +798,39 @@ two_hop_weight_type CT_extract_distance(dgraph_case_info_v2 &case_info, int sour
             if (distance > dist_su + dist_ut)
                 distance = dist_su + dist_ut;
         }
-        // return distance;
-
-        // cout << "case 2.1" << endl;
-        // int t_in_size = L_in[terminal].size();
-        // for (int i = 0; i < t_in_size; i++)
-        // {
-        //     int u = L_in[terminal][i].vertex;
-        //     if (!case_info.isIntree[u])
-        //     {
-        //         two_hop_weight_type dist_ut = L_in[terminal][i].distance;
-        //         two_hop_weight_type dist_su = dgraph_v1_extract_shortest_distance(L_in, L_out, core_graph, source,
-        //         u); if (distance > dist_su + dist_ut)
-        //             distance = dist_su + dist_ut;
-        //     }
-        //     else
-        //     {
-        //         int u_in_size = L_in[u].size();
-        //         for (int j = 0; j < u_in_size; j++)
-        //         {
-        //             int tt = L_in[u][j].vertex;
-        //             if (tt == source)
-        //             {
-        //                 two_hop_weight_type dis = L_in[terminal][i].distance + L_in[u][j].distance;
-        //                 if (dis < distance)
-        //                     distance = dis;
-        //             }
-        //         }
-        //     }
-        // }
 
         return distance;
     }
     else if (isIntree[source] && !isIntree[terminal])
     { /* source in tree, terminal in core ; s -> root(s) -> t */
-        //cout << "case 2.2" << endl;
-        // int s_out_size = L_out[source].size();
-        // for (int i = 0; i < s_out_size; i++)
-        // {
-        //     if (L_out[source][i].vertex == terminal)
-        //         distance = L_out[source][i].distance;
-        // }
+        // cout << "case 2.2" << endl;
 
-        // int r = root[source];
-        // int r_size = Bags_out[r].size();
-        // if (r_size > L_out[source].size())
-        //     r_size = L_out[source].size();
         int r_size = L_out[source].size();
-        //cout << "r_size:" << r_size << endl;
         for (int i = 0; i < r_size; i++)
         {
             if (L_out[source][i].distance > distance)
                 continue;
             int u = L_out[source][i].vertex;
-            //cout << "u:" << u << endl;
             two_hop_weight_type dist_su = L_out[source][i].distance;
             two_hop_weight_type dist_ut = dgraph_v1_extract_shortest_distance(L_in, L_out, u, terminal);
-            //cout << "dist_ut = " << dist_ut << endl;
             if (distance > dist_su + dist_ut)
                 distance = dist_su + dist_ut;
         }
 
-        // return distance;
-        // cout << "case 2.2" << endl;
-        // int s_out_size = L_out[source].size();
-        // for (int i = 0; i < s_out_size; i++)
-        // {
-        //     int u = L_out[source][i].vertex;
-        //     if (!case_info.isIntree[u])
-        //     {
-        //         two_hop_weight_type dist_su = L_out[source][i].distance;
-        //         two_hop_weight_type dist_ut = dgraph_v1_extract_shortest_distance(L_in, L_out, core_graph, u,
-        //         terminal); if (distance > dist_su + dist_ut)
-        //             distance = dist_su + dist_ut;
-        //     }
-        //     else
-        //     {
-        //         int u_out_size = L_out[u].size();
-        //         for (int j = 0; j < u_out_size; j++)
-        //         {
-        //             int tt = L_out[u][j].vertex;
-        //             if (tt == terminal)
-        //             {
-        //                 two_hop_weight_type dis = L_out[source][i].distance + L_out[u][j].distance;
-        //                 if (dis < distance)
-        //                     distance = dis;
-        //             }
-        //         }
-        //     }
-        // }
-
         return distance;
     }
-    else if (root[source] != root[terminal]) { /* in different tree */
-        //cout << "case 3" << endl;
-        // int s_out_size = L_out[source].size();
-        // int t_in_size = L_in[terminal].size();
-
-        // for (int i = 0; i < s_out_size; i++)
-        // {
-        //     int u = L_out[source][i].vertex;
-        //     if (!case_info.isIntree[u])
-        //     {
-        //         two_hop_weight_type dist_su = L_out[source][i].distance;
-        //         for (int j = 0; j < t_in_size; j++)
-        //         {
-        //             int w = L_in[terminal][j].vertex;
-        //             if (!case_info.isIntree[w])
-        //             {
-        //                 two_hop_weight_type dist_wt = L_in[terminal][j].distance;
-        //                 two_hop_weight_type dist_uw =
-        //                     dgraph_v1_extract_shortest_distance(L_in, L_out, core_graph, u, w);
-        //                 two_hop_weight_type dis = dist_su + dist_wt + dist_uw;
-        //                 if (dis < distance)
-        //                     distance = dis;
-        //             }
-        //         }
-        //     }
-        //     else
-        //     {
-        //         int u_out_size = L_out[u].size();
-        //         for (int j = 0; j < u_out_size; j++)
-        //         {
-        //             int tt = L_out[u][j].vertex;
-        //             if (tt == terminal)
-        //             {
-        //                 two_hop_weight_type dis = L_out[source][i].distance + L_out[u][j].distance;
-        //                 if (dis < distance)
-        //                     distance = dis;
-        //             }
-        //         }
-        //     }
-        // }
-
-        // int r_s = root[source];
-        // int r_s_size = Bags_out[r_s].size();
-        // if (r_s_size > L_out[source].size())
-        //     r_s_size = L_out[source].size();
+    else if (root[source] != root[terminal])
+    { /* in different tree */
         int r_s_size = L_out[source].size();
-
-        // int r_t = root[terminal];
-        // int r_t_size = Bags_in[r_t].size();
-        // if (r_t_size > L_in[terminal].size())
-        //     r_t_size = L_in[terminal].size();
         int r_t_size = L_in[terminal].size();
 
         for (int i = 0; i < r_s_size; i++)
         {
             int u = L_out[source][i].vertex;
-            //cout << "u: " << u << endl;
             double dist_su = L_out[source][i].distance;
             for (int j = 0; j < r_t_size; j++)
             {
                 int w = L_in[terminal][j].vertex;
-                //cout << "w: " << w << endl;
                 double dist_wt = L_in[terminal][j].distance;
                 double dist_uw = dgraph_v1_extract_shortest_distance(L_in, L_out, u, w);
                 double dis = dist_su + dist_wt + dist_uw;
@@ -1088,7 +843,6 @@ two_hop_weight_type CT_extract_distance(dgraph_case_info_v2 &case_info, int sour
     }
     else /* in same tree */
     {
-        //cout << "case 4" << endl;
         int grand = lca(case_info, source, terminal);
 
         /* d2 : s -> lca -> t */
@@ -1119,40 +873,6 @@ two_hop_weight_type CT_extract_distance(dgraph_case_info_v2 &case_info, int sour
         }
 
         /* d4 : s -> root -> root -> t */
-        // int s_out_size = L_out[source].size();
-        // int t_in_size = L_in[terminal].size();
-        // for (int i = 0; i < s_out_size; i++)
-        // {
-        //     int u = L_out[source][i].vertex;
-        //     if (!case_info.isIntree[u])
-        //     {
-        //         two_hop_weight_type dist_su = L_out[source][i].distance;
-        //         for (int j = 0; j < t_in_size; j++)
-        //         {
-        //             int w = L_in[terminal][j].vertex;
-        //             if (!case_info.isIntree[w])
-        //             {
-        //                 two_hop_weight_type dist_wt = L_in[terminal][j].distance;
-        //                 two_hop_weight_type dist_uw =
-        //                     dgraph_v1_extract_shortest_distance(L_in, L_out, core_graph, u, w);
-        //                 two_hop_weight_type d4 = dist_su + dist_uw + dist_wt;
-        //                 if (distance > d4)
-        //                 {
-        //                     distance = d4;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        // int r = root[source];
-        // int r_in_size = Bags_out[r].size();
-        // if (r_in_size > L_out[source].size())
-        //     r_in_size = L_out[source].size();
-        // int r_out_size = Bags_in[r].size();
-        // if (r_out_size > L_in[terminal].size())
-        //     r_out_size = L_in[terminal].size();
-
         int r_in_size = L_out[source].size();
         int r_out_size = L_in[terminal].size();
         for (int i = 0; i < r_in_size; i++)
