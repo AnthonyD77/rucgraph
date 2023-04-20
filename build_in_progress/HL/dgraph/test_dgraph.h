@@ -170,6 +170,65 @@ void test_dgraph_PLL_PSL() {
     }
 }
 
+void test_dgraph_label_of_PLL_PSL_is_same_or_not()
+{
+    for (int xx = 0; xx < 1e2; xx++) {
+        int V = 1000, E = 5000, precision = 1, thread_num = 10;
+        two_hop_weight_type ec_min = 0.1, ec_max = 1;
+        dgraph_v_of_v<two_hop_weight_type> instance_graph;
+        instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+        dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph); //id是排序好的
+
+        dgraph_case_info_v1 mm;
+        mm.use_canonical_repair = 1;
+        dgraph_PLL(instance_graph, thread_num, mm);
+
+        dgraph_case_info_v1 mm1;
+        mm1.use_canonical_repair = 1;
+        dgraph_PSL(instance_graph, thread_num, mm1);
+
+        bool is_same = true;
+
+        for (int i = 0; i < V; i++)
+        {
+            if (mm.L_in[i].size() == mm1.L_in[i].size() && mm.L_out[i].size() == mm1.L_out[i].size())
+            {
+                for (int j = 0; j < mm.L_in[i].size(); j++)
+                {
+                    if (mm.L_in[i][j].vertex != mm1.L_in[i][j].vertex || (mm.L_in[i][j].distance - mm1.L_in[i][j].distance > 1e-5))
+                    {
+                        is_same = false;
+                        break;
+                    }
+
+                }
+
+                for (int j = 0; j < mm.L_out[i].size(); j++)
+                {
+
+                    if (mm.L_out[i][j].vertex != mm1.L_out[i][j].vertex || (mm.L_out[i][j].distance - mm1.L_out[i][j].distance > 1e-5))
+                    {
+                        is_same = false;
+                        break;
+                    }
+                }
+            }
+            else {
+                is_same = false;
+                break;
+            }
+        }
+
+        cout << "is same? " << is_same << endl;
+        if (!is_same) {
+            getchar();
+        }
+
+        mm.clear_labels();
+        mm1.clear_labels();
+    }
+}
+
 void test_dgraph_CT()
 {
     /*parameters*/
