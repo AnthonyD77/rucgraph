@@ -170,27 +170,23 @@ void test_dgraph_PLL_PSL() {
     }
 }
 
-
-
 void test_dgraph_CT()
 {
     /*parameters*/
-    int iteration_graph_times = 10, iteration_source_times = 1000, iteration_terminal_times = 1000;
+    int iteration_graph_times = 10, iteration_source_times = 100, iteration_terminal_times = 100;
 
     int generate_new_graph = 1;
 
-    int V = 1000, E = 5000, precision = 1, thread_num = 10;
+    int V = 1000, E = 5000, precision = 1, thread_num = 1;
     two_hop_weight_type ec_min = 0.1, ec_max = 1;
     double avg_index_time = 0, avg_index_size_per_v = 0;
-
-    bool use_PLL = 0; // 1: PLL 0: PSL
 
     /*reduction method selection*/
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 ct_info;
     ct_info.thread_num = thread_num;
-    ct_info.d = 3;
-    ct_info.use_PLL = use_PLL;
+    ct_info.d = 10;
+    ct_info.use_PLL = 0;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++)
@@ -233,7 +229,8 @@ void test_dgraph_CT()
         ct_info.clear_labels();
     }
 
-    cout << "avg_index_time: " << avg_index_time / iteration_graph_times << endl;
+    cout << "V = " << V << " E = " << E << " ct_info.d = " << ct_info.d << " thread_num = " << thread_num << " ct_info.use_PLL = "
+        << ct_info.use_PLL << " avg_index_time = " << avg_index_time << "s" << endl;
 }
 
 
