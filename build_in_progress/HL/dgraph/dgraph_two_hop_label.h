@@ -74,10 +74,12 @@ void label_output_to_file(std::string instance_name, vector<vector<two_hop_label
 
 
 
-/*定义全局变量*/
+/*瀹氫箟鍏ㄥ眬鍙橀噺*/
 long long int max_labal_size_595;
 long long int labal_size_595;
-int max_N_ID_for_mtx_595 = 1e7; vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595); /* multi thread parameters */
+int max_N_ID_for_mtx_595 = 1e7; 
+vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595); /* multi thread parameters */
+std::shared_mutex edge_lock;
 queue<int> Qid_595;
 vector<vector<two_hop_weight_type>> dist;
 vector<vector<two_hop_weight_type>> dist2;
@@ -91,7 +93,7 @@ vector<vector<two_hop_label>> L_temp_in;
 vector<vector<two_hop_label>> L_temp_out;
 vector<vector<two_hop_label>> L_PSL_temp[2];
 
-/*清除全局变量*/
+/*娓呴櫎鍏ㄥ眬鍙橀噺*/
 void dgraph_clear_global_values_PLL_PSL() {
     queue<int>().swap(Qid_595);
     vector<vector<bool>>().swap(dirt);
