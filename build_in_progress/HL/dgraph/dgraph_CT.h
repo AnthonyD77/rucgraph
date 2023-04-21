@@ -116,40 +116,82 @@ class dgraph_case_info_v2
         }
     }
 
-    /*record_all_details*/
+    void print_time()
+    {
+        cout << "time1_initialization: " << time1_initialization << endl;
+        cout << "time2_tree_decomposition: " << time2_tree_decomposition << endl;
+        cout << "time3_tree_indexs: " << time3_tree_indexs << endl;
+        cout << "time4_lca: " << time4_lca << endl;
+        cout << "time5_core_indexs: " << time5_core_indexs << endl;
+        cout << "time6_post: " << time6_post << endl;
+        cout << "time_total: " << time_total << endl;
+    }
 };
 
 /*global values*/
 dgraph_v_of_v<two_hop_weight_type> global_dgraph_CT;
-std::vector<std::pair<int, int>> added_max_edge;
+vector<pair<int, int>> infty_edge;
+int global_N;
 
 void clear_gloval_values_CT()
 {
     global_dgraph_CT.clear();
-    std::vector<std::pair<int, int>>().swap(added_max_edge);
+    vector<pair<int, int>>().swap(infty_edge);
 }
 
 void substitute_parallel(int u, int w, two_hop_weight_type ec)
 {
+    mtx_595[u].lock();                  // u_out
+    mtx_595[w + global_N].lock();       // w_in
     if (global_dgraph_CT.contain_edge(u, w) == 0) {
         global_dgraph_CT.add_edge(u, w, ec);
     }
     else{
-        if (global_dgraph_CT.edge_weight(u, w) > ec)
+        if (global_dgraph_CT.edge_weight(u, w) > ec) {
             global_dgraph_CT.add_edge(u, w, ec);
+        }
     }
+    mtx_595[u].unlock();
+    mtx_595[w + global_N].unlock();
 }
 
-void substitute_parallel_2(int u, int w, two_hop_weight_type ec)
+void substitute_parallel_2(int u, int w)
 {
-    if (global_dgraph_CT.contain_edge(u, w) == 0 && global_dgraph_CT.contain_edge(w, u) == 0) {
-        global_dgraph_CT.add_edge(u, w, std::numeric_limits<two_hop_weight_type>::max());
+    bool contain_wu = 1;
+    mtx_595[w].lock();                  // w_out
+    mtx_595[u + global_N].lock();       // u_in
+    if ( global_dgraph_CT.contain_edge(w, u) == 0) {
+        contain_wu = 0;
     }
+    mtx_595[w].unlock();
+    mtx_595[u + global_N].unlock();
+
+    mtx_595[u].lock();                  // u_out
+    mtx_595[w + global_N].lock();       // w_in
+    edge_lock.lock();
+    if (global_dgraph_CT.contain_edge(u, w) == 0 && contain_wu == 0) {
+        global_dgraph_CT.add_edge(u, w, std::numeric_limits<two_hop_weight_type>::max());
+        infty_edge.push_back({u, w});
+    }
+    edge_lock.unlock();
+    mtx_595[u].unlock();
+    mtx_595[w + global_N].unlock();
 }
 
 void remove_parallel(int u, int w)
 {
+    mtx_595[u].lock();
+    mtx_595[w + global_N].lock();
     global_dgraph_CT.remove_edge(u, w);
+    mtx_595[u].unlock();
+    mtx_595[w + global_N].unlock();
+
+    // edge_lock.lock();
+    // pair<int, int> uw = {u, w};
+    // auto it = find(infty_edge.begin(), infty_edge.end(), uw);
+    // if (it != infty_edge.end())
+    //     infty_edge.erase(it);
+    // edge_lock.unlock();
 }
 
 void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, vector<int> &dfn)
@@ -167,7 +209,7 @@ void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, ve
 }
 
 /*indexing function*/
-void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dgraph_case_info_v2 &case_info)
+void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info_v2 &case_info)
 {
 
     //--------------------------- step 1: initialization ---------------------------
@@ -186,9 +228,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     auto &dep = case_info.dep;
 
     int N = input_graph.INs.size();
+    global_N = N + 1;
 
     global_dgraph_CT = input_graph;
-    isIntree.resize(max_N_ID, 0);
+    isIntree.resize(N, 0);
 
     /* initialize queue */
     priority_queue<node_degree> q;
@@ -229,6 +272,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 break;
         }
         int v_i = nd.vertex;
+        // cout << v_i << endl;
         std::vector<std::pair<int, two_hop_weight_type>> vi_in = global_dgraph_CT.INs[v_i];
         std::vector<std::pair<int, two_hop_weight_type>> vi_out = global_dgraph_CT.OUTs[v_i];
         /* 2. Determine whether to break */
@@ -267,9 +311,8 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 for (int u2 = u + 1; u2 < in_size; u2++)
                 {
                     int _u2 = vi_in[u2].first;
-                    two_hop_weight_type new_ec = std::numeric_limits<two_hop_weight_type>::max();
-                    results.emplace_back(pool.enqueue([_u, _u2, new_ec] {
-                        substitute_parallel_2(_u, _u2, new_ec);
+                    results.emplace_back(pool.enqueue([_u, _u2] {
+                        substitute_parallel_2(_u, _u2);
                         return 1;
                     }));
                 }
@@ -285,9 +328,8 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
                 for (int w2 = w + 1; w2 < out_size; w2++)
                 {
                     int _w2 = vi_out[w2].first;
-                    two_hop_weight_type new_ec = std::numeric_limits<two_hop_weight_type>::max();
-                    results.emplace_back(pool.enqueue([_w, _w2, new_ec] {
-                        substitute_parallel_2(_w, _w2, new_ec);
+                    results.emplace_back(pool.enqueue([_w, _w2] {
+                        substitute_parallel_2(_w, _w2);
                         return 1;
                     }));
                 }
@@ -299,17 +341,17 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
         }
         results.clear();
         /* 5. delete edge and update degree */
-        for (auto u = vi_in.begin(); u != vi_in.end(); u++)
+        for (int u = 0; u < in_size; u++)
         {
-            int _u = u->first;
+            int _u = vi_in[u].first;
             results.emplace_back(pool.enqueue([_u, v_i] {
                 remove_parallel(_u, v_i);
                 return 1;
             }));
         }
-        for (auto w = vi_out.begin(); w != vi_out.end(); w++)
+        for (int w = 0; w < out_size; w++)
         {
-            int _w = w->first;
+            int _w = vi_out[w].first;
             results.emplace_back(pool.enqueue([v_i, _w] {
                 remove_parallel(v_i, _w);
                 return 1;
@@ -321,15 +363,15 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
         }
         results.clear();
         /* 6. update priority queue */
-        for (auto u = vi_in.begin(); u != vi_in.end(); u++)
+        for (int u = 0; u < in_size; u++)
         {
-            nd.vertex = u->first;
+            nd.vertex = vi_in[u].first;
             nd.degree = global_dgraph_CT.degree(nd.vertex);
             q.push(nd);
         }
-        for (auto w = vi_out.begin(); w != vi_out.end(); w++)
+        for (int w = 0; w < out_size; w++)
         {
-            nd.vertex = w->first;
+            nd.vertex = vi_out[w].first;
             nd.degree = global_dgraph_CT.degree(nd.vertex);
             q.push(nd);
         }
@@ -692,7 +734,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, int max_N_ID, dg
     // cout << "step 5: 2-hop labeling" << endl;
     auto begin5 = std::chrono::high_resolution_clock::now();
 
-    /*update limits*/
+    int infty_size = infty_edge.size();
+    for (int i = 0; i < infty_size; i++) {
+            global_dgraph_CT.remove_edge_infty(infty_edge[i].first, infty_edge[i].second);
+    }
 
     /* construct 2-hop labels on core */
     case_info.core_graph = global_dgraph_CT;
