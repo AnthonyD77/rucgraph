@@ -39,8 +39,6 @@ rm A
 #include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
 #include <build_in_progress/HL/dgraph/dgraph_PLL.h>
 #include <build_in_progress/HL/dgraph/dgraph_PSL.h>
-
-
 #include <build_in_progress/HL/dgraph/dgraph_CT.h>
 
 
@@ -232,7 +230,7 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 void test_dgraph_CT()
 {
     /*parameters*/
-    int iteration_graph_times = 10, iteration_source_times = 100, iteration_terminal_times = 100;
+    int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
 
     int generate_new_graph = 1;
 
@@ -266,14 +264,14 @@ void test_dgraph_CT()
 
         auto begin = std::chrono::high_resolution_clock::now();
         try {
-            CT_dgraph(instance_graph, V, ct_info);
+            CT_dgraph(instance_graph, ct_info);
         }
         catch (string s)
         {
         }
         auto end = std::chrono::high_resolution_clock::now();
         double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-        avg_index_time += runningtime;
+        avg_index_time += (double)runningtime / iteration_graph_times;
 
         if (0)
         {
@@ -285,6 +283,7 @@ void test_dgraph_CT()
         
         dgraph_v1_check_correctness(mm, ct_info, instance_graph, iteration_source_times, iteration_terminal_times, 1);
 
+        //ct_info.print_time();
         ct_info.clear_labels();
     }
 

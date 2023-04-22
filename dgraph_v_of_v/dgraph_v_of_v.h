@@ -87,31 +87,32 @@ bool dgraph_v_of_v<weight_type>::contain_edge(int v1, int v2) {
 
 	/*this function checks two conditions: v1 is in INs of v2; v2 is in OUTs of v1*/
 
-	int x = graph_hash_of_mixed_weighted_binary_operations_search(OUTs[v1], v2) +
-		graph_hash_of_mixed_weighted_binary_operations_search(INs[v2], v1);
+	return graph_hash_of_mixed_weighted_binary_operations_search(OUTs[v1], v2);
 
-	if (x == 0) {
-		return false;
-	}
-	else if (x == 2) {
-		return true;
-	}
-	else {
-		std::cout << "dgraph_v_of_v check_edge error!" << std::endl;
-		if (graph_hash_of_mixed_weighted_binary_operations_search(OUTs[v1], v2)) {
-			std::cout << v2 << " is in OUTs of" << v1 << std::endl;
-		}
-		else {
-			std::cout << v2 << " is NOT in OUTs of" << v1 << std::endl;
-		}
-		if (graph_hash_of_mixed_weighted_binary_operations_search(INs[v2], v1)) {
-			std::cout << v1 << " is in INs of" << v2 << std::endl;
-		}
-		else {
-			std::cout << v1 << " is NOT in INs of" << v2 << std::endl;
-		}
-		exit(1);
-	}
+	//int x = graph_hash_of_mixed_weighted_binary_operations_search(OUTs[v1], v2) +
+	//	graph_hash_of_mixed_weighted_binary_operations_search(INs[v2], v1);
+	//if (x == 0) {
+	//	return false;
+	//}
+	//else if (x == 2) {
+	//	return true;
+	//}
+	//else {
+	//	std::cout << "dgraph_v_of_v check_edge error!" << std::endl;
+	//	if (graph_hash_of_mixed_weighted_binary_operations_search(OUTs[v1], v2)) {
+	//		std::cout << v2 << " is in OUTs of" << v1 << std::endl;
+	//	}
+	//	else {
+	//		std::cout << v2 << " is NOT in OUTs of" << v1 << std::endl;
+	//	}
+	//	if (graph_hash_of_mixed_weighted_binary_operations_search(INs[v2], v1)) {
+	//		std::cout << v1 << " is in INs of" << v2 << std::endl;
+	//	}
+	//	else {
+	//		std::cout << v1 << " is NOT in INs of" << v2 << std::endl;
+	//	}
+	//	exit(1);
+	//}
 }
 
 

@@ -10,6 +10,7 @@
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 #include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
 #include <build_in_progress/HL/dgraph/dgraph_PLL.h>
+#include <build_in_progress/HL/dgraph/dgraph_PSL.h>
 
 struct node_degree
 {
@@ -20,8 +21,7 @@ struct node_degree
     }
 };
 
-class dgraph_case_info_v2
-{
+class dgraph_case_info_v2 {
   public:
     /* parameters */
     int thread_num;
@@ -30,34 +30,18 @@ class dgraph_case_info_v2
 
     /* labels */
     dgraph_case_info_v1 two_hop_case_info;
-    dgraph_v_of_v<two_hop_weight_type> core_graph;
     std::vector<std::vector<std::pair<int, two_hop_weight_type>>> Bags_in, Bags_out;
     std::vector<bool> isIntree;
     std::vector<int> root;
-
     std::vector<std::vector<int>> tree_st;   // for lca
     std::vector<std::vector<int>> tree_st_r; // for lca
     std::vector<int> first_pos;              // for lca
     std::vector<int> lg;                     // for lca
     std::vector<int> dep;                    // for lca
 
-    /*running limits*/
-    long long int max_bit_size = 1e12;
-    double max_run_time_seconds = 1e12; // s
-
-    /*compute label size*/
-    // long long int compute_label_bit_size()
-    // {
-    //     long long int size = 0;
-    //     size = size + two_hop_case_info.compute_label_bit_size();
-    //     return size;
-    // }
-
     /*clear labels*/
-    void clear_labels()
-    {
+    void clear_labels() {
         two_hop_case_info.clear_labels();
-        core_graph.clear();
         std::vector<std::vector<pair<int, two_hop_weight_type>>>().swap(Bags_in);
         std::vector<std::vector<pair<int, two_hop_weight_type>>>().swap(Bags_out);
         vector<bool>().swap(isIntree);
@@ -68,6 +52,10 @@ class dgraph_case_info_v2
         vector<int>().swap(lg);
         vector<int>().swap(dep);
     }
+
+    /*running limits*/
+    long long int max_bit_size = 1e12;
+    double max_run_time_seconds = 1e12; // s
 
     /*indexing times*/
     double time1_initialization = 0;
@@ -116,8 +104,7 @@ class dgraph_case_info_v2
         }
     }
 
-    void print_time()
-    {
+    void print_time() {
         cout << "time1_initialization: " << time1_initialization << endl;
         cout << "time2_tree_decomposition: " << time2_tree_decomposition << endl;
         cout << "time3_tree_indexs: " << time3_tree_indexs << endl;
@@ -139,8 +126,7 @@ void clear_gloval_values_CT()
     vector<pair<int, int>>().swap(infty_edge);
 }
 
-void substitute_parallel(int u, int w, two_hop_weight_type ec)
-{
+void substitute_parallel(int u, int w, two_hop_weight_type ec) {
     mtx_595[u].lock();                  // u_out
     mtx_595[w + global_N].lock();       // w_in
     if (global_dgraph_CT.contain_edge(u, w) == 0) {
@@ -155,8 +141,7 @@ void substitute_parallel(int u, int w, two_hop_weight_type ec)
     mtx_595[w + global_N].unlock();
 }
 
-void substitute_parallel_2(int u, int w)
-{
+void substitute_parallel_2(int u, int w) {
     bool contain_wu = 1;
     mtx_595[w].lock();                  // w_out
     mtx_595[u + global_N].lock();       // u_in
@@ -178,20 +163,12 @@ void substitute_parallel_2(int u, int w)
     mtx_595[w + global_N].unlock();
 }
 
-void remove_parallel(int u, int w)
-{
+void remove_parallel(int u, int w) {
     mtx_595[u].lock();
     mtx_595[w + global_N].lock();
     global_dgraph_CT.remove_edge(u, w);
     mtx_595[u].unlock();
     mtx_595[w + global_N].unlock();
-
-    // edge_lock.lock();
-    // pair<int, int> uw = {u, w};
-    // auto it = find(infty_edge.begin(), infty_edge.end(), uw);
-    // if (it != infty_edge.end())
-    //     infty_edge.erase(it);
-    // edge_lock.unlock();
 }
 
 void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, vector<int> &dfn)
@@ -209,8 +186,7 @@ void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, ve
 }
 
 /*indexing function*/
-void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info_v2 &case_info)
-{
+void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info_v2 &case_info) {
 
     //--------------------------- step 1: initialization ---------------------------
     // cout << "step 1: initialization" << endl;
@@ -220,23 +196,18 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     auto &Bags_out = case_info.Bags_out;
     auto &isIntree = case_info.isIntree;
     auto &root = case_info.root;
-
     auto &tree_st = case_info.tree_st;
     auto &tree_st_r = case_info.tree_st_r;
     auto &first_pos = case_info.first_pos;
     auto &lg = case_info.lg;
     auto &dep = case_info.dep;
-
     int N = input_graph.INs.size();
     global_N = N + 1;
-
     global_dgraph_CT = input_graph;
     isIntree.resize(N, 0);
-
     /* initialize queue */
     priority_queue<node_degree> q;
-    for (int i = 0; i < N; i++)
-    {
+    for (int i = 0; i < N; i++) {
         node_degree nd;
         nd.degree = global_dgraph_CT.degree(i);
         nd.vertex = i;
@@ -256,121 +227,97 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     Bags_in.resize(N);
     Bags_out.resize(N);
     vector<int> node_order(N + 1); // merging ID to original ID
-
     ThreadPool pool(case_info.thread_num);
     std::vector<std::future<int>> results;
-
-    for (int i = 1; i <= N; i++)
-    {
+    for (int i = 1; i <= N; i++) {
         /* 1. find v_i */
         node_degree nd;
-        while (1)
-        {
+        while (1) {
             nd = q.top();
             q.pop();
             if (!isIntree[nd.vertex] && global_dgraph_CT.degree(nd.vertex) == nd.degree)
                 break;
         }
         int v_i = nd.vertex;
-        // cout << v_i << endl;
-        std::vector<std::pair<int, two_hop_weight_type>> vi_in = global_dgraph_CT.INs[v_i];
-        std::vector<std::pair<int, two_hop_weight_type>> vi_out = global_dgraph_CT.OUTs[v_i];
         /* 2. Determine whether to break */
-        if (nd.degree >= case_info.d)
-        {
+        if (nd.degree >= case_info.d) {
             bound_lambda = i - 1;
             q.push(nd);
             break;
         }
         /* 3. update CT info */
+        auto vi_in = global_dgraph_CT.INs[v_i], vi_out = global_dgraph_CT.OUTs[v_i];
+        int in_size = vi_in.size(), out_size = vi_out.size();
         isIntree[v_i] = 1;
         node_order[i] = v_i;
         /* 4. construct Bags_in/out & add edge */
-        int in_size = vi_in.size();
-        int out_size = vi_out.size();
-        if (in_size != 0)
-        {
-            for (int u = 0; u < in_size; u++)
-            {
-                Bags_in[v_i].push_back({vi_in[u].first, vi_in[u].second});
-                int _u = vi_in[u].first;
-                /* u -> vi -> w */
-                for (int w = 0; w < out_size; w++)
-                {
-                    int _w = vi_out[w].first;
-                    if (_u == _w)
-                        continue;
-                    two_hop_weight_type new_ec = vi_in[u].second + vi_out[w].second;
-                    results.emplace_back(
-                        pool.enqueue([_u, _w, new_ec] { // pass const type value j to thread; [] can be empty
-                            substitute_parallel(_u, _w, new_ec);
-                            return 1;
-                        }));
-                }
-                /* u -> vi, u2 -> vi */
-                for (int u2 = u + 1; u2 < in_size; u2++)
-                {
-                    int _u2 = vi_in[u2].first;
-                    results.emplace_back(pool.enqueue([_u, _u2] {
-                        substitute_parallel_2(_u, _u2);
-                        return 1;
-                    }));
-                }
-            }
-        }
-        if (out_size != 0)
-        {
-            for (int w = 0; w < out_size; w++)
-            {
-                Bags_out[v_i].push_back({vi_out[w].first, vi_out[w].second});
+        for (int u = 0; u < in_size; u++) {
+            Bags_in[v_i].push_back({ vi_in[u].first, vi_in[u].second });
+            int _u = vi_in[u].first;
+            /* u -> vi -> w */
+            for (int w = 0; w < out_size; w++) {
                 int _w = vi_out[w].first;
-                /* vi -> w, vi -> w2 */
-                for (int w2 = w + 1; w2 < out_size; w2++)
-                {
-                    int _w2 = vi_out[w2].first;
-                    results.emplace_back(pool.enqueue([_w, _w2] {
-                        substitute_parallel_2(_w, _w2);
+                if (_u == _w)
+                    continue;
+                two_hop_weight_type new_ec = vi_in[u].second + vi_out[w].second;
+                results.emplace_back(
+                    pool.enqueue([_u, _w, new_ec] { // pass const type value j to thread; [] can be empty
+                        substitute_parallel(_u, _w, new_ec);
                         return 1;
+                        }));
+            }
+            /* u -> vi, u2 -> vi */
+            for (int u2 = u + 1; u2 < in_size; u2++) {
+                int _u2 = vi_in[u2].first;
+                results.emplace_back(pool.enqueue([_u, _u2] {
+                    substitute_parallel_2(_u, _u2);
+                    return 1;
                     }));
-                }
             }
         }
-        for (auto &&result : results)
-        {
+        for (int w = 0; w < out_size; w++) {
+            Bags_out[v_i].push_back({ vi_out[w].first, vi_out[w].second });
+            int _w = vi_out[w].first;
+            /* vi -> w, vi -> w2 */
+            for (int w2 = w + 1; w2 < out_size; w2++)
+            {
+                int _w2 = vi_out[w2].first;
+                results.emplace_back(pool.enqueue([_w, _w2] {
+                    substitute_parallel_2(_w, _w2);
+                    return 1;
+                    }));
+            }
+        }
+        for (auto &&result : results) {
             result.get();
         }
         results.clear();
         /* 5. delete edge and update degree */
-        for (int u = 0; u < in_size; u++)
-        {
+        for (int u = 0; u < in_size; u++) {
             int _u = vi_in[u].first;
             results.emplace_back(pool.enqueue([_u, v_i] {
                 remove_parallel(_u, v_i);
                 return 1;
             }));
         }
-        for (int w = 0; w < out_size; w++)
-        {
+        for (int w = 0; w < out_size; w++) {
             int _w = vi_out[w].first;
             results.emplace_back(pool.enqueue([v_i, _w] {
                 remove_parallel(v_i, _w);
                 return 1;
             }));
         }
-        for (auto &&result : results)
-        {
+        for (auto &&result : results) {
             result.get();
         }
         results.clear();
         /* 6. update priority queue */
-        for (int u = 0; u < in_size; u++)
-        {
+        for (int u = 0; u < in_size; u++) {
             nd.vertex = vi_in[u].first;
             nd.degree = global_dgraph_CT.degree(nd.vertex);
             q.push(nd);
         }
-        for (int w = 0; w < out_size; w++)
-        {
+        for (int w = 0; w < out_size; w++) {
             nd.vertex = vi_out[w].first;
             nd.degree = global_dgraph_CT.degree(nd.vertex);
             q.push(nd);
@@ -740,7 +687,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     }
 
     /* construct 2-hop labels on core */
-    case_info.core_graph = global_dgraph_CT;
     if (case_info.use_PLL)
     {
         dgraph_PLL(global_dgraph_CT, case_info.thread_num, case_info.two_hop_case_info);
@@ -809,15 +755,13 @@ int lca(dgraph_case_info_v2 &case_info, int x, int y)
         return y; // return the vertex with minimum depth between x and y in the dfs sequence.
 }
 
-two_hop_weight_type CT_extract_distance(dgraph_case_info_v2 &case_info, int source, int terminal)
-{
+two_hop_weight_type CT_extract_distance(dgraph_case_info_v2 &case_info, int source, int terminal) {
     auto &L_in = case_info.two_hop_case_info.L_in;
     auto &L_out = case_info.two_hop_case_info.L_out;
     auto &Bags_in = case_info.Bags_in;
     auto &Bags_out = case_info.Bags_out;
     auto &isIntree = case_info.isIntree;
     auto &root = case_info.root;
-    auto &core_graph = case_info.core_graph;
 
     if (source == terminal)
         return 0.0;
