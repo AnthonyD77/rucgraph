@@ -234,7 +234,7 @@ void test_dgraph_CT()
 
     int generate_new_graph = 1;
 
-    int V = 1000, E = 5000, precision = 1, thread_num = 10;
+    int V = 1000, E = 5000, precision = 1, thread_num = 20;
     two_hop_weight_type ec_min = 0.1, ec_max = 1;
     double avg_index_time = 0, avg_index_size_per_v = 0;
 

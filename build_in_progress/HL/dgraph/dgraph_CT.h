@@ -245,7 +245,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         /* 4. add edge */
         for (int u = 0; u < in_size; u++) {
             results.emplace_back(
-                pool.enqueue([u, in_size, out_size, vi_in, vi_out] { // pass const type value j to thread; [] can be empty
+                pool.enqueue([u, out_size, vi_in, vi_out] { // pass const type value j to thread; [] can be empty
                     int _u = (*vi_in)[u].first;
                     /* u -> vi -> w */
                     for (int w = 0; w < out_size; w++) {
@@ -255,6 +255,11 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
                             substitute_parallel(_u, _w, new_ec);
                         }
                     }
+                    return 1;
+                    }));
+            results.emplace_back(
+                pool.enqueue([u, in_size, vi_in] { // pass const type value j to thread; [] can be empty
+                    int _u = (*vi_in)[u].first;
                     /* u -> vi, u2 -> vi */
                     for (int u2 = u + 1; u2 < in_size; u2++) {
                         int _u2 = (*vi_in)[u2].first;
