@@ -130,7 +130,7 @@ void clear_gloval_values_CT()
 void substitute_parallel(int u, int w, two_hop_weight_type ec) {
     mtx_595[u].lock();                  // u_out  
     auto old_ec = global_dgraph_CT.edge_weight(u, w);
-    if (old_ec == std::numeric_limits<two_hop_weight_type>::max() || old_ec > ec) {
+    if (old_ec == std::numeric_limits<two_hop_weight_type>::max() || old_ec > ec) { // ec may be std::numeric_limits<two_hop_weight_type>::max()
         mtx_595[w + global_N].lock();       // w_in
         global_dgraph_CT.add_edge(u, w, ec);
         mtx_595[w + global_N].unlock();
