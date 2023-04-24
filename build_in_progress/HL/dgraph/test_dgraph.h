@@ -106,8 +106,6 @@ void test_dgraph_PLL_PSL() {
     dgraph_case_info_v2 mm2;
     mm.use_canonical_repair = 1;
 
-    vector<int> new2old;
-
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++) {
         cout << i << endl;
@@ -119,6 +117,7 @@ void test_dgraph_PLL_PSL() {
 
         if (generate_new_graph == 1) {          
             instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+            vector<int> new2old;
             dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); //id������õ�
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
@@ -233,7 +232,7 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 void test_dgraph_CT()
 {
     /*parameters*/
-    int iteration_graph_times = 10, iteration_source_times = 100, iteration_terminal_times = 100;
+    int iteration_graph_times = 30, iteration_source_times = 100, iteration_terminal_times = 100;
 
     int generate_new_graph = 0;
 
@@ -246,8 +245,8 @@ void test_dgraph_CT()
     dgraph_case_info_v2 ct_info;
     ct_info.thread_num = thread_num;
     ct_info.d = 10;
-    ct_info.use_PLL = 0;
-    ct_info.two_hop_order_method = 0;
+    ct_info.use_PLL = 1;
+    ct_info.two_hop_order_method = 1;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++)
@@ -287,7 +286,7 @@ void test_dgraph_CT()
         
         dgraph_v1_check_correctness(mm, ct_info, instance_graph, iteration_source_times, iteration_terminal_times, 1);
 
-        // ct_info.print_time();
+        //ct_info.print_time();
         ct_info.clear_labels();
     }
 
@@ -355,7 +354,8 @@ void compare_PLL_PSL() {
 
         if (generate_new_graph == 1) {
             instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph); //id������õ�
+            vector<int> new2old;
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); //id������õ�
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
         else {

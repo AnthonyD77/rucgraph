@@ -35,6 +35,7 @@ void dgraph_change_IDs_sum_IN_OUT_degrees(dgraph_v_of_v<weight_type>& graph, vec
     /*time complexity: O(E+V*logV)*/
 
     int N = graph.INs.size();
+    new_to_old.resize(N);
     vector<pair<int, int>> value(N);
 
     for (int i = 0; i < N; i++) {
@@ -58,6 +59,7 @@ void dgraph_change_IDs_weighted_degrees(dgraph_v_of_v<weight_type>& graph, vecto
     /*time complexity: O(E+V*logV)*/
 
     int N = graph.INs.size();
+    new_to_old.resize(N);
     vector<pair<int, int>> value(N);
 
     for (int i = 0; i < N; i++) {
