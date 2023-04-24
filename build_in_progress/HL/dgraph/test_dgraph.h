@@ -301,7 +301,7 @@ void test_dgraph_CT()
 
 
 
-/*compare_different_sorting_method*/
+/*compare*/
 
 double avg_query_time(int query_times, int N, vector<vector<two_hop_label>>& L_in, vector<vector<two_hop_label>>& L_out) {
 
