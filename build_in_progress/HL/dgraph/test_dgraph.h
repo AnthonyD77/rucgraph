@@ -94,9 +94,9 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_case_inf
 
 void test_dgraph_PLL_PSL() {
     /*parameters*/
-    int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
+    int iteration_graph_times = 10, iteration_source_times = 100, iteration_terminal_times = 100;
     int V = 1000, E = 5000, precision = 1, thread_num = 10;
-    two_hop_weight_type ec_min = 0.1, ec_max = 1;
+    two_hop_weight_type ec_min = 1, ec_max = 1;
 
     double avg_index_time = 0, avg_index_size_per_v = 0;
 
@@ -319,6 +319,68 @@ double avg_query_time(int query_times, int N, vector<vector<two_hop_label>>& L_i
     }
 
     return avg_query_time_ms;
+}
+
+void compare_PLL_PSL() {
+
+    /*
+    PLL is faster in dense weighted graphs;
+    */
+
+    /*parameters*/
+    int iteration_graph_times = 20;
+    int V = 1000, E = 10000, precision = 1, thread_num = 5;
+    two_hop_weight_type ec_min = 1, ec_max = 1;
+
+    double PLL_avg_index_time = 0, PSL_avg_index_time = 0;
+
+
+    dgraph_case_info_v1 mm;
+    dgraph_case_info_v2 mm2;
+    mm.use_canonical_repair = 0;
+
+    /*iteration*/
+    for (int i = 0; i < iteration_graph_times; i++) {
+        cout << i << endl;
+
+        /*input and output; below is for generating random new graph, or read saved graph*/
+        int generate_new_graph = 1;
+
+        dgraph_v_of_v<two_hop_weight_type> instance_graph;
+
+        if (generate_new_graph == 1) {
+            instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph); //id������õ�
+            dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
+        }
+        else {
+            dgraph_read_dgraph("random_dgraph_test.txt", instance_graph);
+        }
+
+        if (1) {
+            auto begin = std::chrono::high_resolution_clock::now();
+            dgraph_PLL(instance_graph, thread_num, mm);
+            auto end = std::chrono::high_resolution_clock::now();
+            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+            PLL_avg_index_time += runningtime / iteration_graph_times;
+            mm.clear_labels();
+        }
+
+        if (1) {
+            auto begin = std::chrono::high_resolution_clock::now();
+            dgraph_PSL(instance_graph, thread_num, mm);
+            auto end = std::chrono::high_resolution_clock::now();
+            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+            PSL_avg_index_time += runningtime / iteration_graph_times;
+            mm.clear_labels();
+        }
+
+
+        
+    }
+
+    cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PLL_avg_index_time = " << PLL_avg_index_time << "s" 
+        << " PSL_avg_index_time = " << PSL_avg_index_time << "s" << endl << "PLL_avg_index_time/PSL_avg_index_time = " << PLL_avg_index_time/PSL_avg_index_time << endl;
 }
 
 void compare_different_sorting_method() {
