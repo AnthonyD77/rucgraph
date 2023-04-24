@@ -244,7 +244,7 @@ void test_dgraph_CT()
     /*reduction method selection*/
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 ct_info;
-    ct_info.thread_num = 10;
+    ct_info.thread_num = thread_num;
     ct_info.d = 10;
     ct_info.use_PLL = 0;
     ct_info.two_hop_order_method = 0;
