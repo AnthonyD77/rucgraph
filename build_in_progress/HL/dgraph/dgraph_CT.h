@@ -119,12 +119,24 @@ class dgraph_case_info_v2 {
 /*global values*/
 dgraph_v_of_v<two_hop_weight_type> global_dgraph_CT;
 vector<pair<int, int>> infty_edge;
+dgraph_case_info_v1 two_hop_case_info_sorted;
 int global_N;
+
 
 void clear_gloval_values_CT()
 {
     global_dgraph_CT.clear();
     vector<pair<int, int>>().swap(infty_edge);
+    two_hop_case_info_sorted.clear_labels();
+}
+
+void Label_new_to_old_parallel(int newID, int oldID, vector<vector<two_hop_label>> &L, int is_in) {
+    if (is_in) {
+        L[oldID].swap(two_hop_case_info_sorted.L_in[newID]);
+    }
+    else {
+        L[oldID].swap(two_hop_case_info_sorted.L_out[newID]);
+    }
 }
 
 void substitute_parallel(int u, int w, two_hop_weight_type ec) {
@@ -656,22 +668,44 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
             global_dgraph_CT.remove_edge_infty(infty_edge[i].first, infty_edge[i].second);
     }
 
-    /* construct 2-hop labels on core */
-
     /*change IDs*/
+    vector<int> new_to_old(N);
     if (case_info.two_hop_order_method == 0) {
-        //dgraph_change_IDs_sum_IN_OUT_degrees(global_dgraph_CT);
+        dgraph_change_IDs_sum_IN_OUT_degrees(global_dgraph_CT, new_to_old);
     }
     else if (case_info.two_hop_order_method == 1) {
-        //dgraph_change_IDs_weighted_degrees(global_dgraph_CT);
+        dgraph_change_IDs_weighted_degrees(global_dgraph_CT, new_to_old);
     }
 
+    /* construct 2-hop labels on core */
+    two_hop_case_info_sorted = case_info.two_hop_case_info;
     if (case_info.use_PLL) {
-        dgraph_PLL(global_dgraph_CT, case_info.thread_num, case_info.two_hop_case_info);
+        dgraph_PLL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
     else {
-    	dgraph_PSL(global_dgraph_CT, case_info.thread_num, case_info.two_hop_case_info);
+    	dgraph_PSL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
+
+    /* return to original ID */
+    auto &L_in = case_info.two_hop_case_info.L_in;
+    auto &L_out = case_info.two_hop_case_info.L_out; 
+    L_in.resize(N);
+    L_out.resize(N);  
+
+    results.emplace_back(pool.enqueue([&L_in, &L_out, new_to_old, N] {
+        for (int i = 0; i < N; i++) {
+            int oldID = new_to_old[i];
+            Label_new_to_old_parallel(i, oldID, L_in, 1);
+            Label_new_to_old_parallel(i, oldID, L_out, 0);
+        }
+        return 1;
+        }));  
+    for (auto &&result : results) {
+        result.get();
+    }
+    results.clear();
+    vector<int>().swap(new_to_old);
+    two_hop_case_info_sorted.clear_labels();
 
     auto end5 = std::chrono::high_resolution_clock::now();
     case_info.time5_core_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(end5 - begin5).count() / 1e9;
