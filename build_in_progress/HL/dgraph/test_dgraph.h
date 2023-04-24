@@ -324,7 +324,8 @@ double avg_query_time(int query_times, int N, vector<vector<two_hop_label>>& L_i
 void compare_PLL_PSL() {
 
     /*
-    PLL is faster in dense weighted graphs;
+    PLL is faster in sparse weighted graphs;
+    PSL is dense in sparse unweighted graphs;
     */
 
     /*parameters*/
