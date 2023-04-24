@@ -120,6 +120,7 @@ class dgraph_case_info_v2 {
 dgraph_v_of_v<two_hop_weight_type> global_dgraph_CT;
 vector<pair<int, int>> infty_edge;
 dgraph_case_info_v1 two_hop_case_info_sorted;
+vector<int> new_to_old;
 int global_N;
 
 
@@ -127,14 +128,30 @@ void clear_gloval_values_CT()
 {
     global_dgraph_CT.clear();
     vector<pair<int, int>>().swap(infty_edge);
+    vector<int>().swap(new_to_old);
     two_hop_case_info_sorted.clear_labels();
 }
 
-void Label_new_to_old_parallel(int newID, int oldID, vector<vector<two_hop_label>> &L, int is_in) {
+void Label_new_to_old_parallel(int newID, vector<vector<two_hop_label>> &L, int is_in) {
+    int oldID = new_to_old[newID];
     if (is_in) {
+        int size = two_hop_case_info_sorted.L_in[newID].size();
+        for (int i = 0; i < size; i++) {
+            int hubID_new = two_hop_case_info_sorted.L_in[newID][i].vertex;
+            two_hop_case_info_sorted.L_in[newID][i].vertex = new_to_old[hubID_new];
+        }
+        sort(two_hop_case_info_sorted.L_in[newID].begin(), two_hop_case_info_sorted.L_in[newID].end(),
+                compare_two_hop_label_vertex_small_to_large);
         L[oldID].swap(two_hop_case_info_sorted.L_in[newID]);
     }
     else {
+        int size = two_hop_case_info_sorted.L_out[newID].size();
+        for (int i = 0; i < size; i++) {
+            int hubID_new = two_hop_case_info_sorted.L_out[newID][i].vertex;
+            two_hop_case_info_sorted.L_out[newID][i].vertex = new_to_old[hubID_new];
+        }
+        sort(two_hop_case_info_sorted.L_out[newID].begin(), two_hop_case_info_sorted.L_out[newID].end(),
+                compare_two_hop_label_vertex_small_to_large);
         L[oldID].swap(two_hop_case_info_sorted.L_out[newID]);
     }
 }
@@ -669,7 +686,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     }
 
     /*change IDs*/
-    vector<int> new_to_old(N);
+    new_to_old.resize(N);
     if (case_info.two_hop_order_method == 0) {
         dgraph_change_IDs_sum_IN_OUT_degrees(global_dgraph_CT, new_to_old);
     }
@@ -686,26 +703,26 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     	dgraph_PSL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
 
+    // two_hop_case_info_sorted.print_L();
+
     /* return to original ID */
     auto &L_in = case_info.two_hop_case_info.L_in;
     auto &L_out = case_info.two_hop_case_info.L_out; 
     L_in.resize(N);
-    L_out.resize(N);  
+    L_out.resize(N);
 
-    results.emplace_back(pool.enqueue([&L_in, &L_out, new_to_old, N] {
-        for (int i = 0; i < N; i++) {
-            int oldID = new_to_old[i];
-            Label_new_to_old_parallel(i, oldID, L_in, 1);
-            Label_new_to_old_parallel(i, oldID, L_out, 0);
-        }
+    for (int i = 0; i < N; i++) {
+        results.emplace_back(pool.enqueue([i, &L_in, &L_out] {
+            Label_new_to_old_parallel(i, L_in, 1);
+            Label_new_to_old_parallel(i, L_out, 0);
         return 1;
         }));  
+    }
     for (auto &&result : results) {
         result.get();
     }
     results.clear();
-    vector<int>().swap(new_to_old);
-    two_hop_case_info_sorted.clear_labels();
+    
 
     auto end5 = std::chrono::high_resolution_clock::now();
     case_info.time5_core_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(end5 - begin5).count() / 1e9;
