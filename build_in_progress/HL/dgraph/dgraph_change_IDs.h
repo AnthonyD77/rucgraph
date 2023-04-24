@@ -30,7 +30,7 @@ void dgraph_change_IDs_element(dgraph_v_of_v<weight_type>& graph, int N, vector<
 
 
 template <typename weight_type>
-void dgraph_change_IDs_sum_IN_OUT_degrees(dgraph_v_of_v<weight_type>& graph) {
+void dgraph_change_IDs_sum_IN_OUT_degrees(dgraph_v_of_v<weight_type>& graph, vector<int> &new_to_old) {
 
     /*time complexity: O(E+V*logV)*/
 
@@ -45,6 +45,7 @@ void dgraph_change_IDs_sum_IN_OUT_degrees(dgraph_v_of_v<weight_type>& graph) {
     vector<int> old_to_new(N);
     for (int j = 0; j < N; j++) {
         old_to_new[value[j].second] = N - 1 - j; // new ID 0 has the largest sum of in and out degrees
+        new_to_old[N - 1 - j] = value[j].second;
     }
 
     dgraph_change_IDs_element(graph, N, old_to_new);
@@ -52,7 +53,7 @@ void dgraph_change_IDs_sum_IN_OUT_degrees(dgraph_v_of_v<weight_type>& graph) {
 
 
 template <typename weight_type>
-void dgraph_change_IDs_weighted_degrees(dgraph_v_of_v<weight_type>& graph) {
+void dgraph_change_IDs_weighted_degrees(dgraph_v_of_v<weight_type>& graph, vector<int> &new_to_old) {
 
     /*time complexity: O(E+V*logV)*/
 
@@ -74,6 +75,7 @@ void dgraph_change_IDs_weighted_degrees(dgraph_v_of_v<weight_type>& graph) {
     vector<int> old_to_new(N);
     for (int j = 0; j < N; j++) {
         old_to_new[value[j].second] = N - 1 - j; // new ID 0 has the largest value
+        new_to_old[N - 1 - j] = value[j].second;
     }
 
     dgraph_change_IDs_element(graph, N, old_to_new);
