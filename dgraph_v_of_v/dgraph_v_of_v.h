@@ -28,7 +28,6 @@ public:
 	/*class member functions*/
 	inline void add_edge(int, int, weight_type); // this function can change edge weights
 	inline void remove_edge(int, int);
-	inline void remove_edge_infty(int, int);
 	inline weight_type edge_weight(int, int);
 	inline bool contain_edge(int, int); // whether there is an edge
 	inline long long int edge_number(); // the total number of edges
@@ -62,15 +61,6 @@ void dgraph_v_of_v<weight_type>::remove_edge(int v1, int v2) {
 
 	graph_hash_of_mixed_weighted_binary_operations_erase(OUTs[v1], v2);
 	graph_hash_of_mixed_weighted_binary_operations_erase(INs[v2], v1);
-}
-
-template <typename weight_type>
-void dgraph_v_of_v<weight_type>::remove_edge_infty(int v1, int v2) {
-
-	/*edge direction: v1 to v2*/
-
-	graph_hash_of_mixed_weighted_binary_operations_erase_infty(OUTs[v1], v2);
-	graph_hash_of_mixed_weighted_binary_operations_erase_infty(INs[v2], v1);
 }
 
 template <typename weight_type>

@@ -123,13 +123,77 @@ dgraph_case_info_v1 two_hop_case_info_sorted;
 vector<int> new_to_old;
 int global_N;
 
-
-void clear_gloval_values_CT()
-{
+void clear_gloval_values_CT() {
     global_dgraph_CT.clear();
     vector<pair<int, int>>().swap(infty_edge);
     vector<int>().swap(new_to_old);
     two_hop_case_info_sorted.clear_labels();
+    dgraph_clear_global_values_PLL_PSL();
+}
+
+long long int compute_CT_label_bit_size(dgraph_case_info_v2& info, ThreadPool& pool, std::vector<std::future<int>>& results) {
+
+    long long int ssize = 0;
+    int N = info.Bags_in.size();
+    auto& ii = info;
+
+    results.emplace_back(pool.enqueue([&ssize, &ii, N] {
+        long long int x = compute_label_bit_size(ii.two_hop_case_info.L_in, ii.two_hop_case_info.L_out);
+        x += N * (sizeof(bool) + 3 * sizeof(int)) + ii.lg.size() * sizeof(int); // isIntree, root, first_pos, dep, lg
+        mtx.lock();
+        ssize += x;
+        mtx.unlock();
+        return 1; }));
+    results.emplace_back(pool.enqueue([&ssize, &ii, N] {
+        long long int x = 0;
+        for (int i = N - 1; i >= 0; i--) {
+            x += ii.Bags_in[i].size() * sizeof(std::pair<int, two_hop_weight_type>);
+        }
+        mtx.lock();
+        ssize += x;
+        mtx.unlock();
+        return 1; }));
+    results.emplace_back(pool.enqueue([&ssize, &ii, N] {
+        long long int x = 0;
+        for (int i = N - 1; i >= 0; i--) {
+            x += ii.Bags_out[i].size() * sizeof(std::pair<int, two_hop_weight_type>);
+        }
+        mtx.lock();
+        ssize += x;
+        mtx.unlock();
+        return 1; }));
+    results.emplace_back(pool.enqueue([&ssize, &ii, N] {
+        long long int x = 0;
+        for (int i = N - 1; i >= 0; i--) {
+            x += ii.Bags_out[i].size() * sizeof(std::pair<int, two_hop_weight_type>);
+        }
+        mtx.lock();
+        ssize += x;
+        mtx.unlock();
+        return 1; }));
+    results.emplace_back(pool.enqueue([&ssize, &ii] {
+        long long int x = 0;
+        for (int i = ii.tree_st.size() - 1; i >= 0; i--) {
+            x += ii.tree_st[i].size() * sizeof(int);
+        }
+        mtx.lock();
+        ssize += x;
+        mtx.unlock();
+        return 1; }));
+    results.emplace_back(pool.enqueue([&ssize, &ii] {
+        long long int x = 0;
+        for (int i = ii.tree_st_r.size() - 1; i >= 0; i--) {
+            x += ii.tree_st_r[i].size() * sizeof(int);
+        }
+        mtx.lock();
+        ssize += x;
+        mtx.unlock();
+        return 1; }));
+    for (auto&& result : results)
+        result.get();
+    results.clear();
+
+    return ssize;
 }
 
 void Label_new_to_old_parallel(int newID, vector<vector<two_hop_label>> &L_in, vector<vector<two_hop_label>>& L_out) {
@@ -177,6 +241,42 @@ void substitute_parallel_2(int u, int w) {
         mtx_595[w + global_N].unlock();
     }  
     mtx_595[u].unlock();   
+}
+
+void graph_hash_of_mixed_weighted_binary_operations_erase_infty(std::vector<std::pair<int, two_hop_weight_type>>& input_vector, int key) {
+
+    /*erase key from vector; time complexity O(log n + size()-position ), which is O(n) in the worst case, as
+    the time complexity of erasing an element from a vector is the number of elements behind this element*/
+
+    if (input_vector.size() > 0) {
+        int left = 0, right = input_vector.size() - 1;
+
+        while (left <= right) {
+            int mid = left + ((right - left) / 2);
+            if (input_vector[mid].first == key && input_vector[mid].second == std::numeric_limits<two_hop_weight_type>::max()) {
+                input_vector.erase(input_vector.begin() + mid);
+                break;
+            }
+            else if (input_vector[mid].first > key) {
+                right = mid - 1;
+            }
+            else {
+                left = mid + 1;
+            }
+        }
+    }
+
+}
+
+void dgraph_v_of_v_remove_edge_infty(int v1, int v2) {
+
+    /*edge direction: v1 to v2*/
+    mtx_595[v1].lock(); // out lock
+    graph_hash_of_mixed_weighted_binary_operations_erase_infty(global_dgraph_CT.OUTs[v1], v2); 
+    mtx_595[v1].unlock();
+    mtx_595[v2 + global_N].lock(); // in lock
+    graph_hash_of_mixed_weighted_binary_operations_erase_infty(global_dgraph_CT.INs[v2], v1); 
+    mtx_595[v2 + global_N].unlock();
 }
 
 void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, vector<int> &dfn)
@@ -675,28 +775,42 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     // cout << "step 5: 2-hop labeling" << endl;
     auto begin5 = std::chrono::high_resolution_clock::now();
 
+    /*remove inf edges*/
     int infty_size = infty_edge.size();
     for (int i = 0; i < infty_size; i++) {
-            global_dgraph_CT.remove_edge_infty(infty_edge[i].first, infty_edge[i].second);
+        int v1 = infty_edge[i].first, v2 = infty_edge[i].second;
+        results.emplace_back(pool.enqueue([v1,v2] {
+            dgraph_v_of_v_remove_edge_infty(v1, v2);
+            return 1; }));
     }
+    for (auto&& result : results)
+        result.get();
+    results.clear();
 
     /*change IDs*/
     if (case_info.two_hop_order_method == 0) {
-        dgraph_change_IDs_sum_IN_OUT_degrees(global_dgraph_CT, new_to_old);
+        dgraph_change_IDs_sum_IN_OUT_degrees(global_dgraph_CT, new_to_old, pool, results);
     }
     else if (case_info.two_hop_order_method == 1) {
-        dgraph_change_IDs_weighted_degrees(global_dgraph_CT, new_to_old);
+        dgraph_change_IDs_weighted_degrees(global_dgraph_CT, new_to_old, pool, results);
     }
 
     /* construct 2-hop labels on core */
     two_hop_case_info_sorted = case_info.two_hop_case_info;
+    two_hop_case_info_sorted.max_labal_bit_size = case_info.max_bit_size - compute_CT_label_bit_size(case_info, pool, results);
+    if (two_hop_case_info_sorted.max_labal_bit_size < 0) {
+        throw reach_limit_error_string_MB;  // after catching error, must call clear_gloval_values_CT and clear CT labels
+    }
+    two_hop_case_info_sorted.max_run_time_seconds = case_info.max_run_time_seconds - (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin1).count() / 1e9);
+    if (two_hop_case_info_sorted.max_run_time_seconds < 0) {
+        throw reach_limit_error_string_time;  // after catching error, must call clear_gloval_values_CT and clear CT labels
+    }
     if (case_info.use_PLL) {
         dgraph_PLL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
     else {
     	dgraph_PSL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
-
     /* return to original ID */
     auto &L_in = case_info.two_hop_case_info.L_in;
     auto &L_out = case_info.two_hop_case_info.L_out; 

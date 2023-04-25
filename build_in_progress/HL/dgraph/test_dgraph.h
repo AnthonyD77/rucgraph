@@ -100,7 +100,7 @@ void test_dgraph_PLL_PSL() {
 
     double avg_index_time = 0, avg_index_bit_size = 0;
 
-    bool use_PLL = 0; // 1: PLL 0: PSL
+    bool use_PLL = 1; // 1: PLL 0: PSL
 
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 mm2;
@@ -120,7 +120,9 @@ void test_dgraph_PLL_PSL() {
         if (generate_new_graph == 1) {          
             instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
             vector<int> new2old;
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); //id������õ�
+            ThreadPool pool(thread_num);
+            std::vector<std::future<int>> results;
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); //id������õ�
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
         else {
@@ -139,6 +141,7 @@ void test_dgraph_PLL_PSL() {
         catch (string s) {
             cout << s << endl;
             dgraph_clear_global_values_PLL_PSL();
+            mm.clear_labels();
             continue;
         }
         auto end = std::chrono::high_resolution_clock::now();
@@ -168,7 +171,9 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
         two_hop_weight_type ec_min = 0.1, ec_max = 1;
         dgraph_v_of_v<two_hop_weight_type> instance_graph;
         instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
-        dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); //id是排序好的
+        ThreadPool pool(thread_num);
+        std::vector<std::future<int>> results;
+        dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); //id是排序好的
 
         dgraph_case_info_v1 mm;
         mm.use_canonical_repair = 1;
@@ -225,7 +230,7 @@ void test_dgraph_CT()
     /*parameters*/
     int iteration_graph_times = 30, iteration_source_times = 100, iteration_terminal_times = 100;
 
-    int generate_new_graph = 0;
+    int generate_new_graph = 1;
 
     int V = 1000, E = 5000, precision = 1, thread_num = 10;
     two_hop_weight_type ec_min = 0.1, ec_max = 1;
@@ -235,9 +240,11 @@ void test_dgraph_CT()
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 ct_info;
     ct_info.thread_num = thread_num;
-    ct_info.d = 10;
+    ct_info.d = 5;
     ct_info.use_PLL = 1;
     ct_info.two_hop_order_method = 1;
+    ct_info.max_bit_size = 1e7;
+    ct_info.max_run_time_seconds = 0.5;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++)
@@ -262,6 +269,10 @@ void test_dgraph_CT()
         }
         catch (string s)
         {
+            cout << s << endl;
+            clear_gloval_values_CT();
+            ct_info.clear_labels();
+            continue;
         }
         auto end = std::chrono::high_resolution_clock::now();
         double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
@@ -319,7 +330,7 @@ void compare_PLL_PSL() {
 
     /*
     PLL is faster in sparse weighted graphs;
-    PSL is dense in sparse unweighted graphs;
+    PSL is faster in dense unweighted graphs;
     */
 
     /*parameters*/
@@ -329,6 +340,8 @@ void compare_PLL_PSL() {
 
     double PLL_avg_index_time = 0, PSL_avg_index_time = 0;
 
+    ThreadPool pool(thread_num);
+    std::vector<std::future<int>> results;
 
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 mm2;
@@ -345,8 +358,8 @@ void compare_PLL_PSL() {
 
         if (generate_new_graph == 1) {
             instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
-            vector<int> new2old;
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); //id������õ�
+            vector<int> new2old;           
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); //id������õ�
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
         else {
@@ -394,6 +407,8 @@ void compare_different_sorting_method() {
     mm.use_canonical_repair = 1;
 
     vector<int> new2old;
+    ThreadPool pool(thread_num);
+    std::vector<std::future<int>> results;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++) {
@@ -403,7 +418,7 @@ void compare_different_sorting_method() {
 
         /*degree order*/
         if (1) {
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); 
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); 
             auto begin = std::chrono::high_resolution_clock::now();
             try {
                 if (use_PLL) {
@@ -428,7 +443,7 @@ void compare_different_sorting_method() {
 
         /*weighted degree order*/
         if (1) {
-            dgraph_change_IDs_weighted_degrees(instance_graph, new2old);
+            dgraph_change_IDs_weighted_degrees(instance_graph, new2old, pool, results);
             auto begin = std::chrono::high_resolution_clock::now();
             try {
                 if (use_PLL) {
