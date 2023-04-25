@@ -29,13 +29,13 @@ long long int compute_label_bit_size(vector<vector<two_hop_label>>& L_in, vector
     long long int size = 0;
     auto it_end = L_in.end();
     for (auto it = L_in.begin(); it != it_end; it++) {
-        size = size + (*it).size() * sizeof(two_hop_label);
+        size = size + (*it).size();
     }
     it_end = L_out.end();
     for (auto it = L_out.begin(); it != it_end; it++) {
-        size = size + (*it).size() * sizeof(two_hop_label);
+        size = size + (*it).size();
     }
-    return size;
+    return size * sizeof(two_hop_label);
 }
 
 void label_output_to_file(std::string instance_name, vector<vector<two_hop_label>>& L_in, vector<vector<two_hop_label>>& L_out)
@@ -116,8 +116,7 @@ void dgraph_clear_global_values_PLL_PSL() {
 
 /*class*/
 
-class dgraph_case_info_v1
-{
+class dgraph_case_info_v1 {
 public:
 	/*running limits*/
 	long long int max_labal_size = 1e12; // 2-hop-label num
