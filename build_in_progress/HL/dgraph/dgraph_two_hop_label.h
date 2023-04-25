@@ -119,11 +119,11 @@ void dgraph_clear_global_values_PLL_PSL() {
 class dgraph_case_info_v1 {
 public:
 	/*running limits*/
-	long long int max_labal_size = 1e12; // 2-hop-label num
+	long long int max_labal_bit_size = 1e12; // 2-hop-label num
 	double max_run_time_seconds = 1e12;
-    bool use_canonical_repair = false;
 
     // for canonical repair
+    bool use_canonical_repair = false;
     long long int label_size_before_canonical_repair = 0;
     long long int label_size_after_canonical_repair = 0;
 
