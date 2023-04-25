@@ -74,13 +74,29 @@ void label_output_to_file(std::string instance_name, vector<vector<two_hop_label
 
 
 
+/* struct used for dijkstra extra_min */
+struct node_for_dij {
+public:
+    int vertex;
+    two_hop_weight_type priority_value;
+};
+
+bool operator<(node_for_dij const& x, node_for_dij const& y) {
+    return x.priority_value > y.priority_value; // < is the max-heap; > is the min heap
+}
+typedef typename boost::heap::fibonacci_heap<node_for_dij>::handle_type dgraph_heap_pointer;
+
+
+
+
 /*定义全局变量*/
-long long int max_labal_size_595;
-long long int labal_size_595;
+string reach_limit_error_string_MB = "reach limit error MB";
+string reach_limit_error_string_time = "reach limit error time";
 int max_N_ID_for_mtx_595 = 1e7; 
 vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595); /* multi thread parameters */
 std::shared_mutex edge_lock;
 queue<int> Qid_595;
+vector<vector<dgraph_heap_pointer>> Q_pointers;
 vector<vector<two_hop_weight_type>> dist;
 vector<vector<two_hop_weight_type>> dist2;
 vector<int> increment[2];
@@ -92,9 +108,17 @@ vector<vector<bool>> dirt;
 vector<vector<two_hop_label>> L_temp_in;
 vector<vector<two_hop_label>> L_temp_out;
 vector<vector<two_hop_label>> L_PSL_temp[2];
+auto begin_time_PLL = std::chrono::high_resolution_clock::now();
+double max_run_time_nanoseconds_PLL;
+long long int max_labal_size_PLL;
+long long int labal_size_PLL;
+bool this_parallel_PLL_is_running = false;
+
 
 /*清除全局变量*/
 void dgraph_clear_global_values_PLL_PSL() {
+    vector<vector<dgraph_heap_pointer>>().swap(Q_pointers);
+    this_parallel_PLL_is_running = false;
     queue<int>().swap(Qid_595);
     vector<vector<bool>>().swap(dirt);
     vector<vector<two_hop_label>>().swap(L_temp_in);

@@ -8,24 +8,6 @@
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 #include <build_in_progress/HL/dgraph/dgraph_two_hop_label.h>
 
-/* struct used for dijkstra extra_min */
-struct node_for_dij
-{
-public:
-    int vertex;
-    two_hop_weight_type priority_value;
-};
-
-bool operator<(node_for_dij const& x, node_for_dij const& y)
-{
-    return x.priority_value > y.priority_value; // < is the max-heap; > is the min heap
-}
-typedef typename boost::heap::fibonacci_heap<node_for_dij>::handle_type dgraph_heap_pointer;
-
-vector<vector<dgraph_heap_pointer>> Q_pointers;
-
-
-
 void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_weight_type>* input_graph) {
 
     mtx_595[max_N_ID_for_mtx_595 - 1].lock();
@@ -169,11 +151,32 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
     /* recycle Qid_595 and update labal_size_595*/
     mtx_595[max_N_ID_for_mtx_595 - 1].lock();
     Qid_595.push(thread_id);
-    labal_size_595 = labal_size_595 + new_label_num;
+    labal_size_PLL += new_label_num;
     mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+
+    if (labal_size_PLL > max_labal_size_PLL) {
+        throw reach_limit_error_string_MB;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
+    }
+
+    if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PLL).count() > max_run_time_nanoseconds_PLL) {
+        throw reach_limit_error_string_time;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
+    }
 }
 
 void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_threads, dgraph_case_info_v1 &case_info) {
+
+    mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+    if (this_parallel_PLL_is_running == true) {
+        cout << "dgraph_PLL cannot be run parallelly, due to the above (static) globel values" << endl;
+        exit(1);
+    }
+    this_parallel_PLL_is_running = true;
+    mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+
+    begin_time_PLL = std::chrono::high_resolution_clock::now();
+    max_run_time_nanoseconds_PLL = case_info.max_run_time_seconds * 1e9;
+    labal_size_PLL = 0;
+    max_labal_size_PLL = case_info.max_labal_bit_size / sizeof(two_hop_label);
 
     int N = input_graph.INs.size();
     L_temp_in.resize(N);
@@ -228,5 +231,4 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
     }
 
     dgraph_clear_global_values_PLL_PSL();
-    vector<vector<dgraph_heap_pointer>>().swap(Q_pointers);
 }
