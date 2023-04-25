@@ -196,13 +196,21 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
         Qid_595.push(i);
     }
     auto it_g = &input_graph;
-    for (int v_k = 0; v_k < N; v_k++) {   
+    int num_of_threads_per_push = num_of_threads * 100; // 每次push进去 num_of_threads_per_push 线程，如果没有异常，继续push进去num_of_threads_per_push线程；如果全都一起push进去必须全部线程都结束才能catch异常
+    int push_num = 0;
+    for (int v_k = 0; v_k < N; v_k++) {
         results.emplace_back(pool.enqueue([v_k, N, it_g] {
-                dgraph_pruned_dijkstra(v_k, N, 0, it_g);
-                dgraph_pruned_dijkstra(v_k, N, 1, it_g);
-                return 1; }));
+            dgraph_pruned_dijkstra(v_k, N, 0, it_g);
+            dgraph_pruned_dijkstra(v_k, N, 1, it_g);
+            return 1; }));
+        push_num++;
+        if (push_num % num_of_threads_per_push == 0) {
+            for (auto&& result : results)
+                result.get(); //all threads finish here
+            results.clear();
+        }
     }
-    for (auto &&result : results)
+    for (auto&& result : results)
         result.get();
     results.clear();
 

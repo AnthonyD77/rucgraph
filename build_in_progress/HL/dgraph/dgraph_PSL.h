@@ -147,6 +147,19 @@ void clean_incorrect_labels(int N, int num_of_threads) {
 
 void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_threads, dgraph_case_info_v1& case_info) {
 
+	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+	if (this_parallel_PSL_is_running == true) {
+		cout << "dgraph_PSL cannot be run parallelly, due to the above (static) globel values" << endl;
+		exit(1);
+	}
+	this_parallel_PSL_is_running = true;
+	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+
+	begin_time_PSL = std::chrono::high_resolution_clock::now();
+	max_run_time_nanoseconds_PSL = case_info.max_run_time_seconds * 1e9;
+	labal_size_PSL = 0;
+	max_labal_size_PSL = case_info.max_labal_bit_size / sizeof(two_hop_label);
+
 	int N = input_graph.INs.size();
 	L_temp_in.resize(N);
 	L_temp_out.resize(N);

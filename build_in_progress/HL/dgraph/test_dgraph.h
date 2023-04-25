@@ -94,17 +94,19 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_case_inf
 
 void test_dgraph_PLL_PSL() {
     /*parameters*/
-    int iteration_graph_times = 10, iteration_source_times = 100, iteration_terminal_times = 100;
-    int V = 1000, E = 5000, precision = 1, thread_num = 10;
+    int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
+    int V = 100, E = 500, precision = 1, thread_num = 10;
     two_hop_weight_type ec_min = 1, ec_max = 1;
 
-    double avg_index_time = 0, avg_index_size_per_v = 0;
+    double avg_index_time = 0, avg_index_bit_size = 0;
 
-    bool use_PLL = 0; // 1: PLL 0: PSL
+    bool use_PLL = 1; // 1: PLL 0: PSL
 
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 mm2;
     mm.use_canonical_repair = 1;
+    mm.max_run_time_seconds = 0.01;
+    mm.max_labal_bit_size = 2.5e8;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++) {
@@ -145,27 +147,16 @@ void test_dgraph_PLL_PSL() {
 
         dgraph_v1_check_correctness(mm, mm2, instance_graph, iteration_source_times, iteration_terminal_times, 0);
 
-        long long int index_size = 0;
-        for (auto it = mm.L_in.begin(); it != mm.L_in.end(); it++)
-        {
-            index_size = index_size + (*it).size();
-        }
-
-        for (auto it = mm.L_out.begin(); it != mm.L_out.end(); it++)
-        {
-            index_size = index_size + (*it).size();
-        }
-
-        avg_index_size_per_v = avg_index_size_per_v + (double)index_size / V / iteration_graph_times;
+        avg_index_bit_size += (double)compute_label_bit_size(mm.L_out, mm.L_in) / iteration_graph_times;
 
         mm.clear_labels();
     }
 
     if (use_PLL) {
-        cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PLL avg_index_time = " << avg_index_time << "s" << endl;
+        cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PLL avg_index_time = " << avg_index_time << "s avg_index_bit_size = " << avg_index_bit_size << "bit" << endl;
     }
     else {
-        cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PSL avg_index_time = " << avg_index_time << "s" << endl;
+        cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PSL avg_index_time = " << avg_index_time << "s avg_index_bit_size = " << avg_index_bit_size << "bit" << endl;
     }
 }
 
