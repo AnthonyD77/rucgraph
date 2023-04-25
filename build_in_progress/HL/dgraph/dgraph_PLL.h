@@ -10,6 +10,17 @@
 
 void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_weight_type>* input_graph) {
 
+    if (PLL_throw_error) {
+        return;
+    }  
+    if (labal_size_PLL > max_labal_size_PLL) {
+        PLL_throw_error = true;
+        throw reach_limit_error_string_MB;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
+    }
+    if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PLL).count() > max_run_time_nanoseconds_PLL) {
+        PLL_throw_error = true;
+        throw reach_limit_error_string_time;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
+    }
     mtx_595[max_N_ID_for_mtx_595 - 1].lock();
     int thread_id = Qid_595.front();
     Qid_595.pop();
@@ -153,14 +164,6 @@ void dgraph_pruned_dijkstra(int v_k, int N, int in_out, dgraph_v_of_v<two_hop_we
     Qid_595.push(thread_id);
     labal_size_PLL += new_label_num;
     mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
-
-    if (labal_size_PLL > max_labal_size_PLL) {
-        throw reach_limit_error_string_MB;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
-    }
-
-    if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PLL).count() > max_run_time_nanoseconds_PLL) {
-        throw reach_limit_error_string_time;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
-    }
 }
 
 void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_threads, dgraph_case_info_v1 &case_info) {
@@ -196,19 +199,11 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
         Qid_595.push(i);
     }
     auto it_g = &input_graph;
-    int num_of_threads_per_push = num_of_threads * 100; // 每次push进去 num_of_threads_per_push 线程，如果没有异常，继续push进去num_of_threads_per_push线程；如果全都一起push进去必须全部线程都结束才能catch异常
-    int push_num = 0;
     for (int v_k = 0; v_k < N; v_k++) {
         results.emplace_back(pool.enqueue([v_k, N, it_g] {
             dgraph_pruned_dijkstra(v_k, N, 0, it_g);
             dgraph_pruned_dijkstra(v_k, N, 1, it_g);
             return 1; }));
-        push_num++;
-        if (push_num % num_of_threads_per_push == 0) {
-            for (auto&& result : results)
-                result.get(); //all threads finish here
-            results.clear();
-        }
     }
     for (auto&& result : results)
         result.get();

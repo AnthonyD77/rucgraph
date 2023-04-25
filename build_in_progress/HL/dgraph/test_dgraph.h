@@ -95,18 +95,18 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_case_inf
 void test_dgraph_PLL_PSL() {
     /*parameters*/
     int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
-    int V = 100, E = 500, precision = 1, thread_num = 10;
+    int V = 100, E = 500, precision = 1, thread_num = 5;
     two_hop_weight_type ec_min = 1, ec_max = 1;
 
     double avg_index_time = 0, avg_index_bit_size = 0;
 
-    bool use_PLL = 1; // 1: PLL 0: PSL
+    bool use_PLL = 0; // 1: PLL 0: PSL
 
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 mm2;
     mm.use_canonical_repair = 1;
-    mm.max_run_time_seconds = 0.01;
-    mm.max_labal_bit_size = 2.5e8;
+    mm.max_run_time_seconds = 1;
+    mm.max_labal_bit_size = 4e5;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++) {

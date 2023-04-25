@@ -6,6 +6,18 @@
 
 void propagate(dgraph_v_of_v<two_hop_weight_type>* input_graph, int k, int u) {
 
+	if (PSL_throw_error) {
+		return;
+	}
+	if (labal_size_PSL > max_labal_size_PSL) { // for PSL, this is not to limit the final label size, but to limit the middle process label size
+		PSL_throw_error = true;
+		throw reach_limit_error_string_MB;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
+	}
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PSL).count() > max_run_time_nanoseconds_PSL) {
+		PSL_throw_error = true;
+		throw reach_limit_error_string_time;  // after catching error, must call dgraph_clear_global_values_PLL_PSL, otherwise this PLL cannot be reused
+	}
+
 	mtx.lock();
 	int current_tid = Qid_595.front();
 	Qid_595.pop();
@@ -70,6 +82,7 @@ void propagate(dgraph_v_of_v<two_hop_weight_type>* input_graph, int k, int u) {
 
 	mtx.lock();
 	Qid_595.push(current_tid);
+	labal_size_PSL += L_PSL_temp[k][u].size();
 	mtx.unlock();
 }
 

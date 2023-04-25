@@ -113,18 +113,21 @@ double max_run_time_nanoseconds_PLL;
 long long int max_labal_size_PLL;
 long long int labal_size_PLL;
 bool this_parallel_PLL_is_running = false;
+bool PLL_throw_error = false;
 auto begin_time_PSL = std::chrono::high_resolution_clock::now();
 double max_run_time_nanoseconds_PSL;
 long long int max_labal_size_PSL;
 long long int labal_size_PSL;
 bool this_parallel_PSL_is_running = false;
-
+bool PSL_throw_error = false;
 
 /*清除全局变量*/
 void dgraph_clear_global_values_PLL_PSL() {
     vector<vector<dgraph_heap_pointer>>().swap(Q_pointers);
     this_parallel_PLL_is_running = false;
     this_parallel_PSL_is_running = false;
+    PLL_throw_error = false;
+    PSL_throw_error = false;
     queue<int>().swap(Qid_595);
     vector<vector<bool>>().swap(dirt);
     vector<vector<two_hop_label>>().swap(L_temp_in);
