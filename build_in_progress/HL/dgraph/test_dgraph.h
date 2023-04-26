@@ -227,6 +227,8 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 
 void test_dgraph_CT()
 {
+    cout << endl;
+
     /*parameters*/
     int iteration_graph_times = 30, iteration_source_times = 100, iteration_terminal_times = 100;
 
