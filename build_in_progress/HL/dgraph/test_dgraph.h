@@ -301,6 +301,7 @@ void test_dgraph_CT()
 
 
 /*test real data*/
+
 #include <dgraph_v_of_v/dgraph_compare_two_dgraphs.h>
 #include <dgraph_v_of_v/dgraph_binary_save_read_dgraph.h>
 
