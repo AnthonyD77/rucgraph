@@ -957,7 +957,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     auto &L_out = case_info.two_hop_case_info.L_out; 
     L_in.resize(N);
     L_out.resize(N);
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++) { /*on Linux, it is faster to make this part parallel*/
         results.emplace_back(pool.enqueue([i, &L_in, &L_out] {
             Label_new_to_old_parallel(i, L_in, L_out);
         return 1;
