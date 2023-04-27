@@ -468,7 +468,7 @@ void compare_PLL_PSL() {
     /*parameters*/
     int iteration_graph_times = 20;
     int V = 1000, E = 10000, precision = 1, thread_num = 5;
-    two_hop_weight_type ec_min = 1, ec_max = 10;
+    two_hop_weight_type ec_min = 1, ec_max = 2;
 
     double PLL_avg_index_time = 0, PSL_avg_index_time = 0;
 
