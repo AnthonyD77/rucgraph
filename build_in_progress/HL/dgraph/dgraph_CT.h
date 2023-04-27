@@ -293,6 +293,127 @@ void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, ve
     }
 }
 
+
+long long int sum_uk = 0;
+shared_mutex mtx_for_choose_function;
+
+template <typename weight_type>
+void dgraph_dijstar_calculate_uk(dgraph_v_of_v<weight_type>* input_graph_pointer, int v_k) {
+    int uk = 0;
+
+    int N = input_graph_pointer->INs.size();
+    vector<weight_type> distances(N, std::numeric_limits<weight_type>::max());
+
+    node_for_shortest_distances node;
+    boost::heap::fibonacci_heap<node_for_shortest_distances> Q;
+    vector<heap_pointer_dgraph_shortest_distances_source_to_all> Q_pointer(N);
+
+    distances[v_k] = 0;
+    node.vertex = v_k;
+    node.priority_value = 0;
+    Q_pointer[v_k] = Q.push(node);
+
+    while (Q.size() > 0) {
+        node = Q.top();
+        Q.pop();
+        int u = node.vertex;
+
+        weight_type dist_u = node.priority_value;
+
+        int u_adj_size = input_graph_pointer->OUTs[u].size();
+        for (int i = 0;i < u_adj_size;i++) {
+            int adj_v = input_graph_pointer->OUTs[u][i].first;
+            weight_type new_dist = input_graph_pointer->OUTs[u][i].second + dist_u;
+
+            if (distances[adj_v] == std::numeric_limits<weight_type>::max()) {
+                node.vertex = adj_v;
+                node.priority_value = new_dist;
+                Q_pointer[adj_v] = Q.push(node);
+                distances[adj_v] = node.priority_value;
+            }
+            else {
+                if (distances[adj_v] > new_dist) {
+                    uk++;
+                    node.vertex = adj_v;
+                    node.priority_value = new_dist;
+                    Q.update(Q_pointer[adj_v], node);
+                    distances[adj_v] = node.priority_value;
+                }
+            }
+        }
+    }
+
+    distances.assign(N, std::numeric_limits<weight_type>::max());
+    distances[v_k] = 0;
+    node.vertex = v_k;
+    node.priority_value = 0;
+    Q_pointer[v_k] = Q.push(node);
+
+    while (Q.size() > 0) {
+        node = Q.top();
+        Q.pop();
+        int u = node.vertex;
+
+        weight_type dist_u = node.priority_value;
+
+        int u_adj_size = input_graph_pointer->INs[u].size();
+        for (int i = 0;i < u_adj_size;i++) {
+            int adj_v = input_graph_pointer->INs[u][i].first;
+            weight_type new_dist = input_graph_pointer->INs[u][i].second + dist_u;
+
+            if (distances[adj_v] == std::numeric_limits<weight_type>::max()) {
+                node.vertex = adj_v;
+                node.priority_value = new_dist;
+                Q_pointer[adj_v] = Q.push(node);
+                distances[adj_v] = node.priority_value;
+            }
+            else {
+                if (distances[adj_v] > new_dist) {
+                    uk++;
+                    node.vertex = adj_v;
+                    node.priority_value = new_dist;
+                    Q.update(Q_pointer[adj_v], node);
+                    distances[adj_v] = node.priority_value;
+                }
+            }
+        }
+    }
+
+    mtx_for_choose_function.lock();
+    sum_uk += uk;
+    mtx_for_choose_function.unlock();
+
+    return;
+}
+
+bool choose_PLL_PSL(dgraph_v_of_v<two_hop_weight_type>& dgraph)
+{
+    int v = dgraph.INs.size();
+    double log2v = log2(v);
+
+    ThreadPool pool(5);
+    std::vector<std::future<int>> results;
+
+    dgraph_v_of_v<two_hop_weight_type>* dgraph_pointer = &dgraph;
+
+    for (int i = 0;i < ceil(log2v); i++) {
+        results.emplace_back(pool.enqueue([dgraph_pointer, i] {
+            dgraph_dijstar_calculate_uk(dgraph_pointer, i);
+            return 1; }));
+    }
+    for (auto&& result : results)
+        result.get();
+    results.clear();
+
+    double res = log2v * v / (1.0 * sum_uk / ceil(log2v));
+    cout << res * 2 << endl;
+
+    if (res * 2 < 100)
+        return true;
+    else
+        return false;
+}
+
 /*indexing function*/
 void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info_v2 &case_info) {
 
@@ -805,10 +926,15 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     if (two_hop_case_info_sorted.max_run_time_seconds < 0) {
         throw reach_limit_error_string_time;  // after catching error, must call clear_gloval_values_CT and clear CT labels
     }
+
+    case_info.use_PLL = choose_PLL_PSL(global_dgraph_CT);
+
     if (case_info.use_PLL) {
+        cout << "Using PLL" << endl;
         dgraph_PLL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
     else {
+        cout << "Using PSL" << endl;
     	dgraph_PSL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
     /* return to original ID */
