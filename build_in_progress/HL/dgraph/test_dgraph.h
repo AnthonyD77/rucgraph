@@ -418,11 +418,22 @@ void test_real_data() {
         dgraph_v_of_v<two_hop_weight_type> g;
         dgraph_binary_read_dgraph(path + data_name + "_Jacard.bin", g);
         if (!dgraph_compare_two_dgraphs_not_eaxct_same_weight(g, input_txt_graph)) {
-            cout << "input_txt_graph != g" << endl;
+            cout << "1 input_txt_graph != g" << endl;
             getchar();
         }
         if (!test_dgraph_weight(g, 1, iteration_source_times)) {
-            cout << "test_dgraph_weight is not right" << endl;
+            cout << "1 test_dgraph_weight is not right" << endl;
+            getchar();
+        }
+
+        dgraph_read_dgraph_from_txt(path + data_name + ".txt", input_txt_graph, 0);
+        dgraph_binary_read_dgraph(path + data_name + "_random.bin", g);
+        if (!dgraph_compare_two_dgraphs_not_eaxct_same_weight(g, input_txt_graph)) {
+            cout << "0 input_txt_graph != g" << endl;
+            getchar();
+        }
+        if (!test_dgraph_weight(g, 0, iteration_source_times)) {
+            cout << "0 test_dgraph_weight is not right" << endl;
             getchar();
         }
 
