@@ -408,8 +408,8 @@ void test_real_data() {
 
     for (auto data_name : datas) {
 
-        string path = "/home/malu/DHL_exp/" + data_name + "/";
-        path = "";
+        string path = "/home/malu/DHL_exp/" + data_name + "/"; // server
+        path = ""; // local
 
         int iteration_source_times = 100;
 
