@@ -24,9 +24,9 @@ struct node_degree
 class dgraph_case_info_v2 {
   public:
     /* parameters */
-    int thread_num;
-    bool use_PLL;
-    int d;
+    int thread_num = 1;
+    bool use_PLL = 1;
+    int d = 0;
     int two_hop_order_method = 0;
 
     /* labels */
@@ -63,9 +63,17 @@ class dgraph_case_info_v2 {
     double time2_tree_decomposition = 0;
     double time3_tree_indexs = 0;
     double time4_lca = 0;
+    double time5_core_indexs_prepare1 = 0;
+    double time5_core_indexs_prepare2 = 0;
     double time5_core_indexs = 0;
     double time6_post = 0;
     double time_total = 0;
+
+    /*core graph info*/
+    long long int core_graph_V = 0;
+    long long int core_graph_E = 0;
+    long long int uk = 0;
+    double V_log_V_uk = 0;
 
     /*printing*/
     void print_Bags()
@@ -110,6 +118,8 @@ class dgraph_case_info_v2 {
         cout << "time2_tree_decomposition: " << time2_tree_decomposition << endl;
         cout << "time3_tree_indexs: " << time3_tree_indexs << endl;
         cout << "time4_lca: " << time4_lca << endl;
+        cout << "time5_core_indexs_prepare1: " << time5_core_indexs_prepare1 << endl;
+        cout << "time5_core_indexs_prepare2: " << time5_core_indexs_prepare2 << endl;
         cout << "time5_core_indexs: " << time5_core_indexs << endl;
         cout << "time6_post: " << time6_post << endl;
         cout << "time_total: " << time_total << endl;
@@ -122,8 +132,10 @@ vector<pair<int, int>> infty_edge;
 dgraph_case_info_v1 two_hop_case_info_sorted;
 vector<int> new_to_old;
 int global_N;
+long long int sum_uk = 0;
 
 void clear_gloval_values_CT() {
+    sum_uk = 0;
     global_dgraph_CT.clear();
     vector<pair<int, int>>().swap(infty_edge);
     vector<int>().swap(new_to_old);
@@ -294,38 +306,36 @@ void dfs(int &total, vector<int> &first_pos, int x, vector<vector<int>> &son, ve
 }
 
 
-long long int sum_uk = 0;
-shared_mutex mtx_for_choose_function;
+/*choose_PLL_PSL*/
 
-template <typename weight_type>
-void dgraph_dijstar_calculate_uk(dgraph_v_of_v<weight_type>* input_graph_pointer, int v_k) {
+void dgraph_dijstar_calculate_uk(dgraph_v_of_v<two_hop_weight_type>* input_graph_pointer, int v_k) {
+
     int uk = 0;
-
-    int N = input_graph_pointer->INs.size();
-    vector<weight_type> distances(N, std::numeric_limits<weight_type>::max());
+    auto& INs = input_graph_pointer->INs;
+    auto& OUTs = input_graph_pointer->OUTs;
+    int N = INs.size();
+    vector<two_hop_weight_type> distances(N, std::numeric_limits<two_hop_weight_type>::max());
 
     node_for_shortest_distances node;
     boost::heap::fibonacci_heap<node_for_shortest_distances> Q;
     vector<heap_pointer_dgraph_shortest_distances_source_to_all> Q_pointer(N);
 
+    /*out search*/
     distances[v_k] = 0;
     node.vertex = v_k;
     node.priority_value = 0;
     Q_pointer[v_k] = Q.push(node);
-
     while (Q.size() > 0) {
         node = Q.top();
         Q.pop();
         int u = node.vertex;
+        auto dist_u = node.priority_value;
 
-        weight_type dist_u = node.priority_value;
-
-        int u_adj_size = input_graph_pointer->OUTs[u].size();
+        int u_adj_size = OUTs[u].size();
         for (int i = 0;i < u_adj_size;i++) {
-            int adj_v = input_graph_pointer->OUTs[u][i].first;
-            weight_type new_dist = input_graph_pointer->OUTs[u][i].second + dist_u;
-
-            if (distances[adj_v] == std::numeric_limits<weight_type>::max()) {
+            int adj_v = OUTs[u][i].first;
+            auto new_dist = OUTs[u][i].second + dist_u;
+            if (distances[adj_v] == std::numeric_limits<two_hop_weight_type>::max()) {
                 node.vertex = adj_v;
                 node.priority_value = new_dist;
                 Q_pointer[adj_v] = Q.push(node);
@@ -343,25 +353,23 @@ void dgraph_dijstar_calculate_uk(dgraph_v_of_v<weight_type>* input_graph_pointer
         }
     }
 
-    distances.assign(N, std::numeric_limits<weight_type>::max());
+    /*in search*/
+    distances.assign(N, std::numeric_limits<two_hop_weight_type>::max());
     distances[v_k] = 0;
     node.vertex = v_k;
     node.priority_value = 0;
     Q_pointer[v_k] = Q.push(node);
-
     while (Q.size() > 0) {
         node = Q.top();
         Q.pop();
         int u = node.vertex;
+        auto dist_u = node.priority_value;
 
-        weight_type dist_u = node.priority_value;
-
-        int u_adj_size = input_graph_pointer->INs[u].size();
+        int u_adj_size = INs[u].size();
         for (int i = 0;i < u_adj_size;i++) {
-            int adj_v = input_graph_pointer->INs[u][i].first;
-            weight_type new_dist = input_graph_pointer->INs[u][i].second + dist_u;
-
-            if (distances[adj_v] == std::numeric_limits<weight_type>::max()) {
+            int adj_v = INs[u][i].first;
+            auto new_dist = INs[u][i].second + dist_u;
+            if (distances[adj_v] == std::numeric_limits<two_hop_weight_type>::max()) {
                 node.vertex = adj_v;
                 node.priority_value = new_dist;
                 Q_pointer[adj_v] = Q.push(node);
@@ -379,24 +387,26 @@ void dgraph_dijstar_calculate_uk(dgraph_v_of_v<weight_type>* input_graph_pointer
         }
     }
 
-    mtx_for_choose_function.lock();
+
+    mtx_595[0].lock();
     sum_uk += uk;
-    mtx_for_choose_function.unlock();
-
-    return;
+    mtx_595[0].unlock();
 }
 
-bool choose_PLL_PSL(dgraph_v_of_v<two_hop_weight_type>& dgraph)
-{
-    int v = dgraph.INs.size();
-    double log2v = log2(v);
+void choose_PLL_PSL(dgraph_case_info_v2& case_info, dgraph_v_of_v<two_hop_weight_type>& dgraph, ThreadPool& pool, std::vector<std::future<int>>& results) {
 
-    ThreadPool pool(5);
-    std::vector<std::future<int>> results;
-
-    dgraph_v_of_v<two_hop_weight_type>* dgraph_pointer = &dgraph;
-
-    for (int i = 0;i < ceil(log2v); i++) {
+    int N = dgraph.INs.size();
+    auto& V = case_info.core_graph_V; // number of not isolated vertices
+    auto& E = case_info.core_graph_E;
+    for (int i = 0; i < N; i++) {
+        if (dgraph.INs[i].size()) {
+            V++;
+            E += dgraph.INs[i].size();
+        }
+    }
+    int log2V = ceil(log2(V)); 
+    auto* dgraph_pointer = &dgraph;
+    for (int i = 0; i < log2V; i++) {
         results.emplace_back(pool.enqueue([dgraph_pointer, i] {
             dgraph_dijstar_calculate_uk(dgraph_pointer, i);
             return 1; }));
@@ -405,20 +415,15 @@ bool choose_PLL_PSL(dgraph_v_of_v<two_hop_weight_type>& dgraph)
         result.get();
     results.clear();
 
-    double res = log2v * v / (1.0 * sum_uk / ceil(log2v));
-    cout << res * 2 << endl;
-
-    if (res * 2 < 100)
-        return true;
-    else
-        return false;
+    case_info.uk = sum_uk;
+    case_info.V_log_V_uk = log2(V) * V / (double) sum_uk; // in unweighted or special weighted graphs, sum_uk=0, and V_log_V_uk=inf
 }
+
 
 /*indexing function*/
 void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info_v2 &case_info) {
 
     //--------------------------- step 1: initialization ---------------------------
-    // cout << "step 1: initialization" << endl;
     auto begin1 = std::chrono::high_resolution_clock::now();
 
     auto &Bags_in = case_info.Bags_in;
@@ -443,12 +448,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         q.push(nd);
     }
 
-    auto end1 = std::chrono::high_resolution_clock::now();
-    case_info.time1_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(end1 - begin1).count() / 1e9;
+    case_info.time1_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin1).count() / 1e9;
     //---------------------------------------------------------------------------------
 
     //--------------------------- step 2: MDE-based tree decomposition ---------------------------
-    // cout << "step 2: MDE-based tree decomposition" << endl;
     auto begin2 = std::chrono::high_resolution_clock::now();
 
     /* MDE */
@@ -556,13 +559,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         }
     }
 
-    auto end2 = std::chrono::high_resolution_clock::now();
-    case_info.time2_tree_decomposition =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(end2 - begin2).count() / 1e9;
+    case_info.time2_tree_decomposition = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin2).count() / 1e9;
     // --------------------------------------------------------------------------------------------------------
 
     //--------------------------- step 3: generate CT-tree indexs ---------------------------
-    // cout << "step 3: generate CT-tree indexs" << endl;
     auto begin3 = std::chrono::high_resolution_clock::now();
 
     /* some variables */
@@ -815,13 +815,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         }
     }
 
-    auto end3 = std::chrono::high_resolution_clock::now();
-    case_info.time3_tree_indexs =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(end3 - begin3).count() / 1e9; // s
+    case_info.time3_tree_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin3).count() / 1e9;
     //-------------------------------------------------------------------------------------------------------
 
     //--------------------------- step 4: LCA ---------------------------
-    // cout << "step 4: LCA" << endl;
     auto begin4 = std::chrono::high_resolution_clock::now();
 
     /* LCA code; already get the root, the father and the depth, here is the preprocessing of querying LCA */
@@ -888,13 +885,11 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     vector<int>().swap(index_node_out);
     vector<int>().swap(dfn);
 
-    auto end4 = std::chrono::high_resolution_clock::now();
-    case_info.time4_lca = std::chrono::duration_cast<std::chrono::nanoseconds>(end4 - begin4).count() / 1e9; // s
+    case_info.time4_lca = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin4).count() / 1e9;
     //---------------------------------------------------------------------------------
 
     //--------------------------- step 5: 2-hop labeling ---------------------------
-    // cout << "step 5: 2-hop labeling" << endl;
-    auto begin5 = std::chrono::high_resolution_clock::now();
+    auto begin5_1 = std::chrono::high_resolution_clock::now();
 
     /*remove inf edges*/
     int infty_size = infty_edge.size();
@@ -927,14 +922,20 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         throw reach_limit_error_string_time;  // after catching error, must call clear_gloval_values_CT and clear CT labels
     }
 
-    case_info.use_PLL = choose_PLL_PSL(global_dgraph_CT);
+    case_info.time5_core_indexs_prepare1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_1).count() / 1e9;
+
+    auto begin5_2 = std::chrono::high_resolution_clock::now();
+
+    choose_PLL_PSL(case_info, global_dgraph_CT, pool, results);
+
+    case_info.time5_core_indexs_prepare2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_2).count() / 1e9;
+
+    auto begin5_3 = std::chrono::high_resolution_clock::now();
 
     if (case_info.use_PLL) {
-        cout << "Using PLL" << endl;
         dgraph_PLL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
     else {
-        cout << "Using PSL" << endl;
     	dgraph_PSL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
     /* return to original ID */
@@ -952,13 +953,11 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         result.get();
     }
     results.clear();
-    
-    auto end5 = std::chrono::high_resolution_clock::now();
-    case_info.time5_core_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(end5 - begin5).count() / 1e9;
+
+    case_info.time5_core_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_3).count() / 1e9;
     //--------------------------------------------------------------------------------------------------------------------
 
     //--------------------------- step 6: ---------------------------
-    // cout << "step 6: postprocessing" << endl;
     auto begin6 = std::chrono::high_resolution_clock::now();
 
     /* merge tree_index: L1 into case_info.two_hop_case_info.L */
@@ -975,12 +974,11 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         }
     }
 
-    auto end6 = std::chrono::high_resolution_clock::now();
-    case_info.time6_post = std::chrono::duration_cast<std::chrono::nanoseconds>(end6 - begin6).count() / 1e9;
+    case_info.time6_post = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin6).count() / 1e9;
     //---------------------------------------------------------------------------------------------------------------------------------
 
     clear_gloval_values_CT();
-    case_info.time_total = std::chrono::duration_cast<std::chrono::nanoseconds>(end6 - begin1).count() / 1e9;
+    case_info.time_total = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin1).count() / 1e9;
 }
 
 
