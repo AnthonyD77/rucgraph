@@ -347,11 +347,8 @@ bool test_dgraph_weight(dgraph_v_of_v<two_hop_weight_type>& input_graph, int Jac
     boost::random::uniform_int_distribution<> dist{ static_cast<int>(0), static_cast<int>(input_graph.INs.size() - 1) };
 
     for (int yy = 0; yy < iteration_source_times; yy++) {
-
         int source = dist(boost_random_time_seed);
-
         int source_out_size = input_graph.OUTs[source].size();
-
         for (int xx = 0; xx < source_out_size; xx++) {
             int terminal = input_graph.OUTs[source][xx].first;
             two_hop_weight_type dis = input_graph.OUTs[source][xx].second;
@@ -359,15 +356,11 @@ bool test_dgraph_weight(dgraph_v_of_v<two_hop_weight_type>& input_graph, int Jac
             if (Jacard_or_random) {
                 int s_cap_t = 0;
                 int terminal_in_size = input_graph.INs[terminal].size();
-
                 auto s_pointer = input_graph.OUTs[source].begin();
                 auto s_end = input_graph.OUTs[source].end();
-
                 auto t_pointer = input_graph.INs[terminal].begin();
                 auto t_end = input_graph.INs[terminal].end();
-
-                while (s_pointer != s_end && t_pointer != t_end)
-                {
+                while (s_pointer != s_end && t_pointer != t_end) {
                     if (s_pointer->first == t_pointer->first)
                     {
                         s_cap_t++;
@@ -436,7 +429,6 @@ void test_real_data() {
             cout << "0 test_dgraph_weight is not right" << endl;
             getchar();
         }
-
     }
 }
 
