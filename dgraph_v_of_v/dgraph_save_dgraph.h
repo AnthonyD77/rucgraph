@@ -2,17 +2,15 @@
 #include <fstream>
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 
-
-
 /**
  * @brief 
  * 
  * @param instance_name : file name of storage dgraph
  * @param input_graph   : dgraph to be stored
  */
+
 template <typename weight_type>
-void dgraph_save_dgraph(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph)
-{
+void dgraph_save_dgraph(std::string instance_name, dgraph_v_of_v<weight_type> &input_graph) {
 
     std::ofstream outputFile;
     outputFile.precision(10);

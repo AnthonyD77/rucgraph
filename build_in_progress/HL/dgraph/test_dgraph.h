@@ -33,7 +33,6 @@ rm A
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 #include <dgraph_v_of_v/dgraph_generate_random_dgraph.h>
 #include <dgraph_v_of_v/dgraph_save_dgraph.h>
-#include <dgraph_v_of_v/dgraph_save_dgraph_from_download_file.h>
 #include <dgraph_v_of_v/dgraph_read_dgraph.h>
 #include <build_in_progress/HL/dgraph/dgraph_change_IDs.h>
 #include <dgraph_v_of_v/dgraph_shortest_paths.h>
@@ -297,32 +296,147 @@ void test_dgraph_CT()
         << ct_info.use_PLL << " avg_index_time = " << avg_index_time << "s" << endl;
 }
 
-//测试：读取指定文件的.out形式(这里是out.soc-Epinions1)，并以txt和二进制形式存储
-void test_save_dgraph()
+
+
+
+
+/*test real data*/
+#include <dgraph_v_of_v/dgraph_compare_two_dgraphs.h>
+#include <dgraph_v_of_v/dgraph_binary_save_read_dgraph.h>
+
+void dgraph_read_dgraph_from_txt(std::string instance_name, dgraph_v_of_v<two_hop_weight_type>& input_graph, int Jacard_or_Random)
 {
-    save_epinions();
-    cout << "saving epinions finishes" << endl;
-    //save_digg_friends();
-    //save_flickr_growth();
-    /*  ..and a lot of graph files...  */
+    int vertex_num;
+    input_graph.clear();
+    std::string line_content;
+    std::ifstream myfile(instance_name);
+    if (myfile.is_open())
+    {
+        getline(myfile, line_content);
+        int index1 = line_content.find(' ', 63);
+        vertex_num = stoi(line_content.substr(63, index1 - 63));
+        input_graph = dgraph_v_of_v<two_hop_weight_type>(vertex_num);
+        getline(myfile, line_content);
+        while (getline(myfile, line_content)) // read file line by line
+        {
+            std::vector<std::string> Parsed_content = parse_string(line_content, " ");
+            int v1 = std::stoi(Parsed_content[0]);
+            int v2 = std::stoi(Parsed_content[1]);
+            two_hop_weight_type w;
+            if (Jacard_or_Random) {
+                w = std::stod(Parsed_content[3]);
+            }
+            else
+                w = std::stod(Parsed_content[2]);
+
+            input_graph.add_edge(v1, v2, w);
+        }
+        myfile.close(); // close the file
+    }
+    else
+    {
+        std::cout << "Unable to open file " << instance_name << std::endl
+            << "Please check the file location or file name." << std::endl;
+        getchar();
+        exit(1);
+    }
 }
 
-//测试：二进制和txt格式读取dgraph
-void test_read_dgraph_from_bin()
-{
-    dgraph_v_of_v<two_hop_weight_type> instance_graph1;
-    //1 means read Jacard
-    dgraph_read_dgraph_from_txt("soc-Epinions1.txt", instance_graph1, 1);
-    cout << "read txt finish" << endl;
+bool test_dgraph_weight(dgraph_v_of_v<two_hop_weight_type>& input_graph, int Jacard_or_random, int iteration_source_times) {
 
-    dgraph_v_of_v<two_hop_weight_type> instance_graph;
-    dgraph_read_dgraph_from_bin("soc-Epinions1_Jacard.bin", instance_graph);
-    cout << "read bin finish" << endl;
+    boost::random::uniform_int_distribution<> dist{ static_cast<int>(0), static_cast<int>(input_graph.INs.size() - 1) };
 
-    cout << "whether dgraph read from txt and bin is the same? : " << (instance_graph1.INs.size() == instance_graph.INs.size()) << endl;
+    for (int yy = 0; yy < iteration_source_times; yy++) {
 
-    return;
+        int source = dist(boost_random_time_seed);
+
+        int source_out_size = input_graph.OUTs[source].size();
+
+        for (int xx = 0; xx < source_out_size; xx++) {
+            int terminal = input_graph.OUTs[source][xx].first;
+            two_hop_weight_type dis = input_graph.OUTs[source][xx].second;
+
+            if (Jacard_or_random) {
+                int s_cap_t = 0;
+                int terminal_in_size = input_graph.INs[terminal].size();
+
+                auto s_pointer = input_graph.OUTs[source].begin();
+                auto s_end = input_graph.OUTs[source].end();
+
+                auto t_pointer = input_graph.INs[terminal].begin();
+                auto t_end = input_graph.INs[terminal].end();
+
+                while (s_pointer != s_end && t_pointer != t_end)
+                {
+                    if (s_pointer->first == t_pointer->first)
+                    {
+                        s_cap_t++;
+                        s_pointer++;
+                    }
+                    else if (s_pointer->first > t_pointer->first)
+                    {
+                        t_pointer++;
+                    }
+                    else {
+                        s_pointer++;
+                    }
+                }
+
+                int s_cup_t = terminal_in_size + source_out_size - s_cap_t;
+                two_hop_weight_type ec = 1.0 - (two_hop_weight_type)s_cap_t / (s_cup_t);
+
+                if (ec - dis < 1e-5)
+                    continue;
+
+                return false;
+            }
+            else {
+                if (dis >= 0 && dis <= 100)
+                    continue;
+
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
+
+void test_real_data() {
+
+    vector<string> datas = { "soc-Epinions1" };
+
+    for (auto data_name : datas) {
+
+        string path = "/home/malu/DHL_exp/" + data_name + "/";
+        path = "";
+
+        int iteration_source_times = 100;
+
+        dgraph_v_of_v<two_hop_weight_type> input_txt_graph;
+        dgraph_read_dgraph_from_txt(path + data_name + ".txt", input_txt_graph, 1);
+        dgraph_v_of_v<two_hop_weight_type> g;
+        dgraph_binary_read_dgraph(path + data_name + "_Jacard.bin", g);
+        if (!dgraph_compare_two_dgraphs_not_eaxct_same_weight(g, input_txt_graph)) {
+            cout << "input_txt_graph != g" << endl;
+            getchar();
+        }
+        if (!test_dgraph_weight(g, 1, iteration_source_times)) {
+            cout << "test_dgraph_weight is not right" << endl;
+            getchar();
+        }
+
+    }
+
+
+
+
+
+}
+
+
+
+
 
 
 
