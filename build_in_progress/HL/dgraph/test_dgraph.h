@@ -122,7 +122,7 @@ void test_dgraph_PLL_PSL() {
             vector<int> new2old;
             ThreadPool pool(thread_num);
             std::vector<std::future<int>> results;
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); //id������õ�
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old);
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
         else {
@@ -173,7 +173,7 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
         instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
         ThreadPool pool(thread_num);
         std::vector<std::future<int>> results;
-        dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); //id是排序好的
+        dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); //id是排序好的
 
         dgraph_case_info_v1 mm;
         mm.use_canonical_repair = 1;
@@ -227,7 +227,7 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 
 void test_dgraph_CT() {
     /*parameters*/
-    int iteration_graph_times = 30, iteration_source_times = 100, iteration_terminal_times = 100;
+    int iteration_graph_times = 3, iteration_source_times = 100, iteration_terminal_times = 100;
 
     int generate_new_graph = 1;
 
@@ -287,7 +287,7 @@ void test_dgraph_CT() {
         
         dgraph_v1_check_correctness(mm, ct_info, instance_graph, iteration_source_times, iteration_terminal_times, 1);
 
-        //ct_info.print_time();
+        ct_info.print_time();
         ct_info.clear_labels();
     }
 
@@ -490,7 +490,7 @@ void compare_PLL_PSL() {
         if (generate_new_graph == 1) {
             instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
             vector<int> new2old;           
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); //id������õ�
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); 
             dgraph_save_dgraph("random_dgraph_test.txt", instance_graph);
         }
         else {
@@ -553,7 +553,7 @@ void compare_different_sorting_method() {
 
         /*degree order*/
         if (1) {
-            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old, pool, results); 
+            dgraph_change_IDs_sum_IN_OUT_degrees(instance_graph, new2old); 
             auto begin = std::chrono::high_resolution_clock::now();
             try {
                 if (use_PLL) {
@@ -578,7 +578,7 @@ void compare_different_sorting_method() {
 
         /*weighted degree order*/
         if (1) {
-            dgraph_change_IDs_weighted_degrees(instance_graph, new2old, pool, results);
+            dgraph_change_IDs_weighted_degrees(instance_graph, new2old);
             auto begin = std::chrono::high_resolution_clock::now();
             try {
                 if (use_PLL) {

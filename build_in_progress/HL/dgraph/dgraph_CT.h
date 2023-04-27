@@ -65,7 +65,10 @@ class dgraph_case_info_v2 {
     double time4_lca = 0;
     double time5_core_indexs_prepare1 = 0;
     double time5_core_indexs_prepare2 = 0;
+    double time5_core_indexs_prepare3 = 0;
+    double time5_core_indexs_prepare4 = 0;
     double time5_core_indexs = 0;
+    double time5_core_indexs_post = 0;
     double time6_post = 0;
     double time_total = 0;
 
@@ -120,7 +123,10 @@ class dgraph_case_info_v2 {
         cout << "time4_lca: " << time4_lca << endl;
         cout << "time5_core_indexs_prepare1: " << time5_core_indexs_prepare1 << endl;
         cout << "time5_core_indexs_prepare2: " << time5_core_indexs_prepare2 << endl;
+        cout << "time5_core_indexs_prepare3: " << time5_core_indexs_prepare3 << endl;
+        cout << "time5_core_indexs_prepare4: " << time5_core_indexs_prepare4 << endl;
         cout << "time5_core_indexs: " << time5_core_indexs << endl;
+        cout << "time5_core_indexs_post: " << time5_core_indexs_post << endl;
         cout << "time6_post: " << time6_post << endl;
         cout << "time_total: " << time_total << endl;
     }
@@ -903,13 +909,19 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         result.get();
     results.clear();
 
+    case_info.time5_core_indexs_prepare1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_1).count() / 1e9;
+    auto begin5_2 = std::chrono::high_resolution_clock::now();
+
     /*change IDs*/
     if (case_info.two_hop_order_method == 0) {
-        dgraph_change_IDs_sum_IN_OUT_degrees(global_dgraph_CT, new_to_old, pool, results);
+        dgraph_change_IDs_sum_IN_OUT_degrees(global_dgraph_CT, new_to_old);
     }
     else if (case_info.two_hop_order_method == 1) {
-        dgraph_change_IDs_weighted_degrees(global_dgraph_CT, new_to_old, pool, results);
+        dgraph_change_IDs_weighted_degrees(global_dgraph_CT, new_to_old);
     }
+
+    case_info.time5_core_indexs_prepare2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_2).count() / 1e9;
+    auto begin5_3 = std::chrono::high_resolution_clock::now();
 
     /* construct 2-hop labels on core */
     two_hop_case_info_sorted = case_info.two_hop_case_info;
@@ -922,15 +934,13 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         throw reach_limit_error_string_time;  // after catching error, must call clear_gloval_values_CT and clear CT labels
     }
 
-    case_info.time5_core_indexs_prepare1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_1).count() / 1e9;
-
-    auto begin5_2 = std::chrono::high_resolution_clock::now();
+    case_info.time5_core_indexs_prepare3 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_3).count() / 1e9;
+    auto begin5_4 = std::chrono::high_resolution_clock::now();
 
     choose_PLL_PSL(case_info, global_dgraph_CT, pool, results);
 
-    case_info.time5_core_indexs_prepare2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_2).count() / 1e9;
-
-    auto begin5_3 = std::chrono::high_resolution_clock::now();
+    case_info.time5_core_indexs_prepare4 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_4).count() / 1e9;
+    auto begin5_5 = std::chrono::high_resolution_clock::now();
 
     if (case_info.use_PLL) {
         dgraph_PLL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
@@ -938,6 +948,10 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     else {
     	dgraph_PSL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
+
+    case_info.time5_core_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_5).count() / 1e9;
+    auto begin5_6 = std::chrono::high_resolution_clock::now();
+
     /* return to original ID */
     auto &L_in = case_info.two_hop_case_info.L_in;
     auto &L_out = case_info.two_hop_case_info.L_out; 
@@ -954,7 +968,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     }
     results.clear();
 
-    case_info.time5_core_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_3).count() / 1e9;
+    case_info.time5_core_indexs_post = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_6).count() / 1e9;
     //--------------------------------------------------------------------------------------------------------------------
 
     //--------------------------- step 6: ---------------------------
