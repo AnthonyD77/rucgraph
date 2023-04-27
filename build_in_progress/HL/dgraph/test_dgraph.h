@@ -33,6 +33,7 @@ rm A
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 #include <dgraph_v_of_v/dgraph_generate_random_dgraph.h>
 #include <dgraph_v_of_v/dgraph_save_dgraph.h>
+#include <dgraph_v_of_v/dgraph_save_dgraph_from_download_file.h>
 #include <dgraph_v_of_v/dgraph_read_dgraph.h>
 #include <build_in_progress/HL/dgraph/dgraph_change_IDs.h>
 #include <dgraph_v_of_v/dgraph_shortest_paths.h>
@@ -296,13 +297,32 @@ void test_dgraph_CT()
         << ct_info.use_PLL << " avg_index_time = " << avg_index_time << "s" << endl;
 }
 
+//测试：读取指定文件的.out形式(这里是out.soc-Epinions1)，并以txt和二进制形式存储
+void test_save_dgraph()
+{
+    save_epinions();
+    cout << "saving epinions finishes" << endl;
+    //save_digg_friends();
+    //save_flickr_growth();
+    /*  ..and a lot of graph files...  */
+}
 
+//测试：二进制和txt格式读取dgraph
+void test_read_dgraph_from_bin()
+{
+    dgraph_v_of_v<two_hop_weight_type> instance_graph1;
+    //1 means read Jacard
+    dgraph_read_dgraph_from_txt("soc-Epinions1.txt", instance_graph1, 1);
+    cout << "read txt finish" << endl;
 
+    dgraph_v_of_v<two_hop_weight_type> instance_graph;
+    dgraph_read_dgraph_from_bin("soc-Epinions1_Jacard.bin", instance_graph);
+    cout << "read bin finish" << endl;
 
+    cout << "whether dgraph read from txt and bin is the same? : " << (instance_graph1.INs.size() == instance_graph.INs.size()) << endl;
 
-
-
-
+    return;
+}
 
 
 

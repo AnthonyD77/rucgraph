@@ -3,6 +3,7 @@
 #include <string>
 #include <shared_mutex>
 #include <tool_functions/ThreadPool.h>
+#include <boost/heap/fibonacci_heap.hpp>
 #include <dgraph_v_of_v/dgraph_v_of_v.h>
 
 #define two_hop_weight_type float
@@ -75,15 +76,20 @@ void label_output_to_file(std::string instance_name, vector<vector<two_hop_label
 
 
 /* struct used for dijkstra extra_min */
+
 struct node_for_dij {
 public:
     int vertex;
     two_hop_weight_type priority_value;
 };
 
+// < is the max-heap; > is the min heap
+
 bool operator<(node_for_dij const& x, node_for_dij const& y) {
-    return x.priority_value > y.priority_value; // < is the max-heap; > is the min heap
+    return x.priority_value > y.priority_value; 
 }
+
+
 typedef typename boost::heap::fibonacci_heap<node_for_dij>::handle_type dgraph_heap_pointer;
 
 
