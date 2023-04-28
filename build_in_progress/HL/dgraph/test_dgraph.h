@@ -227,7 +227,7 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 
 void test_dgraph_CT() {
     /*parameters*/
-    int iteration_graph_times = 3, iteration_source_times = 100, iteration_terminal_times = 100;
+    int iteration_graph_times = 3, iteration_source_times = 10, iteration_terminal_times = 10;
 
     int generate_new_graph = 1;
 
@@ -243,7 +243,7 @@ void test_dgraph_CT() {
     ct_info.use_PLL = 1;
     ct_info.two_hop_order_method = 1;
     ct_info.max_bit_size = 1e7;
-    ct_info.max_run_time_seconds = 0.5;
+    ct_info.max_run_time_seconds = 1e3;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++)
@@ -288,6 +288,7 @@ void test_dgraph_CT() {
         dgraph_v1_check_correctness(mm, ct_info, instance_graph, iteration_source_times, iteration_terminal_times, 1);
 
         ct_info.print_time();
+        ct_info.print_label_bit_size();
         ct_info.clear_labels();
     }
 

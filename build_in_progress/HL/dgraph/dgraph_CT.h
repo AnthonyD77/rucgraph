@@ -77,6 +77,8 @@ class dgraph_case_info_v2 {
     long long int core_graph_E = 0;
     long long int uk = 0;
     double V_log_V_uk = 0;
+    long long int core_graph_label_bit_size = 0;  // bit size 1
+    long long int pre_core_graph_label_bit_size = 0; // bit size 0
 
     /*printing*/
     void print_Bags()
@@ -130,6 +132,12 @@ class dgraph_case_info_v2 {
         cout << "time6_post: " << time6_post << endl;
         cout << "time_total: " << time_total << endl;
     }
+
+    void print_label_bit_size() {
+        cout << "pre_core_graph_label_bit_size: " << pre_core_graph_label_bit_size << endl;
+        cout << "core_graph_label_bit_size: " << core_graph_label_bit_size << endl;
+        cout << "total_label_bit_size: " << pre_core_graph_label_bit_size + core_graph_label_bit_size << endl;
+    }
 };
 
 /*global values*/
@@ -139,9 +147,11 @@ dgraph_case_info_v1 two_hop_case_info_sorted;
 vector<int> new_to_old;
 int global_N;
 long long int sum_uk = 0;
+long long int global_core_graph_label_size = 0;
 
 void clear_gloval_values_CT() {
     sum_uk = 0;
+    global_core_graph_label_size = 0;
     global_dgraph_CT.clear();
     vector<pair<int, int>>().swap(infty_edge);
     vector<int>().swap(new_to_old);
@@ -219,6 +229,9 @@ void Label_new_to_old_parallel(int newID, vector<vector<two_hop_label>> &L_in, v
     int oldID = new_to_old[newID];
 
     int size = two_hop_case_info_sorted.L_in[newID].size();
+    mtx_595[0].lock();
+    global_core_graph_label_size += size;
+    mtx_595[0].unlock();
     for (int i = 0; i < size; i++) {
         two_hop_case_info_sorted.L_in[newID][i].vertex = new_to_old[two_hop_case_info_sorted.L_in[newID][i].vertex];
     }
@@ -226,6 +239,9 @@ void Label_new_to_old_parallel(int newID, vector<vector<two_hop_label>> &L_in, v
     L_in[oldID].swap(two_hop_case_info_sorted.L_in[newID]); // two_hop_case_info_sorted.L_in[newID] becomes empty
 
     size = two_hop_case_info_sorted.L_out[newID].size();
+    mtx_595[0].lock();
+    global_core_graph_label_size += size;
+    mtx_595[0].unlock();
     for (int i = 0; i < size; i++) {
         two_hop_case_info_sorted.L_out[newID][i].vertex = new_to_old[two_hop_case_info_sorted.L_out[newID][i].vertex];
     }
@@ -925,7 +941,8 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
 
     /* construct 2-hop labels on core */
     two_hop_case_info_sorted = case_info.two_hop_case_info;
-    two_hop_case_info_sorted.max_labal_bit_size = case_info.max_bit_size - compute_CT_label_bit_size(case_info, pool, results);
+    case_info.pre_core_graph_label_bit_size = compute_CT_label_bit_size(case_info, pool, results); // label bit size part 0
+    two_hop_case_info_sorted.max_labal_bit_size = case_info.max_bit_size - case_info.pre_core_graph_label_bit_size;
     if (two_hop_case_info_sorted.max_labal_bit_size < 0) {
         throw reach_limit_error_string_MB;  // after catching error, must call clear_gloval_values_CT and clear CT labels
     }
@@ -967,6 +984,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         result.get();
     }
     results.clear();
+    case_info.core_graph_label_bit_size = global_core_graph_label_size * sizeof(two_hop_label); // label bit size part 1
 
     case_info.time5_core_indexs_post = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_6).count() / 1e9;
     //--------------------------------------------------------------------------------------------------------------------
