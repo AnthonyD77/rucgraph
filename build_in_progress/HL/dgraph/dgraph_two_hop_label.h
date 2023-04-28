@@ -170,6 +170,13 @@ public:
     vector<vector<two_hop_label>> L_in;
     vector<vector<two_hop_label>> L_out;
 
+    /*indexing times*/
+    double time1_PLL_PSL_initialization = 0;
+    double time2_PLL_PSL_label_generation = 0;
+    double time3_PLL_PSL_label_postprocess = 0;
+    double time4_PLL_PSL_label_canonical = 0;
+    double time5_PLL_PSL_total = 0;
+
 	/*clear labels*/
 	void clear_labels() {
 		vector<vector<two_hop_label>>().swap(L_in);

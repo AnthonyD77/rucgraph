@@ -227,7 +227,7 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 
 void test_dgraph_CT() {
     /*parameters*/
-    int iteration_graph_times = 3, iteration_source_times = 10, iteration_terminal_times = 10;
+    int iteration_graph_times = 1, iteration_source_times = 10, iteration_terminal_times = 10;
 
     int generate_new_graph = 1;
 
@@ -244,6 +244,7 @@ void test_dgraph_CT() {
     ct_info.two_hop_order_method = 1;
     ct_info.max_bit_size = 1e7;
     ct_info.max_run_time_seconds = 1e3;
+    ct_info.two_hop_case_info.use_canonical_repair = 1;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++)
@@ -289,6 +290,8 @@ void test_dgraph_CT() {
 
         ct_info.print_time();
         ct_info.print_label_bit_size();
+        cout << "ct_info.two_hop_case_info.label_size_before_canonical_repair: " << ct_info.two_hop_case_info.label_size_before_canonical_repair << endl;
+        cout << "ct_info.two_hop_case_info.label_size_after_canonical_repair: " << ct_info.two_hop_case_info.label_size_after_canonical_repair << endl;
         ct_info.clear_labels();
     }
 

@@ -195,6 +195,10 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 		increment[k].resize(N, 1);
 	}
 
+	case_info.time1_PLL_PSL_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PSL).count() / 1e9;
+	auto begin1 = std::chrono::high_resolution_clock::now();
+	//---------------------------------------------------------------------------------
+
 	/*label generation*/
 	ThreadPool pool(num_of_threads);
 	std::vector<std::future<int>> results;
@@ -228,17 +232,30 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 		results.clear();
 	} 
 
+	case_info.time2_PLL_PSL_label_generation = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin1).count() / 1e9;
+	auto begin2 = std::chrono::high_resolution_clock::now();
+	//---------------------------------------------------------------------------------
+
 	clean_incorrect_labels(N, num_of_threads); /*clean out incorrect labels and sort*/
 
+	case_info.time3_PLL_PSL_label_postprocess = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin2).count() / 1e9;
+	auto begin3 = std::chrono::high_resolution_clock::now();
+	//---------------------------------------------------------------------------------
+
+	case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
 	if (case_info.use_canonical_repair) {
-		case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
 		canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);
 		case_info.label_size_after_canonical_repair = compute_label_bit_size(case_info.L_in, case_info.L_out);
 	}
 	else {
 		case_info.L_in = L_temp_in;
 		case_info.L_out = L_temp_out;
+		case_info.label_size_after_canonical_repair = case_info.label_size_before_canonical_repair;
 	}
 
+	case_info.time4_PLL_PSL_label_canonical = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin3).count() / 1e9;
+	//---------------------------------------------------------------------------------
+
 	dgraph_clear_global_values_PLL_PSL();
+	case_info.time5_PLL_PSL_total = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PSL).count() / 1e9;
 }

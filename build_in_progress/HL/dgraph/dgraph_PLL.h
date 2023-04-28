@@ -185,10 +185,13 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
     L_temp_in.resize(N);
     L_temp_out.resize(N);
 
-    ThreadPool pool(num_of_threads);
-    std::vector<std::future<int>> results;
+    case_info.time1_PLL_PSL_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PLL).count() / 1e9;
+    auto begin1 = std::chrono::high_resolution_clock::now();
+    //---------------------------------------------------------------------------------
 
     /*dgraph_pruned_dijkstra*/
+    ThreadPool pool(num_of_threads);
+    std::vector<std::future<int>> results;
     dist.resize(num_of_threads);
     dist2.resize(num_of_threads);
     Q_pointers.resize(num_of_threads);
@@ -209,6 +212,10 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
         result.get();
     results.clear();
 
+    case_info.time2_PLL_PSL_label_generation = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin1).count() / 1e9;
+    auto begin2 = std::chrono::high_resolution_clock::now();
+    //---------------------------------------------------------------------------------
+
     /*sort labels*/
     for (int i = 0; i < N; i++) {
         results.emplace_back(pool.enqueue([i] {
@@ -217,21 +224,31 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
             sort(L_temp_out[i].begin(), L_temp_out[i].end(),
                 compare_two_hop_label_vertex_small_to_large); // sort is necessary
             return 1; }));
+        case_info.label_size_before_canonical_repair += L_temp_in[i].size() + L_temp_out[i].size();
     }
     for (auto&& result : results)
         result.get();
     results.clear();
 
+    case_info.time3_PLL_PSL_label_postprocess = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin2).count() / 1e9;
+    auto begin3 = std::chrono::high_resolution_clock::now();
+    //---------------------------------------------------------------------------------
+
     /*canonical_repair*/
-    if (case_info.use_canonical_repair) {
-        case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
+    case_info.label_size_before_canonical_repair = case_info.label_size_before_canonical_repair * sizeof(two_hop_label);
+    if (case_info.use_canonical_repair) {       
         canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);
         case_info.label_size_after_canonical_repair = compute_label_bit_size(case_info.L_in, case_info.L_out);
     }
     else {
         case_info.L_in = L_temp_in;
         case_info.L_out = L_temp_out;
+        case_info.label_size_after_canonical_repair = case_info.label_size_before_canonical_repair;
     }
 
+    case_info.time4_PLL_PSL_label_canonical = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin3).count() / 1e9;
+    //---------------------------------------------------------------------------------
+
     dgraph_clear_global_values_PLL_PSL();
+    case_info.time5_PLL_PSL_total = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PLL).count() / 1e9;
 }

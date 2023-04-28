@@ -131,6 +131,11 @@ class dgraph_case_info_v2 {
         cout << "time5_core_indexs_post: " << time5_core_indexs_post << endl;
         cout << "time6_post: " << time6_post << endl;
         cout << "time_total: " << time_total << endl;
+        cout << "time1_PLL_PSL_initialization: " << two_hop_case_info.time1_PLL_PSL_initialization << endl;
+        cout << "time2_PLL_PSL_label_generation: " << two_hop_case_info.time2_PLL_PSL_label_generation << endl;
+        cout << "time3_PLL_PSL_label_postprocess: " << two_hop_case_info.time3_PLL_PSL_label_postprocess << endl;
+        cout << "time4_PLL_PSL_label_canonical: " << two_hop_case_info.time4_PLL_PSL_label_canonical << endl;
+        cout << "time5_PLL_PSL_total: " << two_hop_case_info.time5_PLL_PSL_total << endl;
     }
 
     void print_label_bit_size() {
@@ -147,13 +152,11 @@ dgraph_case_info_v1 two_hop_case_info_sorted;
 vector<int> new_to_old;
 int global_N;
 long long int sum_uk = 0;
-long long int global_core_graph_label_size = 0;
 bool this_parallel_CT_is_running = false;
 
 void clear_gloval_values_CT() {
     this_parallel_CT_is_running = false;
     sum_uk = 0;
-    global_core_graph_label_size = 0;
     global_dgraph_CT.clear();
     vector<pair<int, int>>().swap(infty_edge);
     vector<int>().swap(new_to_old);
@@ -234,9 +237,6 @@ void Label_new_to_old_parallel(int newID, vector<vector<two_hop_label>> &L_in, v
     int oldID = new_to_old[newID];
 
     int size = two_hop_case_info_sorted.L_in[newID].size();
-    mtx_595[0].lock();
-    global_core_graph_label_size += size;
-    mtx_595[0].unlock();
     for (int i = 0; i < size; i++) {
         two_hop_case_info_sorted.L_in[newID][i].vertex = new_to_old[two_hop_case_info_sorted.L_in[newID][i].vertex];
     }
@@ -244,9 +244,6 @@ void Label_new_to_old_parallel(int newID, vector<vector<two_hop_label>> &L_in, v
     L_in[oldID].swap(two_hop_case_info_sorted.L_in[newID]); // two_hop_case_info_sorted.L_in[newID] becomes empty
 
     size = two_hop_case_info_sorted.L_out[newID].size();
-    mtx_595[0].lock();
-    global_core_graph_label_size += size;
-    mtx_595[0].unlock();
     for (int i = 0; i < size; i++) {
         two_hop_case_info_sorted.L_out[newID][i].vertex = new_to_old[two_hop_case_info_sorted.L_out[newID][i].vertex];
     }
@@ -993,11 +990,18 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
         return 1;
         }));  
     }
+    case_info.two_hop_case_info.label_size_after_canonical_repair = two_hop_case_info_sorted.label_size_after_canonical_repair;
+    case_info.two_hop_case_info.label_size_before_canonical_repair = two_hop_case_info_sorted.label_size_before_canonical_repair;
+    case_info.two_hop_case_info.time1_PLL_PSL_initialization = two_hop_case_info_sorted.time1_PLL_PSL_initialization;
+    case_info.two_hop_case_info.time2_PLL_PSL_label_generation = two_hop_case_info_sorted.time2_PLL_PSL_label_generation;
+    case_info.two_hop_case_info.time3_PLL_PSL_label_postprocess = two_hop_case_info_sorted.time3_PLL_PSL_label_postprocess;
+    case_info.two_hop_case_info.time4_PLL_PSL_label_canonical = two_hop_case_info_sorted.time4_PLL_PSL_label_canonical;
+    case_info.two_hop_case_info.time5_PLL_PSL_total = two_hop_case_info_sorted.time5_PLL_PSL_total;
     for (auto &&result : results) {
         result.get();
     }
     results.clear();
-    case_info.core_graph_label_bit_size = global_core_graph_label_size * sizeof(two_hop_label); // label bit size part 1
+    case_info.core_graph_label_bit_size = case_info.two_hop_case_info.label_size_after_canonical_repair; // label bit size part 1
 
     case_info.time5_core_indexs_post = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_6).count() / 1e9;
     //--------------------------------------------------------------------------------------------------------------------
