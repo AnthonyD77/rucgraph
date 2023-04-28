@@ -32,20 +32,24 @@ bool dgraph_compare_two_dgraphs_not_eaxct_same_weight(dgraph_v_of_v<weight_type>
 
     for (auto it = g1.INs.begin(), it2 = g2.INs.begin(); it != g1.INs.end(); it++, it2++) {
         if (it->size() != it2->size()) {
+    
             return false;
         }
         for (auto it3 = it->begin(), it4 = it2->begin(); it3 != it->end(); it3++, it4++) {
             if (it3->first != it4->first || abs(it3->second - it4->second) > 1e-5) {
+                
                 return false;
             }
         }
     }
     for (auto it = g1.OUTs.begin(), it2 = g2.OUTs.begin(); it != g1.OUTs.end(); it++, it2++) {
         if (it->size() != it2->size()) {
+           
             return false;
         }
         for (auto it3 = it->begin(), it4 = it2->begin(); it3 != it->end(); it3++, it4++) {
             if (it3->first != it4->first || abs(it3->second - it4->second) > 1e-5) {
+                
                 return false;
             }
         }
