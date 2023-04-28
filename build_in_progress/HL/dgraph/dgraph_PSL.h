@@ -228,7 +228,7 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 		results.clear();
 	} 
 
-	clean_incorrect_labels(N, num_of_threads); /*clean out incorrect labels*/
+	clean_incorrect_labels(N, num_of_threads); /*clean out incorrect labels and sort*/
 
 	if (case_info.use_canonical_repair) {
 		case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);

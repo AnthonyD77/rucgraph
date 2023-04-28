@@ -148,8 +148,10 @@ vector<int> new_to_old;
 int global_N;
 long long int sum_uk = 0;
 long long int global_core_graph_label_size = 0;
+bool this_parallel_CT_is_running = false;
 
 void clear_gloval_values_CT() {
+    this_parallel_CT_is_running = false;
     sum_uk = 0;
     global_core_graph_label_size = 0;
     global_dgraph_CT.clear();
@@ -158,6 +160,9 @@ void clear_gloval_values_CT() {
     two_hop_case_info_sorted.clear_labels();
     dgraph_clear_global_values_PLL_PSL();
 }
+
+
+
 
 long long int compute_CT_label_bit_size(dgraph_case_info_v2& info, ThreadPool& pool, std::vector<std::future<int>>& results) {
 
@@ -444,6 +449,14 @@ void choose_PLL_PSL(dgraph_case_info_v2& case_info, dgraph_v_of_v<two_hop_weight
 
 /*indexing function*/
 void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info_v2 &case_info) {
+
+    mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+    if (this_parallel_CT_is_running == true) {
+        cout << "CT_dgraph cannot be run parallelly, due to the above (static) globel values" << endl;
+        exit(1);
+    }
+    this_parallel_CT_is_running = true;
+    mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
     //--------------------------- step 1: initialization ---------------------------
     auto begin1 = std::chrono::high_resolution_clock::now();
