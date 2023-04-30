@@ -104,10 +104,7 @@ void append(int k, int u) {
 	vector<two_hop_label>().swap(L_PSL_temp[k][u]);
 }
 
-void clean_incorrect_labels(int N, int num_of_threads) {
-
-	ThreadPool pool(num_of_threads);
-	std::vector<std::future<int>> results;
+void clean_incorrect_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& results) {
 
 	for (int u = 0; u < N; u++) {
 		results.emplace_back(pool.enqueue([u, N] {
@@ -156,6 +153,11 @@ void clean_incorrect_labels(int N, int num_of_threads) {
 
 			return 1; }));
 	}
+
+	for (auto&& result : results) {
+		result.get();
+	}
+	results.clear();
 }
 
 void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_threads, dgraph_case_info_v1& case_info) {
@@ -236,7 +238,7 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 	auto begin2 = std::chrono::high_resolution_clock::now();
 	//---------------------------------------------------------------------------------
 
-	clean_incorrect_labels(N, num_of_threads); /*clean out incorrect labels and sort*/
+	clean_incorrect_labels(N, pool, results); /*clean out incorrect labels and sort*/
 
 	case_info.time3_PLL_PSL_label_postprocess = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin2).count() / 1e9;
 	auto begin3 = std::chrono::high_resolution_clock::now();
@@ -244,7 +246,7 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 
 	case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
 	if (case_info.use_canonical_repair) {
-		canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);	
+		canonical_repair_multi_threads(pool, results, &case_info.L_in, &case_info.L_out);
 	}
 	else {
 		case_info.L_in = L_temp_in;

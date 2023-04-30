@@ -237,7 +237,7 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
     /*canonical_repair*/
     case_info.label_size_before_canonical_repair = case_info.label_size_before_canonical_repair * sizeof(two_hop_label);
     if (case_info.use_canonical_repair) {       
-        canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);        
+        canonical_repair_multi_threads(pool, results, &case_info.L_in, &case_info.L_out);
     }
     else {
         case_info.L_in = L_temp_in;

@@ -319,13 +319,11 @@ void canonical_repair_out(int target_v, vector<vector<two_hop_label>>* L_final) 
     }
 }
 
-void canonical_repair_multi_threads(int num_of_threads, vector<vector<two_hop_label>>* L_in_final, vector<vector<two_hop_label>>* L_out_final) {
+void canonical_repair_multi_threads(ThreadPool& pool, std::vector<std::future<int>>& results, vector<vector<two_hop_label>>* L_in_final, vector<vector<two_hop_label>>* L_out_final) {
 
     int N = L_temp_in.size();
     (*L_in_final).resize(N), (*L_out_final).resize(N);
 
-    ThreadPool pool(num_of_threads);
-    std::vector<std::future<int>> results; // return typename: xxx
     for (int target_v = 0; target_v < N; target_v++) {
         results.emplace_back(
             pool.enqueue([target_v, L_in_final, L_out_final] { // pass const type value j to thread; [] can be empty

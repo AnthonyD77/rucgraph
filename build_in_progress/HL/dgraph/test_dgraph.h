@@ -231,7 +231,7 @@ void test_dgraph_CT() {
 
     int generate_new_graph = 1;
 
-    int V = 1000, E = 10000, precision = 1, thread_num = 20;
+    int V = 1000, E = 10000, precision = 1, thread_num = 5;
     two_hop_weight_type ec_min = 0.1, ec_max = 1;
     double avg_index_time = 0, avg_index_size_per_v = 0;
 
@@ -240,7 +240,7 @@ void test_dgraph_CT() {
     dgraph_case_info_v2 ct_info;
     ct_info.thread_num = thread_num;
     ct_info.d = 5;
-    ct_info.use_PLL = 1;
+    ct_info.use_PLL = 0;
     ct_info.two_hop_order_method = 1;
     ct_info.max_bit_size = 1e7;
     ct_info.max_run_time_seconds = 1e3;
