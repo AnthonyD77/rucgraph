@@ -237,18 +237,16 @@ void dgraph_PLL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
     /*canonical_repair*/
     case_info.label_size_before_canonical_repair = case_info.label_size_before_canonical_repair * sizeof(two_hop_label);
     if (case_info.use_canonical_repair) {       
-        canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);
-        case_info.label_size_after_canonical_repair = compute_label_bit_size(case_info.L_in, case_info.L_out);
+        canonical_repair_multi_threads(num_of_threads, &case_info.L_in, &case_info.L_out);        
     }
     else {
         case_info.L_in = L_temp_in;
         case_info.L_out = L_temp_out;
-        case_info.label_size_after_canonical_repair = case_info.label_size_before_canonical_repair;
     }
-
     case_info.time4_PLL_PSL_label_canonical = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin3).count() / 1e9;
     //---------------------------------------------------------------------------------
 
+    case_info.label_size_after_canonical_repair = compute_label_bit_size(case_info.L_in, case_info.L_out);
     dgraph_clear_global_values_PLL_PSL();
     case_info.time5_PLL_PSL_total = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time_PLL).count() / 1e9;
 }
