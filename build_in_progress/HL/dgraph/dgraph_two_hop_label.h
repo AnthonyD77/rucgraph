@@ -268,8 +268,7 @@ two_hop_weight_type dgraph_v1_extract_shortest_distance_for_canonical_repair(int
         pointer_L_t_end = limit;
     }
     while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end) {
-        if (vector1_check_pointer->vertex == vector2_check_pointer->vertex)
-        {
+        if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
             two_hop_weight_type dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
             if (distance > dis)
             {
@@ -277,12 +276,10 @@ two_hop_weight_type dgraph_v1_extract_shortest_distance_for_canonical_repair(int
             }
             vector1_check_pointer++;
         }
-        else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex)
-        {
+        else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex) {
             vector2_check_pointer++;
         }
-        else
-        {
+        else {
             vector1_check_pointer++;
         }
     }
