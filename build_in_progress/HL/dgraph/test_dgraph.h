@@ -167,8 +167,8 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 {
     vector<int> new2old;
     for (int xx = 0; xx < 1e2; xx++) {
-        int V = 1000, E = 5000, precision = 1, thread_num = 10;
-        two_hop_weight_type ec_min = 0.1, ec_max = 1;
+        int V = 1000, E = 10000, precision = 1, thread_num = 5;
+        two_hop_weight_type ec_min = 1, ec_max = 10;
         dgraph_v_of_v<two_hop_weight_type> instance_graph;
         instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
         ThreadPool pool(thread_num);

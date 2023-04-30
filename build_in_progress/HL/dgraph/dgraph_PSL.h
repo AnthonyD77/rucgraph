@@ -250,7 +250,6 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 		case_info.L_in = L_temp_in;
 		case_info.L_out = L_temp_out;
 	}
-
 	case_info.time4_PLL_PSL_label_canonical = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin3).count() / 1e9;
 	//---------------------------------------------------------------------------------
 

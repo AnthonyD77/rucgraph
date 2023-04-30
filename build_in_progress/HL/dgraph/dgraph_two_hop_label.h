@@ -255,11 +255,7 @@ two_hop_weight_type dgraph_v1_extract_shortest_distance(vector<vector<two_hop_la
 
 /*canonical_repair*/ 
 
-two_hop_weight_type dgraph_v1_extract_shortest_distance_for_canonical_repair(int source,int terminal,int in_or_out, vector<two_hop_label>::iterator limit)
-{
-    if (source == terminal) {
-        return 0;
-    }
+two_hop_weight_type dgraph_v1_extract_shortest_distance_for_canonical_repair(int source,int terminal,int in_or_out, vector<two_hop_label>::iterator limit) {
 
     two_hop_weight_type distance = std::numeric_limits<two_hop_weight_type>::max(); // if disconnected, return this large value
     auto vector1_check_pointer = L_temp_out[source].begin();
@@ -294,8 +290,7 @@ two_hop_weight_type dgraph_v1_extract_shortest_distance_for_canonical_repair(int
     return distance;
 }
 
-void canonical_repair_in(int target_v, vector<vector<two_hop_label>>* L_final)
-{
+void canonical_repair_in(int target_v, vector<vector<two_hop_label>>* L_final) {
 	auto begin = L_temp_in[target_v].begin(), end = L_temp_in[target_v].end();
 	for (; begin != end; begin++) {
 		int vertex = begin->vertex;
@@ -311,8 +306,7 @@ void canonical_repair_in(int target_v, vector<vector<two_hop_label>>* L_final)
 	}
 }
 
-void canonical_repair_out(int target_v, vector<vector<two_hop_label>>* L_final)
-{
+void canonical_repair_out(int target_v, vector<vector<two_hop_label>>* L_final) {
     auto begin = L_temp_out[target_v].begin(), end = L_temp_out[target_v].end();
     for (; begin != end; begin++) {
         int vertex = begin->vertex;
@@ -335,18 +329,13 @@ void canonical_repair_multi_threads(int num_of_threads, vector<vector<two_hop_la
 
     ThreadPool pool(num_of_threads);
     std::vector<std::future<int>> results; // return typename: xxx
-    
-    /*find labels_to_be_removed_IN_L_temp_in*/
     for (int target_v = 0; target_v < N; target_v++) {
-        int size = L_temp_in[target_v].size();
-        if (size > 0) {
-            results.emplace_back(
-                pool.enqueue([target_v, L_in_final, L_out_final] { // pass const type value j to thread; [] can be empty
-                    canonical_repair_in(target_v, L_in_final);
-                    canonical_repair_out(target_v, L_out_final);
-                    return 1; // return to results; the return type must be the same with results
+        results.emplace_back(
+            pool.enqueue([target_v, L_in_final, L_out_final] { // pass const type value j to thread; [] can be empty
+                canonical_repair_in(target_v, L_in_final);
+                canonical_repair_out(target_v, L_out_final);
+                return 1; // return to results; the return type must be the same with results
                 }));
-        }
     }
     for (auto&& result : results)
 		result.get(); // all threads finish here
