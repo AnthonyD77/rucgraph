@@ -319,8 +319,8 @@ void dgraph_read_dgraph_from_txt(std::string instance_name, dgraph_v_of_v<two_ho
         getline(myfile, line_content);
         int index1 = line_content.find(' ', 63);
         vertex_num = stoi(line_content.substr(63, index1 - 63));
-        input_graph = dgraph_v_of_v<two_hop_weight_type>(vertex_num);
-        getline(myfile, line_content);
+        input_graph.INs.resize(vertex_num);
+        input_graph.OUTs.resize(vertex_num);
         while (getline(myfile, line_content)) // read file line by line
         {
             std::vector<std::string> Parsed_content = parse_string(line_content, " ");
@@ -401,7 +401,7 @@ bool test_dgraph_weight(dgraph_v_of_v<two_hop_weight_type>& input_graph, int Jac
 
 void test_real_data() {
 
-    vector<string> datas = { "soc-Epinions1" };
+    vector<string> datas = { "soc-Epinions1" , "citeseer" };
 
     for (auto data_name : datas) {
 
