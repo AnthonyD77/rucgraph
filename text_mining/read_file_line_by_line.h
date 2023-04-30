@@ -24,7 +24,8 @@ void read_file_line_by_line(std::string file_name, int line_num_between_getchar)
 	}
 	else
 	{
-		std::cout << "Unable to open file " << file_name << std::endl << "Please check the file location or file name." << std::endl; // throw an error message
+		std::cout << "Unable to open file " << file_name << std::endl 
+			<< "Please check the file location or file name." << std::endl; // throw an error message
 		getchar(); // keep the console window
 		exit(1); // end the program
 	}
