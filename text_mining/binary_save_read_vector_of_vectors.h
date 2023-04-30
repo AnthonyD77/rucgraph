@@ -17,8 +17,7 @@ void binary_save_vector_of_vectors(std::string path, const std::vector<std::vect
     for (auto& v : myVector) {
         // Store its size
         int size = v.size();
-        FILE.write(reinterpret_cast<const char*>(&size), sizeof(size));
-        
+        FILE.write(reinterpret_cast<const char*>(&size), sizeof(size));     
         if (size == 0)
         {
             continue;
