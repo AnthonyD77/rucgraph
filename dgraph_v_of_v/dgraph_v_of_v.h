@@ -141,19 +141,15 @@ void dgraph_v_of_v<weight_type>::print() {
 		std::cout << "INs: ";
 		int ss = INs[i].size();
 		for (int j = 0; j < ss; j++) {
-			std::cout << "<" << INs[i][j].first << "," << INs[i][j].second << ">" << std::endl;
+			std::cout << "<" << INs[i][j].first << "," << INs[i][j].second << ">";
 		}
-		if (ss == 0) {
-			std::cout << std::endl;
-		}
+		std::cout << std::endl;
 		std::cout << "OUTs: ";
 		ss = OUTs[i].size();
 		for (int j = 0; j < ss; j++) {
-			std::cout << "<" << OUTs[i][j].first << "," << OUTs[i][j].second << ">" << std::endl;
+			std::cout << "<" << OUTs[i][j].first << "," << OUTs[i][j].second << ">";
 		}
-		if (ss == 0) {
-			std::cout << std::endl;
-		}
+		std::cout << std::endl;
 	}
 }
 
@@ -175,6 +171,7 @@ void example_dgraph_v_of_v() {
 	dgraph_v_of_v<double> g(10); // initialize a graph with 10 vertices
 
 	g.add_edge(1, 5, 1.02); 
+	g.add_edge(1, 3, 4.5);
 	g.add_edge(5, 1, 1.42);
 	g.add_edge(5, 2, 122);
 	g.remove_edge(5, 1);
