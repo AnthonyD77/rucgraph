@@ -33,6 +33,7 @@ public:
 	inline long long int edge_number(); // the total number of edges
 	inline void clear();
 	inline int degree(int);
+	inline void print();
 };
 
 
@@ -132,7 +133,29 @@ int dgraph_v_of_v<weight_type>::degree(int v)
 	return OUTs[v].size() + INs[v].size();
 };
 
-
+template <typename weight_type>
+void dgraph_v_of_v<weight_type>::print() {
+	int N = INs.size();
+	for (int i = 0; i < N; i++) {
+		std::cout << "Vertex " << i << ":" << std::endl;
+		std::cout << "INs: ";
+		int ss = INs[i].size();
+		for (int j = 0; j < ss; j++) {
+			std::cout << "<" << INs[i][j].first << "," << INs[i][j].second << ">" << std::endl;
+		}
+		if (ss == 0) {
+			std::cout << std::endl;
+		}
+		std::cout << "OUTs: ";
+		ss = OUTs[i].size();
+		for (int j = 0; j < ss; j++) {
+			std::cout << "<" << OUTs[i][j].first << "," << OUTs[i][j].second << ">" << std::endl;
+		}
+		if (ss == 0) {
+			std::cout << std::endl;
+		}
+	}
+}
 
 
 /*
@@ -155,6 +178,7 @@ void example_dgraph_v_of_v() {
 	g.add_edge(5, 1, 1.42);
 	g.add_edge(5, 2, 122);
 	g.remove_edge(5, 1);
+	g.print();
 
 	std::cout << g.edge_weight(1, 5) << std::endl;
 	std::cout << g.contain_edge(1, 5) << std::endl;
