@@ -473,8 +473,8 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     isIntree.resize(N, 0);
     /* initialize queue */
     priority_queue<node_degree> q;
+    node_degree nd;
     for (int i = 0; i < N; i++) {
-        node_degree nd;
         nd.degree = global_dgraph_CT.degree(i);
         nd.vertex = i;
         q.push(nd);
@@ -495,7 +495,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     std::vector<std::future<int>> results;
     for (int i = 1; i <= N; i++) {
         /* 1. find v_i */
-        node_degree nd;
         while (1) {
             nd = q.top();
             q.pop();
@@ -610,7 +609,6 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     vector<vector<int>> son(N);
 
     int labelnum = 0;
-
     root.resize(N);
     dep.resize(N);
     first_pos.resize(N);
@@ -950,7 +948,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     auto begin5_3 = std::chrono::high_resolution_clock::now();
 
     /* construct 2-hop labels on core */
-    two_hop_case_info_sorted = case_info.two_hop_case_info;
+    two_hop_case_info_sorted = case_info.two_hop_case_info; // two_hop_case_info_sorted.use_canonical_repair is updated here 
     case_info.pre_core_graph_label_bit_size = compute_CT_label_bit_size(case_info, pool, results); // label bit size part 0
     two_hop_case_info_sorted.max_labal_bit_size = case_info.max_bit_size - case_info.pre_core_graph_label_bit_size;
     if (two_hop_case_info_sorted.max_labal_bit_size < 0) {
