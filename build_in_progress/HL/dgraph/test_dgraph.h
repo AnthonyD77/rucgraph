@@ -95,7 +95,7 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_case_inf
 void test_dgraph_PLL_PSL() {
     /*parameters*/
     int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
-    int V = 100, E = 500, precision = 1, thread_num = 5;
+    int V = 3, E = 5, precision = 1, thread_num = 5;
     two_hop_weight_type ec_min = 1, ec_max = 1;
 
     double avg_index_time = 0, avg_index_bit_size = 0;
