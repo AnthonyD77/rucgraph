@@ -80,6 +80,10 @@ class dgraph_case_info_v2 {
     long long int core_graph_label_bit_size = 0;  // bit size 1
     long long int pre_core_graph_label_bit_size = 0; // bit size 0
 
+    long long int total_label_bit_size() {
+        return pre_core_graph_label_bit_size + core_graph_label_bit_size;
+    }
+
     /*printing*/
     void print_Bags()
     {

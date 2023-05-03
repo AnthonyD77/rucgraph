@@ -239,12 +239,12 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 	//---------------------------------------------------------------------------------
 
 	clean_incorrect_labels(N, pool, results); /*clean out incorrect labels and sort*/
+	case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
 
 	case_info.time3_PLL_PSL_label_postprocess = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin2).count() / 1e9;
 	auto begin3 = std::chrono::high_resolution_clock::now();
 	//---------------------------------------------------------------------------------
 
-	case_info.label_size_before_canonical_repair = compute_label_bit_size(L_temp_in, L_temp_out);
 	if (case_info.use_canonical_repair) {
 		canonical_repair_multi_threads(pool, results, &case_info.L_in, &case_info.L_out);
 	}

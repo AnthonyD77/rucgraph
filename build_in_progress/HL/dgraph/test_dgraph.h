@@ -240,7 +240,7 @@ void test_dgraph_CT() {
     dgraph_case_info_v2 ct_info;
     ct_info.thread_num = thread_num;
     ct_info.d = 15;
-    ct_info.use_PLL = 1;
+    ct_info.use_PLL = 0;
     ct_info.two_hop_order_method = 1;
     ct_info.max_bit_size = 1e7;
     ct_info.max_run_time_seconds = 1e3;
