@@ -123,18 +123,14 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
         << "CT-RDPLL*_MB,CT-RDPLL*_time,CT-RDPLL*_query_dis_time,"
         << "CT-RDPSL*_MB,CT-RDPSL*_time,CT-RDPSL*_query_dis_time,"
         << "PLL_weighted_degree_save_time_ratio,PSL_weighted_degree_save_time_ratio,PLL_weighted_degree_save_RAM_ratio,PSL_weighted_degree_save_RAM_ratio,"
-
-		<< "CT-Cano-PSL*_MB,CT-Cano-PSL*_time,CT-Cano-PSL*_query_dis_time,CT-Cano-PSL*_query_path_time,CT-Cano-PSL*_cano_time,CT-Cano-PSL*_cano_ratio,"
-		<< "CT-Cano-PLL_MB,CT-Cano-PLL_time,CT-Cano-PLL_query_dis_time,CT-Cano-PLL_query_path_time,CT-Cano-PLL_cano_time,CT-Cano-PLL_cano_ratio,"
-		<< "CT-Cano-partial-PLL_MB,CT-Cano-partial-PLL_time,CT-Cano-partial-PLL_query_dis_time,CT-Cano-partial-PLL_query_path_time,CT-Cano-partial-PLL_cano_time,CT-Cano-partial-PLL_cano_ratio,"
-		<< "GST_time,GST_HL_time,MDC_time,MDC_HL_time" << endl;
-
+        << "PLL_canonical_ratio,PSL_canonical_ratio,base_select_time" << endl;
 
 	outputFile << data_name << "," << ec_type << "," << thread_num << "," << d << "," << std::flush;
 
-    double base_CT_time = 0, base_query_time = 0, 
+    double base_CT_time = 0, base_query_time = 0, base_select_time = 0,
         PLL_weighted_degree_save_time_ratio = 0, PSL_weighted_degree_save_time_ratio = 0,
-        PLL_weighted_degree_save_RAM_ratio = 0, PSL_weighted_degree_save_RAM_ratio = 0;
+        PLL_weighted_degree_save_RAM_ratio = 0, PSL_weighted_degree_save_RAM_ratio = 0,
+        PLL_canonical_ratio = 0, PSL_canonical_ratio = 0;
 
 	/* CT-DPLL */
 	if (1) {
@@ -174,6 +170,7 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 		}
 		else {
             cout << "start querying" << endl;
+            base_select_time = case_info.time5_core_indexs_prepare4;
             base_CT_time = case_info.time_total - case_info.time5_core_indexs_prepare2 - case_info.time5_core_indexs_prepare4 - case_info.time5_core_indexs - case_info.time5_core_indexs_post;
             PLL_weighted_degree_save_time_ratio = case_info.time5_core_indexs;
             PLL_weighted_degree_save_RAM_ratio = case_info.two_hop_case_info.label_size_before_canonical_repair;
@@ -271,6 +268,7 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
             double total_time = base_CT_time + case_info.time5_core_indexs_prepare2 + case_info.time5_core_indexs + case_info.time5_core_indexs_post;
             PLL_weighted_degree_save_time_ratio = (PLL_weighted_degree_save_time_ratio - case_info.time5_core_indexs) / PLL_weighted_degree_save_time_ratio;
             PLL_weighted_degree_save_RAM_ratio = (PLL_weighted_degree_save_RAM_ratio - case_info.two_hop_case_info.label_size_before_canonical_repair) / PLL_weighted_degree_save_RAM_ratio;
+            PLL_canonical_ratio = 1 - case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
             base_query_time = querying(case_info, query_list);
             outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << total_time << "," << base_query_time << "," << std::flush;
         }
@@ -315,6 +313,7 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
         else {
             PSL_weighted_degree_save_time_ratio = (PSL_weighted_degree_save_time_ratio - case_info.time5_core_indexs) / PSL_weighted_degree_save_time_ratio;
             PSL_weighted_degree_save_RAM_ratio = (PSL_weighted_degree_save_RAM_ratio - case_info.two_hop_case_info.label_size_before_canonical_repair) / PSL_weighted_degree_save_RAM_ratio;
+            PSL_canonical_ratio = 1 - case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
             double total_time = base_CT_time + case_info.time5_core_indexs_prepare2 + case_info.time5_core_indexs + case_info.time5_core_indexs_post;
             outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << total_time << "," << base_query_time << "," << std::flush;
         }
@@ -322,9 +321,9 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
         case_info.clear_labels();
     }
 
-    outputFile << PLL_weighted_degree_save_time_ratio << "," << PSL_weighted_degree_save_time_ratio 
-        << "," << PLL_weighted_degree_save_RAM_ratio << "," << PSL_weighted_degree_save_RAM_ratio << "," << std::flush;
-
+    outputFile << PLL_weighted_degree_save_time_ratio << "," << PSL_weighted_degree_save_time_ratio
+        << "," << PLL_weighted_degree_save_RAM_ratio << "," << PSL_weighted_degree_save_RAM_ratio
+        << "," << PLL_canonical_ratio << "," << PSL_canonical_ratio << "," << base_select_time << "," << endl;
 }
 
 void main_exp() {
