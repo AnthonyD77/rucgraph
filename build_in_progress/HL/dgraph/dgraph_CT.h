@@ -147,6 +147,68 @@ class dgraph_case_info_v2 {
         cout << "core_graph_label_bit_size: " << core_graph_label_bit_size << endl;
         cout << "total_label_bit_size: " << pre_core_graph_label_bit_size + core_graph_label_bit_size << endl;
     }
+
+    /*record_all_details*/
+    void record_all_details(string save_name) {
+
+        ofstream outputFile;
+        outputFile.precision(6);
+        outputFile.setf(ios::fixed);
+        outputFile.setf(ios::showpoint);
+        outputFile.open(save_name + ".txt");
+        outputFile << endl;
+
+        outputFile << "CT info:" << endl;
+        outputFile << "thread_num=" << thread_num << endl;
+        outputFile << "use_PLL=" << use_PLL << endl;
+        outputFile << "d=" << d << endl;
+        outputFile << "two_hop_order_method=" << two_hop_order_method << endl;
+        outputFile << endl;
+
+        outputFile << "max_bit_size=" << max_bit_size << endl;
+        outputFile << "max_run_time_seconds=" << max_run_time_seconds << endl;
+        outputFile << endl;
+
+        outputFile << "time1_initialization=" << time1_initialization << endl;
+        outputFile << "time2_tree_decomposition=" << time2_tree_decomposition << endl;
+        outputFile << "time3_tree_indexs=" << time3_tree_indexs << endl;
+        outputFile << "time4_lca=" << time4_lca << endl;
+        outputFile << "time5_core_indexs_prepare1=" << time5_core_indexs_prepare1 << endl;
+        outputFile << "time5_core_indexs_prepare2=" << time5_core_indexs_prepare2 << endl;
+        outputFile << "time5_core_indexs_prepare3=" << time5_core_indexs_prepare3 << endl;
+        outputFile << "time5_core_indexs_prepare4=" << time5_core_indexs_prepare4 << endl;
+        outputFile << "time5_core_indexs=" << time5_core_indexs << endl;
+        outputFile << "time5_core_indexs_post=" << time5_core_indexs_post << endl;
+        outputFile << "time6_post=" << time6_post << endl;
+        outputFile << "time_total=" << time_total << endl;
+        outputFile << endl;
+
+        outputFile << "core_graph_V=" << core_graph_V << endl;
+        outputFile << "core_graph_E=" << core_graph_E << endl;
+        outputFile << "uk=" << uk << endl;
+        outputFile << "V_log_V_uk=" << V_log_V_uk << endl;
+        outputFile << "core_graph_label_bit_size=" << core_graph_label_bit_size << endl;
+        outputFile << "pre_core_graph_label_bit_size=" << pre_core_graph_label_bit_size << endl;
+        outputFile << "total_label_bit_size=" << total_label_bit_size() << endl;
+        outputFile << endl;
+
+        outputFile << "2-hop info:" << endl;
+        outputFile << "two_hop_case_info.max_labal_bit_size=" << two_hop_case_info.max_labal_bit_size << endl;
+        outputFile << "two_hop_case_info.max_run_time_seconds=" << two_hop_case_info.max_run_time_seconds << endl;
+        outputFile << endl;
+
+        outputFile << "two_hop_case_info.use_canonical_repair=" << two_hop_case_info.use_canonical_repair << endl;
+        outputFile << "two_hop_case_info.label_size_before_canonical_repair=" << two_hop_case_info.label_size_before_canonical_repair << endl;
+        outputFile << "two_hop_case_info.label_size_after_canonical_repair=" << two_hop_case_info.label_size_after_canonical_repair << endl;
+        outputFile << endl;
+
+        outputFile << "two_hop_case_info.time1_PLL_PSL_initialization=" << two_hop_case_info.time1_PLL_PSL_initialization << endl;
+        outputFile << "two_hop_case_info.time2_PLL_PSL_label_generation=" << two_hop_case_info.time2_PLL_PSL_label_generation << endl;
+        outputFile << "two_hop_case_info.time3_PLL_PSL_label_postprocess=" << two_hop_case_info.time3_PLL_PSL_label_postprocess << endl;
+        outputFile << "two_hop_case_info.time4_PLL_PSL_label_canonical=" << two_hop_case_info.time4_PLL_PSL_label_canonical << endl;
+        outputFile << "two_hop_case_info.time5_PLL_PSL_total=" << two_hop_case_info.time5_PLL_PSL_total << endl;
+        outputFile << endl;
+    }
 };
 
 /*global values*/
