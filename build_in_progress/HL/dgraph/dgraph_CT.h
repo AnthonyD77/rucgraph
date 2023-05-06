@@ -324,6 +324,11 @@ void substitute_parallel(int u, int w, two_hop_weight_type ec) {
         mtx_595[w + global_N].lock();       // w_in
         global_dgraph_CT.add_edge(u, w, ec);
         mtx_595[w + global_N].unlock();
+        if (ec == std::numeric_limits<two_hop_weight_type>::max()) {
+            edge_lock.lock();
+            infty_edge.push_back({ u, w });
+            edge_lock.unlock();
+        }
     }
     mtx_595[u].unlock();   
 }
@@ -335,12 +340,12 @@ void substitute_parallel_2(int u, int w) {
 
     mtx_595[u].lock();                  // u_out  
     if (global_dgraph_CT.contain_edge(u, w) == 0 && contain_wu == 0) {
-        mtx_595[w + global_N].lock();       // w_in
-        edge_lock.lock();
+        mtx_595[w + global_N].lock();       // w_in       
         global_dgraph_CT.add_edge(u, w, std::numeric_limits<two_hop_weight_type>::max());
-        infty_edge.push_back({u, w});
-        edge_lock.unlock();
         mtx_595[w + global_N].unlock();
+        edge_lock.lock();
+        infty_edge.push_back({u, w});
+        edge_lock.unlock();     
     }  
     mtx_595[u].unlock();   
 }
@@ -415,7 +420,7 @@ void dgraph_dijstar_calculate_uk(dgraph_v_of_v<two_hop_weight_type>* input_graph
     node.vertex = v_k;
     node.priority_value = 0;
     Q_pointer[v_k] = Q.push(node);
-    while (Q.size() > 0) {
+    while (Q.size()) {
         node = Q.top();
         Q.pop();
         int u = node.vertex;
@@ -449,7 +454,7 @@ void dgraph_dijstar_calculate_uk(dgraph_v_of_v<two_hop_weight_type>* input_graph
     node.vertex = v_k;
     node.priority_value = 0;
     Q_pointer[v_k] = Q.push(node);
-    while (Q.size() > 0) {
+    while (Q.size()) {
         node = Q.top();
         Q.pop();
         int u = node.vertex;
@@ -1014,7 +1019,7 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     auto begin5_3 = std::chrono::high_resolution_clock::now();
 
     /* construct 2-hop labels on core */
-    two_hop_case_info_sorted = case_info.two_hop_case_info; // two_hop_case_info_sorted.use_canonical_repair is updated here 
+    two_hop_case_info_sorted = case_info.two_hop_case_info; // two_hop_case_info_sorted.use_canonical_repair is updated here
     case_info.pre_core_graph_label_bit_size = compute_CT_label_bit_size(case_info, pool, results); // label bit size part 0
     two_hop_case_info_sorted.max_labal_bit_size = case_info.max_bit_size - case_info.pre_core_graph_label_bit_size;
     if (two_hop_case_info_sorted.max_labal_bit_size < 0) {

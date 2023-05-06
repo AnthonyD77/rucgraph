@@ -95,7 +95,7 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 
 	cout << "start indexing " << data_name << " " << ec_type << endl;
 
-	string path = "/home/malu/DHL_exp/" + data_name + "/";
+    string path = "/home/malu/DHL_exp/" + data_name + "/";   //path = "";
 	dgraph_v_of_v<two_hop_weight_type> input_graph;
 	if (ec_type == 0) {
 		dgraph_binary_read_dgraph(path + data_name + "_Jacard.bin", input_graph);
