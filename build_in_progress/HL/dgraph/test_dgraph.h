@@ -227,11 +227,11 @@ void test_dgraph_label_of_PLL_PSL_is_same_or_not()
 
 void test_dgraph_CT() {
     /*parameters*/
-    int iteration_graph_times = 1, iteration_source_times = 10, iteration_terminal_times = 10;
+    int iteration_graph_times = 100, iteration_source_times = 10, iteration_terminal_times = 10;
 
     int generate_new_graph = 1;
 
-    int V = 10000, E = 50000, precision = 1, thread_num = 80;
+    int V = 1000, E = 10000, precision = 1, thread_num = 80;
     two_hop_weight_type ec_min = 0.1, ec_max = 1;
     double avg_index_time = 0, avg_index_size_per_v = 0;
 
@@ -239,8 +239,8 @@ void test_dgraph_CT() {
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 ct_info;
     ct_info.thread_num = thread_num;
-    ct_info.d = 0;
-    ct_info.use_PLL = 0;
+    ct_info.d = 20;
+    ct_info.use_PLL = 1;
     ct_info.two_hop_order_method = 1;
     //ct_info.max_bit_size = 1e7;
     //ct_info.max_run_time_seconds = 1e3;
@@ -616,6 +616,77 @@ void compare_different_sorting_method() {
         << " avg_query_time = " << degree_order_avg_query_time << "ms" << endl;
     cout << "weighted_degree_order: avg_index_time = " << weighted_degree_order_avg_index_time << "s" << " avg_label_bit_size = " << weighted_degree_order_avg_label_bit_size << "bit" 
         << " avg_query_time = " << weighted_degree_order_avg_query_time << "ms" << endl;
+}
+
+void compare_different_sorting_method2() {
+    /*parameters*/
+    int iteration_graph_times = 100;
+    int V = 1000, E = 10000, precision = 1, thread_num = 10;
+    two_hop_weight_type ec_min = 0.1, ec_max = 1;
+
+    double degree_order_avg_index_time = 0, degree_order_avg_label_bit_size = 0,
+        weighted_degree_order_avg_index_time = 0, weighted_degree_order_avg_label_bit_size = 0;
+
+    dgraph_case_info_v2 mm;
+    mm.thread_num = thread_num;
+    mm.d = 20;
+    mm.use_PLL = 1;
+    mm.two_hop_case_info.use_canonical_repair = 1;
+
+    vector<int> new2old;
+    ThreadPool pool(thread_num);
+    std::vector<std::future<int>> results;
+
+    /*iteration*/
+    for (int i = 0; i < iteration_graph_times; i++) {
+        cout << i << endl;
+
+        dgraph_v_of_v<two_hop_weight_type> instance_graph = dgraph_generate_random_dgraph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+
+        /*weighted degree order*/
+        if (1) {
+            mm.two_hop_order_method = 1;
+            auto begin = std::chrono::high_resolution_clock::now();
+            try {
+                CT_dgraph(instance_graph, mm);
+            }
+            catch (string s) {
+                cout << s << endl;
+                clear_gloval_values_CT();
+                mm.clear_labels();
+                continue;
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9;
+            weighted_degree_order_avg_index_time += runningtime / iteration_graph_times;
+            weighted_degree_order_avg_label_bit_size += (double)mm.total_label_bit_size() / iteration_graph_times;
+            mm.clear_labels();
+        }
+
+        /*degree order*/
+        if (1) {
+            mm.two_hop_order_method = 0;
+            auto begin = std::chrono::high_resolution_clock::now();
+            try {
+                CT_dgraph(instance_graph, mm);
+            }
+            catch (string s) {
+                cout << s << endl;
+                clear_gloval_values_CT();
+                mm.clear_labels();
+                continue;
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+            degree_order_avg_index_time += runningtime / iteration_graph_times;
+            degree_order_avg_label_bit_size += (double)mm.total_label_bit_size() / iteration_graph_times;
+            mm.clear_labels();
+        }
+    }
+
+    cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << endl;
+    cout << "degree_order:  avg_index_time = " << degree_order_avg_index_time << "s" << " avg_label_bit_size = " << degree_order_avg_label_bit_size << "bit" << endl;
+    cout << "weighted_degree_order: avg_index_time = " << weighted_degree_order_avg_index_time << "s" << " avg_label_bit_size = " << weighted_degree_order_avg_label_bit_size << "bit" << endl;
 }
 
 
