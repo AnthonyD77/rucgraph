@@ -398,7 +398,11 @@ bool test_dgraph_weight(dgraph_v_of_v<two_hop_weight_type>& input_graph, int Jac
 
 void test_real_data() {
 
-    vector<string> datas = { "soc-Epinions1" , "citeseer" };
+    vector<string> datas = { "soc-Epinions1","citeseer","amazon0601","digg-friends","flickr-growth","higgs-twitter-social","lasagne-yahoo","libimseti",
+             "patentcite","prosper-loans","soc-LiveJournal1","soc-pokec-relationships","web-Stanford","youtube-links","zhishi-baidu-internallink" ,
+    "sx-stackoverflow","wikipedia_link_fr","dbpedia-link" };
+
+    //vector<string> newdatas = { "sx-stackoverflow","wikipedia_link_fr","dbpedia-link" };
 
     for (auto data_name : datas) {
 
