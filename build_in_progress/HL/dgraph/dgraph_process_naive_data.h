@@ -236,15 +236,21 @@ void save_epinions() {
 
 void save_files()
 {
-	vector<string> files = { "soc-Epinions1" , "citeseer" };
-	vector<string> splits = { "\t" ," "};
-	vector<int> v_nums = { 75879 , 384413};
+	vector<string> files = { "soc-Epinions1","citeseer","amazon0601","digg-friends","flickr-growth","higgs-twitter-social","lasagne-yahoo","libimseti",
+			"patentcite","prosper-loans","soc-LiveJournal1","soc-pokec-relationships","web-Stanford","youtube-links","zhishi-baidu-internallink"
+			,"sx-stackoverflow","wikipedia_link_fr","dbpedia-link" };
+	vector<string> splits = { "\t" ," ","	"," "," ","\t"," ","	"," "," ","\t","\t","\t"," "," ","\t","\t"," "};
+	vector<int> v_nums = { 75879 , 384413,403394,-1,-1,-1,-1,-1,-1,-1,4846609,1632803,281903,1138494,-1,-1,-1,18268992 };
 
 	for (int i=0;i<files.size();i++)
-	{
+	//for (int i=0;i<2;i++)
+	{	cout<<i<<endl;
 		string filename = files[i];
 		string split = splits[i];
 		int v_num = v_nums[i];
+
+		if(v_num==-1)
+			v_num = 10000000;
 
 		unordered_map<int, int> old_id_to_new_id;
 		dgraph_v_of_v<two_hop_weight_type> instance_graph;
@@ -252,7 +258,7 @@ void save_files()
 		instance_graph.INs.resize(v_num);
 		instance_graph.OUTs.resize(v_num);
 
-		string from_file = "./out." + filename;
+		string from_file = "/home/malu/work_data/data/" + filename +"/out." + filename;
 		string out_folder = filename;
 		string line_content;
 
@@ -305,10 +311,14 @@ void save_files()
 		}
 		cout << "1" << endl;
 
-		save_data(instance_graph, old_id_to_new_id.size(), edge_num, out_folder);
+		instance_graph.INs.resize(old_id_to_new_id.size());
+		instance_graph.OUTs.resize(old_id_to_new_id.size());
 
+		save_data(instance_graph, old_id_to_new_id.size(), edge_num, out_folder);
 	}
 
 	return;
 }
+
+
 
