@@ -1031,13 +1031,13 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
 
     case_info.time5_core_indexs_prepare3 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_3).count() / 1e9;
     auto begin5_4 = std::chrono::high_resolution_clock::now();
-
-    two_hop_case_info_sorted = case_info.two_hop_case_info; // two_hop_case_info_sorted.use_canonical_repair is updated here
+  
     choose_PLL_PSL(case_info, global_dgraph_CT, pool, results);
 
     case_info.time5_core_indexs_prepare4 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_4).count() / 1e9;
     auto begin5_5 = std::chrono::high_resolution_clock::now();
 
+    two_hop_case_info_sorted = case_info.two_hop_case_info; // two_hop_case_info_sorted.use_canonical_repair is updated here
     if (case_info.use_PLL) {
         dgraph_PLL(global_dgraph_CT, case_info.thread_num, two_hop_case_info_sorted);
     }
