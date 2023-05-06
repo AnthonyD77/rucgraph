@@ -266,11 +266,11 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
         else {
             cout << "start querying" << endl;
             double total_time = base_CT_time + case_info.time5_core_indexs_prepare2 + case_info.time5_core_indexs + case_info.time5_core_indexs_post;
-            PLL_weighted_degree_save_time_ratio = (PLL_weighted_degree_save_time_ratio - 
+            PLL_weighted_degree_save_time_ratio = (double)(PLL_weighted_degree_save_time_ratio - 
                 (case_info.two_hop_case_info.time5_PLL_PSL_total - case_info.two_hop_case_info.time4_PLL_PSL_label_canonical)) / PLL_weighted_degree_save_time_ratio;
-            PLL_weighted_degree_save_RAM_ratio = (PLL_weighted_degree_save_RAM_ratio - 
+            PLL_weighted_degree_save_RAM_ratio = (double)(PLL_weighted_degree_save_RAM_ratio -
                 case_info.two_hop_case_info.label_size_before_canonical_repair) / PLL_weighted_degree_save_RAM_ratio;
-            PLL_canonical_ratio = 1 - case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
+            PLL_canonical_ratio = 1 - (double)case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
             base_query_time = querying(case_info, query_list);
             outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << total_time << "," << base_query_time << "," << std::flush;
         }
@@ -313,10 +313,10 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
             }
         }
         else {
-            PSL_weighted_degree_save_time_ratio = (PSL_weighted_degree_save_time_ratio - 
+            PSL_weighted_degree_save_time_ratio = (double)(PSL_weighted_degree_save_time_ratio -
                 (case_info.two_hop_case_info.time5_PLL_PSL_total - case_info.two_hop_case_info.time4_PLL_PSL_label_canonical)) / PSL_weighted_degree_save_time_ratio;
-            PSL_weighted_degree_save_RAM_ratio = (PSL_weighted_degree_save_RAM_ratio - case_info.two_hop_case_info.label_size_before_canonical_repair) / PSL_weighted_degree_save_RAM_ratio;
-            PSL_canonical_ratio = 1 - case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
+            PSL_weighted_degree_save_RAM_ratio = (double)(PSL_weighted_degree_save_RAM_ratio - case_info.two_hop_case_info.label_size_before_canonical_repair) / PSL_weighted_degree_save_RAM_ratio;
+            PSL_canonical_ratio = 1 - (double)case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
             double total_time = base_CT_time + case_info.time5_core_indexs_prepare2 + case_info.time5_core_indexs + case_info.time5_core_indexs_post;
             outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << total_time << "," << base_query_time << "," << std::flush;
         }
