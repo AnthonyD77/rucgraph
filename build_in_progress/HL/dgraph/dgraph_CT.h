@@ -1018,21 +1018,21 @@ void CT_dgraph(dgraph_v_of_v<two_hop_weight_type> &input_graph, dgraph_case_info
     case_info.time5_core_indexs_prepare2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_2).count() / 1e9;
     auto begin5_3 = std::chrono::high_resolution_clock::now();
 
-    /* construct 2-hop labels on core */
-    two_hop_case_info_sorted = case_info.two_hop_case_info; // two_hop_case_info_sorted.use_canonical_repair is updated here
+    /* construct 2-hop labels on core */  
     case_info.pre_core_graph_label_bit_size = compute_CT_label_bit_size(case_info, pool, results); // label bit size part 0
-    two_hop_case_info_sorted.max_labal_bit_size = case_info.max_bit_size - case_info.pre_core_graph_label_bit_size;
-    if (two_hop_case_info_sorted.max_labal_bit_size < 0) {
+    case_info.two_hop_case_info.max_labal_bit_size = case_info.max_bit_size - case_info.pre_core_graph_label_bit_size;
+    if (case_info.two_hop_case_info.max_labal_bit_size < 0) {
         throw reach_limit_error_string_MB;  // after catching error, must call clear_gloval_values_CT and clear CT labels
     }
-    two_hop_case_info_sorted.max_run_time_seconds = case_info.max_run_time_seconds - (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin1).count() / 1e9);
-    if (two_hop_case_info_sorted.max_run_time_seconds < 0) {
+    case_info.two_hop_case_info.max_run_time_seconds = case_info.max_run_time_seconds - (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin1).count() / 1e9);
+    if (case_info.two_hop_case_info.max_run_time_seconds < 0) {
         throw reach_limit_error_string_time;  // after catching error, must call clear_gloval_values_CT and clear CT labels
     }
 
     case_info.time5_core_indexs_prepare3 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_3).count() / 1e9;
     auto begin5_4 = std::chrono::high_resolution_clock::now();
 
+    two_hop_case_info_sorted = case_info.two_hop_case_info; // two_hop_case_info_sorted.use_canonical_repair is updated here
     choose_PLL_PSL(case_info, global_dgraph_CT, pool, results);
 
     case_info.time5_core_indexs_prepare4 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin5_4).count() / 1e9;
