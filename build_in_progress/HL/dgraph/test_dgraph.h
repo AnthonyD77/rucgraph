@@ -95,7 +95,7 @@ void dgraph_v1_check_correctness(dgraph_case_info_v1& case_info, dgraph_case_inf
 void test_dgraph_PLL_PSL() {
     /*parameters*/
     int iteration_graph_times = 100, iteration_source_times = 100, iteration_terminal_times = 100;
-    int V = 3, E = 5, precision = 1, thread_num = 5;
+    int V = 100, E = 1000, precision = 1, thread_num = 5;
     two_hop_weight_type ec_min = 1, ec_max = 1;
 
     double avg_index_time = 0, avg_index_bit_size = 0;
@@ -474,9 +474,9 @@ void compare_PLL_PSL() {
     */
 
     /*parameters*/
-    int iteration_graph_times = 20;
-    int V = 1000, E = 10000, precision = 1, thread_num = 5;
-    two_hop_weight_type ec_min = 1, ec_max = 2;
+    int iteration_graph_times = 100;
+    int V = 100, E = 8000, precision = 1, thread_num = 5;
+    two_hop_weight_type ec_min = 1, ec_max = 1;
 
     double PLL_avg_index_time = 0, PSL_avg_index_time = 0;
 
@@ -484,7 +484,7 @@ void compare_PLL_PSL() {
     std::vector<std::future<int>> results;
 
     dgraph_case_info_v1 mm;
-    mm.use_canonical_repair = 1;
+    mm.use_canonical_repair = 0;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++) {
@@ -524,11 +524,11 @@ void compare_PLL_PSL() {
             mm.clear_labels();
         }
 
-        dgraph_case_info_v2 mm2;
-        mm2.thread_num = thread_num;
-        mm2.d = 0;
-        CT_dgraph(instance_graph, mm2);
-        cout << "PLL is faster? " << (runningtime1 < runningtime2) << " " << mm2.V_log_V_uk << endl;
+        //dgraph_case_info_v2 mm2;
+        //mm2.thread_num = thread_num;
+        //mm2.d = 0;
+        //CT_dgraph(instance_graph, mm2);
+        //cout << "PLL is faster? " << (runningtime1 < runningtime2) << " " << mm2.V_log_V_uk << endl;
     }
 
     cout << "V = " << V << " E = " << E << " thread_num = " << thread_num << " PLL_avg_index_time = " << PLL_avg_index_time << "s" 
