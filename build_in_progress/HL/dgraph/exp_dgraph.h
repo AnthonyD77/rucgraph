@@ -103,6 +103,19 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 	else if (ec_type == 1) {
 		dgraph_binary_read_dgraph(path + data_name + "_random.bin", input_graph);
 	}
+    else if (ec_type == 2) {
+        dgraph_binary_read_dgraph(path + data_name + "_random.bin", input_graph);
+        for (int i = input_graph.INs.size() - 1; i >= 0; i--) {
+            for (int j = input_graph.INs[i].size() - 1; j >= 0; j--) {
+                input_graph.INs[i][j].second = 1;
+            }
+        }
+        for (int i = input_graph.OUTs.size() - 1; i >= 0; i--) {
+            for (int j = input_graph.OUTs[i].size() - 1; j >= 0; j--) {
+                input_graph.OUTs[i][j].second = 1;
+            }
+        }
+    }
 	vector<pair<int, int>> query_list;
     boost::random::uniform_int_distribution<> dist{ static_cast<int>(0), static_cast<int>(input_graph.INs.size() - 1) };
     for (int i = 0; i < query_times; i++) {
@@ -119,18 +132,11 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 	outputFile.open(save_name + ".csv");
 	outputFile << "data,ec_type,thread_num,d,"
 		<< "CT-DPLL_MB,CT-DPLL_time,CT-DPLL_query_dis_time,"
-        << "CT-DPSL_MB,CT-DPSL_time,CT-DPSL_query_dis_time,"
-        << "CT-RDPLL*_MB,CT-RDPLL*_time,CT-RDPLL*_query_dis_time,"
-        << "CT-RDPSL*_MB,CT-RDPSL*_time,CT-RDPSL*_query_dis_time,"
-        << "PLL_weighted_degree_save_time_ratio,PSL_weighted_degree_save_time_ratio,PLL_weighted_degree_save_RAM_ratio,PSL_weighted_degree_save_RAM_ratio,"
-        << "PLL_canonical_ratio,PSL_canonical_ratio,base_select_time" << endl;
+        << "CT-DPSL_MB,CT-DPSL_time,CT-DPSL_query_dis_time" << endl;
 
 	outputFile << data_name << "," << ec_type << "," << thread_num << "," << d << "," << std::flush;
 
-    double base_CT_time = 0, base_query_time = 0, base_select_time = 0,
-        PLL_weighted_degree_save_time_ratio = 0, PSL_weighted_degree_save_time_ratio = 0,
-        PLL_weighted_degree_save_RAM_ratio = 0, PSL_weighted_degree_save_RAM_ratio = 0,
-        PLL_canonical_ratio = 0, PSL_canonical_ratio = 0;
+    double DPLL_time = 0;
 
 	/* CT-DPLL */
 	if (1) {
@@ -138,7 +144,7 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 		cout << "start " + algo_name << endl;
         dgraph_case_info_v2 case_info;
         case_info.use_PLL = 1;
-        case_info.two_hop_case_info.use_canonical_repair = 0;
+        case_info.two_hop_case_info.use_canonical_repair = 1;
         case_info.two_hop_order_method = 0; // unweighted degree sort
         case_info.d = d;
         case_info.thread_num = thread_num;
@@ -170,10 +176,7 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 		}
 		else {
             cout << "start querying" << endl;
-            base_select_time = case_info.time5_core_indexs_prepare4;
-            base_CT_time = case_info.time_total - case_info.time5_core_indexs_prepare2 - case_info.time5_core_indexs_prepare4 - case_info.time5_core_indexs - case_info.time5_core_indexs_post;
-            PLL_weighted_degree_save_time_ratio = case_info.two_hop_case_info.time5_PLL_PSL_total - case_info.two_hop_case_info.time4_PLL_PSL_label_canonical;
-            PLL_weighted_degree_save_RAM_ratio = case_info.two_hop_case_info.label_size_before_canonical_repair;
+            DPLL_time = case_info.time_total;
 			double query_avg_time = querying(case_info, query_list);
 			outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << case_info.time_total - case_info.time5_core_indexs_prepare4 << "," << query_avg_time << "," << std::flush;
 		}
@@ -187,12 +190,12 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
         cout << "start " + algo_name << endl;
         dgraph_case_info_v2 case_info;
         case_info.use_PLL = 0;
-        case_info.two_hop_case_info.use_canonical_repair = 0;
+        case_info.two_hop_case_info.use_canonical_repair = 1;
         case_info.two_hop_order_method = 0; // unweighted degree sort
         case_info.d = d;
         case_info.thread_num = thread_num;
         case_info.max_bit_size = max_bit_size;
-        case_info.max_run_time_seconds = max_run_time_seconds;
+        case_info.max_run_time_seconds = DPLL_time * 2;
 
         int catch_error = 0;
         try {
@@ -217,116 +220,15 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
         }
         else {
             cout << "start querying" << endl;
-            PSL_weighted_degree_save_time_ratio = case_info.two_hop_case_info.time5_PLL_PSL_total - case_info.two_hop_case_info.time4_PLL_PSL_label_canonical;
-            PSL_weighted_degree_save_RAM_ratio = case_info.two_hop_case_info.label_size_before_canonical_repair;
             double query_avg_time = querying(case_info, query_list);
-            double total_time = base_CT_time + case_info.time5_core_indexs_prepare2 + case_info.time5_core_indexs + case_info.time5_core_indexs_post;
-            outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << total_time << "," << query_avg_time << "," << std::flush;
+            outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << case_info.time_total << "," << query_avg_time << "," << std::flush;
+            case_info.record_all_details(save_name + "_" + algo_name + "_success");
         }
         case_info.record_all_details(save_name + "_" + algo_name);
         case_info.clear_labels();
     }
 
-    /* CT-RDPLL* */
-    if (1) {
-        string algo_name = "CT-RDPLL*";
-        cout << "start " + algo_name << endl;
-        dgraph_case_info_v2 case_info;
-        case_info.use_PLL = 1;
-        case_info.two_hop_case_info.use_canonical_repair = 1;
-        case_info.two_hop_order_method = 1; // weighted degree sort
-        case_info.d = d;
-        case_info.thread_num = thread_num;
-        case_info.max_bit_size = max_bit_size;
-        case_info.max_run_time_seconds = max_run_time_seconds;
-
-        int catch_error = 0;
-        try {
-            CT_dgraph(input_graph, case_info);
-        }
-        catch (string s) {
-            cout << "ERROR: should use a dataset that CT-RDPLL* can conquer!" << endl;
-            exit(1);
-            if (s == reach_limit_error_string_MB) {
-                catch_error = 1;
-            }
-            else if (s == reach_limit_error_string_time) {
-                catch_error = 2;
-            }
-            clear_gloval_values_CT();
-        }
-        if (catch_error) {
-            if (catch_error == 1) {
-                outputFile << "0,0,0," << std::flush;
-            }
-            else if (catch_error == 2) {
-                outputFile << "-1,-1,-1," << std::flush;
-            }
-        }
-        else {
-            cout << "start querying" << endl;
-            double total_time = base_CT_time + case_info.time5_core_indexs_prepare2 + case_info.time5_core_indexs + case_info.time5_core_indexs_post;
-            PLL_weighted_degree_save_time_ratio = (double)(PLL_weighted_degree_save_time_ratio - 
-                (case_info.two_hop_case_info.time5_PLL_PSL_total - case_info.two_hop_case_info.time4_PLL_PSL_label_canonical)) / PLL_weighted_degree_save_time_ratio;
-            PLL_weighted_degree_save_RAM_ratio = (double)(PLL_weighted_degree_save_RAM_ratio -
-                case_info.two_hop_case_info.label_size_before_canonical_repair) / PLL_weighted_degree_save_RAM_ratio;
-            PLL_canonical_ratio = 1 - (double)case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
-            base_query_time = querying(case_info, query_list);
-            outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << total_time << "," << base_query_time << "," << std::flush;
-        }
-        case_info.record_all_details(save_name + "_" + algo_name);
-        case_info.clear_labels();
-    }
-
-    /* CT-RDPSL* */
-    if (1) {
-        string algo_name = "CT-RDPSL*";
-        cout << "start " + algo_name << endl;
-        dgraph_case_info_v2 case_info;
-        case_info.use_PLL = 0;
-        case_info.two_hop_case_info.use_canonical_repair = 1;
-        case_info.two_hop_order_method = 1; // weighted degree sort
-        case_info.d = d;
-        case_info.thread_num = thread_num;
-        case_info.max_bit_size = max_bit_size;
-        case_info.max_run_time_seconds = max_run_time_seconds;
-
-        int catch_error = 0;
-        try {
-            CT_dgraph(input_graph, case_info);
-        }
-        catch (string s) {
-            if (s == reach_limit_error_string_MB) {
-                catch_error = 1;
-            }
-            else if (s == reach_limit_error_string_time) {
-                catch_error = 2;
-            }
-            clear_gloval_values_CT();
-        }
-        if (catch_error) {
-            if (catch_error == 1) {
-                outputFile << "0,0,0," << std::flush;
-            }
-            else if (catch_error == 2) {
-                outputFile << "-1,-1,-1," << std::flush;
-            }
-        }
-        else {
-            PSL_weighted_degree_save_time_ratio = (double)(PSL_weighted_degree_save_time_ratio -
-                (case_info.two_hop_case_info.time5_PLL_PSL_total - case_info.two_hop_case_info.time4_PLL_PSL_label_canonical)) / PSL_weighted_degree_save_time_ratio;
-            PSL_weighted_degree_save_RAM_ratio = (double)(PSL_weighted_degree_save_RAM_ratio - case_info.two_hop_case_info.label_size_before_canonical_repair) / PSL_weighted_degree_save_RAM_ratio;
-            PSL_canonical_ratio = 1 - (double)case_info.two_hop_case_info.label_size_after_canonical_repair / case_info.two_hop_case_info.label_size_before_canonical_repair;
-            double total_time = base_CT_time + case_info.time5_core_indexs_prepare2 + case_info.time5_core_indexs + case_info.time5_core_indexs_post;
-            outputFile << (double)case_info.total_label_bit_size() / 1024 / 1024 << "," << total_time << "," << base_query_time << "," << std::flush;
-        }
-        case_info.record_all_details(save_name + "_" + algo_name);
-        case_info.clear_labels();
-    }
-
-    outputFile << PLL_weighted_degree_save_time_ratio << "," << PSL_weighted_degree_save_time_ratio
-        << "," << PLL_weighted_degree_save_RAM_ratio << "," << PSL_weighted_degree_save_RAM_ratio
-        << "," << PLL_canonical_ratio << "," << PSL_canonical_ratio << "," << base_select_time << "," << endl;
+    outputFile << endl;
 }
 
 void main_exp() {
@@ -335,16 +237,17 @@ void main_exp() {
             "prosper-loans","higgs-twitter-social","zhishi-baidu-internallink" };
 
 	long long int max_bit_size = pow(1024, 3) * 500;
-	double max_run_time_seconds = 3600 * 24;
+	double max_run_time_seconds = 3600 * 1;
     int query_times = 1e4;
 
 	/*Jacard & random*/
 	if (1) {
 		int thread_num = 80;
-		int d = 20; // querying is too slow when d is large
+		int d = 0; // querying is too slow when d is large
 		for (int i = 0; i < used_datas.size(); i++) {
 			exp_element(used_datas[i], 0, thread_num, d, max_bit_size, max_run_time_seconds, query_times);
 			exp_element(used_datas[i], 1, thread_num, d, max_bit_size, max_run_time_seconds, query_times);
+            exp_element(used_datas[i], 2, thread_num, d, max_bit_size, max_run_time_seconds, query_times);
 		}
 	}
 

@@ -52,7 +52,7 @@ void propagate(dgraph_v_of_v<two_hop_weight_type>* input_graph, int k, int u) {
 		}
 	}
 
-	for (auto label : *adj_list) {
+	for (auto& label : *adj_list) {
 		int v = label.first;
 		two_hop_weight_type dd = label.second;
 		for (int i = pos_595[k][v]; i < pos_595[k][v] + increment[k][v]; i++) {
@@ -60,7 +60,7 @@ void propagate(dgraph_v_of_v<two_hop_weight_type>* input_graph, int k, int u) {
 			if (x <= u) { // lower ID has higher rank
 				two_hop_weight_type d_temp = dd + (*Lit)[v][i].distance;
 				bool flag = false;
-				for (auto it : (*Lit2)[x]) {
+				for (auto& it : (*Lit2)[x]) {
 					int y = it.vertex;
 					if (dist[current_tid][y] + it.distance <= d_temp) {
 						flag = true;
@@ -87,7 +87,6 @@ void propagate(dgraph_v_of_v<two_hop_weight_type>* input_graph, int k, int u) {
 }
 
 void append(int k, int u) {
-	pos_2_595[k][u] = pos_595[k][u];
 	pos_595[k][u] += increment[k][u];
 	increment[k][u] = L_PSL_temp[k][u].size();
 
@@ -193,7 +192,6 @@ void dgraph_PSL(dgraph_v_of_v<two_hop_weight_type>& input_graph, int num_of_thre
 	for (int k = 0; k < 2; k++) {
 		L_PSL_temp[k].resize(N);
 		pos_595[k].resize(N, 0);
-		pos_2_595[k].resize(N, 0);
 		increment[k].resize(N, 1);
 	}
 

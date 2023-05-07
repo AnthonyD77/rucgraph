@@ -107,7 +107,6 @@ vector<vector<two_hop_weight_type>> dist;
 vector<vector<two_hop_weight_type>> dist2;
 vector<int> increment[2];
 vector<int> pos_595[2];
-vector<int> pos_2_595[2];
 //vector<vector<int>> canonical_repair_removed_hubs_IN, canonical_repair_removed_hubs_OUT;
 shared_mutex mtx;
 bool no_new_label_PSL;
@@ -146,7 +145,6 @@ void dgraph_clear_global_values_PLL_PSL() {
 	for (int k = 0; k < 2; k++) {
 		vector<int>().swap(increment[k]);
 		vector<int>().swap(pos_595[k]);
-		vector<int>().swap(pos_2_595[k]);
 		vector<vector<two_hop_label>>().swap(L_PSL_temp[k]);
 	}
 }

@@ -100,7 +100,7 @@ void test_dgraph_PLL_PSL() {
 
     double avg_index_time = 0, avg_index_bit_size = 0;
 
-    bool use_PLL = 1; // 1: PLL 0: PSL
+    bool use_PLL = 0; // 1: PLL 0: PSL
 
     dgraph_case_info_v1 mm;
     dgraph_case_info_v2 mm2;
