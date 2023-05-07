@@ -331,7 +331,8 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 
 void main_exp() {
 
-	vector<string> used_datas = { "soc-Epinions1" , "citeseer" };
+	vector<string> used_datas = { "soc-Epinions1","citeseer", "web-Stanford","lasagne-yahoo","digg-friends","amazon0601","youtube-links",
+            "prosper-loans","higgs-twitter-social","zhishi-baidu-internallink" };
 
 	long long int max_bit_size = pow(1024, 3) * 500;
 	double max_run_time_seconds = 3600 * 24;
