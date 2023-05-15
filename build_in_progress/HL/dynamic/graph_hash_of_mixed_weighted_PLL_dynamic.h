@@ -216,12 +216,16 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 			}	
 			else {
 				/* add v_k into PPR(u,common_hub_for_query_v_k_u), and add u into PPR(v_k,common_hub_for_query_v_k_u)*/
-				mtx_595[u].lock();
-				PPR_insert(PPR_595, u, common_hub_for_query_v_k_u, v_k);
-				mtx_595[u].unlock();
-				mtx_595[v_k].lock();
-				PPR_insert(PPR_595, v_k, common_hub_for_query_v_k_u, u);
-				mtx_595[v_k].unlock();
+				if (common_hub_for_query_v_k_u != v_k) {
+					mtx_595[u].lock();
+					PPR_insert(PPR_595, u, common_hub_for_query_v_k_u, v_k);
+					mtx_595[u].unlock();
+				}
+				if (common_hub_for_query_v_k_u != u) {
+					mtx_595[v_k].lock();
+					PPR_insert(PPR_595, v_k, common_hub_for_query_v_k_u, u);
+					mtx_595[v_k].unlock();
+				}
 			}
 		}
 	}
