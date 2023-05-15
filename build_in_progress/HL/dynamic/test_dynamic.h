@@ -33,12 +33,11 @@ rm A
 
 
 */
-#include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_PLL_dynamic.h>
+#include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 #include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance.h>
 #include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance.h>
 #include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
 #include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
-#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv_minimal.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
@@ -46,16 +45,15 @@ rm A
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>
 #include <graph_hash_of_mixed_weighted/common_algorithms/graph_hash_of_mixed_weighted_shortest_paths.h>
 
-
+#include <build_in_progress/HL/dynamic/clean_labels.h>
 
 /*check_correctness*/
 
-void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info,
+void check_correctness_dynamic(graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info,
 	graph_hash_of_mixed_weighted& instance_graph, int iteration_source_times, int iteration_terminal_times) {
 
 	/*
 	below is for checking whether the above labels are right (by randomly computing shortest paths)
-
 	this function can only be used when 0 to n-1 is in the graph, i.e., the graph is an ideal graph
 	*/
 
@@ -78,8 +76,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(graph_has
 
 			//terminal = 0; cout << "terminal = " << terminal << endl;
 
-			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
-			(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
+			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(case_info.L, source, terminal);
 
 			if (abs(dis - distances[terminal]) > 1e-2 && (dis < std::numeric_limits<weightTYPE>::max() || distances[terminal] < std::numeric_limits<double>::max())) {
 				cout << "source = " << source << endl;
@@ -253,7 +250,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 
 			/*maintain labels*/
-			WeightDecreaseMaintenance_improv_minimal(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+			WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 			//WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
@@ -273,8 +270,7 @@ void test_dynamic() {
 	int weightIncrease_time = 30, weightDecrease_time = 30;
 	double weightChange_ratio = 0.2;
 
-	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
-	double avg_canonical_repair_remove_label_ratio = 0;
+	double avg_index_time = 0, avg_index_size_per_v = 0;
 
 	/*iteration*/
 	for (int i = 0; i < iteration_graph_times; i++) {
@@ -282,14 +278,8 @@ void test_dynamic() {
 
 		/*reduction method selection*/
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-		mm.use_2019R1 = 0;
-		mm.use_2019R2 = 0;
-		mm.use_enhanced2019R2 = 0;
-		mm.use_non_adj_reduc_degree = 0;
-		mm.max_degree_MG_enhanced2019R2 = 100;
-		mm.max_labal_size = 6e9;
-		mm.max_run_time_seconds = 1e9;
-		mm.use_canonical_repair = false; // canonical_repair needs to modify for PPR
+		mm.max_labal_size = 6e8;
+		mm.max_run_time_seconds = 1e2;
 
 		/*input and output; below is for generating random new graph, or read saved graph*/
 		int generate_new_graph = 1; // this value is for debug
@@ -307,7 +297,7 @@ void test_dynamic() {
 
 		auto begin = std::chrono::high_resolution_clock::now();
 		try {
-			graph_hash_of_mixed_weighted_PLL_dynamic(instance_graph, V + 1, thread_num, mm);
+			PLL_dynamic(instance_graph, V + 1, thread_num, mm);
 			if (0) {
 				graph_hash_of_mixed_weighted_print(instance_graph);
 				mm.print_L();
@@ -316,21 +306,20 @@ void test_dynamic() {
 		}
 		catch (string s) {
 			cout << s << endl;
-			graph_hash_of_mixed_weighted_two_hop_clear_global_values();
+			two_hop_clear_global_values();
 			continue;
 		}
 		auto end = std::chrono::high_resolution_clock::now();
 		double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 		avg_index_time = avg_index_time + runningtime / iteration_graph_times;
-		avg_reduce_V_num_2019R1 = avg_reduce_V_num_2019R1 + (double)mm.reduce_V_num_2019R1 / iteration_graph_times;
-		avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
-		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
 
 		/*dynamic maintenance*/
 		initialize_global_values_dynamic(V, thread_num);
 		graph_change_and_label_maintenance(instance_graph, mm, V, weightIncrease_time, weightDecrease_time, weightChange_ratio, thread_num);
-
-		graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness_dynamic(mm, instance_graph, iteration_source_times, iteration_terminal_times);
+		ThreadPool pool_dynamic(thread_num);
+		std::vector<std::future<int>> results_dynamic;
+		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
+		check_correctness_dynamic(mm, instance_graph, iteration_source_times, iteration_terminal_times);
 
 		long long int index_size = 0;
 		for (auto it = mm.L.begin(); it != mm.L.end(); it++) {
@@ -341,9 +330,6 @@ void test_dynamic() {
 
 	cout << "avg_index_time: " << avg_index_time << "s" << endl;
 	cout << "avg_index_size_per_v: " << avg_index_size_per_v << endl;
-	cout << "avg_reduce_V_num_2019R1: " << avg_reduce_V_num_2019R1 << endl;
-	cout << "avg_MG_num: " << avg_MG_num << endl;
-	cout << "avg_canonical_repair_remove_label_ratio: " << avg_canonical_repair_remove_label_ratio << endl;
 }
 
 
@@ -381,11 +367,10 @@ void compare_speed() {
 
 		/*reduction method selection*/
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-		mm.use_canonical_repair = false; // canonical_repair needs to modify for PPR
 
 		graph_hash_of_mixed_weighted instance_graph = graph_hash_of_mixed_weighted_generate_random_graph(V, E, 0, 0, ec_min, ec_max, precision, boost_random_time_seed);
 		instance_graph = graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees_large_to_small(instance_graph); // sort vertices
-		graph_hash_of_mixed_weighted_PLL_dynamic(instance_graph, V + 1, 20, mm);
+		PLL_dynamic(instance_graph, V + 1, 20, mm);
 
 		for (int t_num : thread_nums) {
 			cout << "thread_num = " << t_num << endl;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <build_in_progress/HL/dynamic/graph_hash_of_mixed_weighted_PLL_dynamic.h>
+#include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
 void PI11(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L,
 	std::vector<affected_label>& al1_curr, std::vector<affected_label>* al1_next, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
