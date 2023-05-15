@@ -82,6 +82,3 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, ThreadP
 	L = L_final;
 }
 
-
-
-

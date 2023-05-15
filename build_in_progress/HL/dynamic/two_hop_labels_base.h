@@ -34,19 +34,16 @@ vector<std::shared_mutex> mtx_595(max_N_ID_for_mtx_595);  // std::mutex has no c
 queue<int> Qid_595; // IDs of available elements of P T
 vector<vector<weightTYPE>> P_dij_595;
 vector<vector<weightTYPE>> T_dij_595;
-vector<vector<two_hop_label_v1>> incremental_label_vectors;
-vector<vector<int>> labels_to_be_removed;
 
 void two_hop_clear_global_values() {
 
 	this_parallel_PLL_PSL_is_running_595 = false;
 	graph_v_of_v_idealID().swap(ideal_graph_595);
 	vector<vector<two_hop_label_v1>>().swap(L_temp_595);
+	PPR_type().swap(PPR_595);
 	queue<int>().swap(Qid_595);
 	vector<vector<weightTYPE>>().swap(P_dij_595);
 	vector<vector<weightTYPE>>().swap(T_dij_595);
-	vector<vector<two_hop_label_v1>>().swap(incremental_label_vectors);
-	vector<vector<int>>().swap(labels_to_be_removed);
 }
 
 class graph_hash_of_mixed_weighted_two_hop_case_info_v1 {
