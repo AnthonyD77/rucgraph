@@ -233,9 +233,7 @@ void exp_element(string data_name, int ec_type, int thread_num, int d, long long
 
 void main_exp() {
 
-	vector<string> used_datas = { "dimacs9-LKS","dimacs9-NE","dimacs9-NY", "flickr-growth", "libimseti", "soc-LiveJournal1",
-        "higgs-twitter-social","amazon0601","youtube-links", "soc-pokec-relationships", "sx-stackoverflow", "wikipedia_link_fr",
-            "zhishi-baidu-internallink" };
+	vector<string> used_datas = { "citeseer" };
 
 	long long int max_bit_size = pow(1024, 3) * 500;
 	double max_run_time_seconds = 3600 * 5;
