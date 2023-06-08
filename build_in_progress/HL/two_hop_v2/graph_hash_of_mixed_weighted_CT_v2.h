@@ -37,7 +37,6 @@ public:
 	/*parameters*/
 	int thread_num = 1;
 	bool use_PLL = true; // 0 use PSL
-	int max_non_dummy_ID = INT_MAX;
 	int d = 3;
 	// set d as an large number to test the correctness of CT-index
 	// set d as 0 to test the correctness of PLL on core
@@ -55,6 +54,8 @@ public:
 	vector<int> first_pos; // for lca
 	vector<int> lg; // for lca
 	vector<int> dep; // for lca
+
+	int tree_vertex_num = 0;
 
 	/*running limits*/
 	long long int max_bit_size = 1e12;
@@ -140,7 +141,6 @@ public:
 		outputFile << "CT info:" << endl;
 		outputFile << "thread_num=" << thread_num << endl;
 		outputFile << "use_PLL=" << use_PLL << endl;
-		outputFile << "max_non_dummy_ID=" << max_non_dummy_ID << endl;
 		outputFile << "d=" << d << endl;
 
 		outputFile << "max_bit_size=" << max_bit_size << endl;
@@ -156,8 +156,7 @@ public:
 		outputFile << "time6_post=" << time6_post << endl;
 		outputFile << "time_total=" << time_total << endl;
 
-
-
+		outputFile << "tree_vertex_num=" << tree_vertex_num << endl;
 
 		outputFile << endl << endl;
 		outputFile << "Core info:" << endl;
@@ -384,6 +383,7 @@ void CT_v2(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_o
 		{
 			bound_lambda = i - 1;
 			q.push(nd);
+			case_info.tree_vertex_num = i - 1;
 			break;  // until |Ni| >= d
 		}
 
