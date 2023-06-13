@@ -67,7 +67,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 
 			int terminal = dist(boost_random_time_seed);
 
-			//terminal = 4; cout << "terminal = " << terminal << endl;
+			//terminal = 0; cout << "terminal = " << terminal << endl;
 
 			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 			(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
@@ -293,18 +293,13 @@ void test_VCPLL() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e1, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 5, E = 7, precision = 1, thread_num = 5;
-	double ec_min = 2, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
+	int V = 10, E = 16, precision = 1, thread_num = 5;
+	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
 	double avg_canonical_repair_remove_label_ratio = 0;
 
-	int T = 100;
-
-	bool weighted = true;
-	if (ec_min == 1 && ec_max == 1) {
-		weighted = false;
-	}
+	int T = 1;
 
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -315,7 +310,7 @@ void test_VCPLL() {
 	mm.max_degree_MG_enhanced2019R2 = 100;
 	mm.max_labal_size = 6e9;
 	mm.max_run_time_seconds = 1e9;
-	mm.use_canonical_repair = true;
+	mm.use_canonical_repair = 0;
 
 	/*iteration*/
 	for (int i = 0; i < iteration_graph_times; i++) {
@@ -333,13 +328,13 @@ void test_VCPLL() {
 			double lambda;
 			graph_hash_of_mixed_weighted_read_graph_with_weight("simple_iterative_tests.txt", instance_graph, lambda);
 		}
-		graph_hash_of_mixed_weighted_print(instance_graph);
+		//graph_hash_of_mixed_weighted_print(instance_graph);
 
 
 		auto begin = std::chrono::high_resolution_clock::now();
 		try {
-			VCPLL(instance_graph, V + 1, weighted, thread_num, T, mm);
-			if (1) {
+			VCPLL(instance_graph, V + 1, 1, thread_num, T, mm);
+			if (0) {
 				cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
 				cout << "mm.time_2019R1: " << mm.time_2019R1 << "s" << endl;
 				cout << "mm.time_2019R2_or_enhanced_pre: " << mm.time_2019R2_or_enhanced_pre << "s" << endl;

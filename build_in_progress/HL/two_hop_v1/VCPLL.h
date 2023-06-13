@@ -12,7 +12,6 @@
 #include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_v1.h>
 
 /*global values*/
-vector<set<int>> C;
 vector<vector<two_hop_label_v1>> Messages;
 
 void Scatter(int a) {
@@ -22,9 +21,8 @@ void Scatter(int a) {
 		double ec = ideal_graph_595[a][i].second;
 
 		mtx_595[v].lock();
-		for (auto& it : L_595[a]) {			
-			if (it.vertex < v && C[v].count(it.vertex) == 0) {
-				C[v].insert(it.vertex);
+		for (auto& it : L_595[a]) {	
+			if (it.vertex < v) {
 				two_hop_label_v1 x;
 				x.vertex = it.vertex;
 				x.distance = it.distance + ec;
@@ -55,6 +53,8 @@ void Gather(int v, vector<int>& ActiveVertices) {
 
 	vector<two_hop_label_v1>().swap(L_595[v]);
 
+	//cout << "Messages[v].size(): " << Messages[v].size() << endl;
+
 	for (auto& it : Messages[v]) {
 		int u = it.vertex;
 		double query_v_u = std::numeric_limits<double>::max();
@@ -77,6 +77,7 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		} //求query的值
 		mtx_595[u].unlock();
 #endif
+		
 		if (it.distance + 1e-5 < query_v_u) {
 			L_595[v].push_back(it);
 		}
@@ -113,6 +114,9 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 	}
 
 	while (ActiveVertices.size()) {
+
+		cout << "x" << endl;
+
 		for (auto a : ActiveVertices) {
 			results.emplace_back(
 				pool.enqueue([a] { // pass const type value j to thread; [] can be empty
@@ -132,7 +136,6 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 				results.emplace_back(
 					pool.enqueue([v, &xx] { // pass const type value j to thread; [] can be empty
 						Gather(v, xx);
-						set<int>().swap(C[v]);
 						return 1; // return to results; the return type must be the same with results
 						})
 				);
@@ -142,7 +145,52 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 			result.get(); //all threads finish here
 		results.clear();
 	}
+
+	cout << "y" << endl;
+
+	for (int v = 0; v < N; v++) {
+		vector<two_hop_label_v1>().swap(L_595[v]);
+	}
 }
+
+void clean_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& results) {
+
+	for (int v = 0; v < N; v++) {
+		results.emplace_back(
+			pool.enqueue([v] { // pass const type value j to thread; [] can be empty
+
+				mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+				int used_id = Qid_595.front();
+				Qid_595.pop();
+				mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+
+				queue<int> T_changed_vertices;
+
+				for (auto& it : L_temp_595[v]) {
+					if (T_dij_595[used_id][it.vertex] > it.distance) {
+						T_dij_595[used_id][it.vertex] = it.distance;
+					}
+				}
+				vector<two_hop_label_v1> new_Lv;
+				for (auto& it : L_temp_595[v]) {
+					if (T_dij_595[used_id][it.vertex] != std::numeric_limits<double>::max() && T_dij_595[used_id][it.vertex] == it.distance) {
+						new_Lv.push_back(it);
+						T_dij_595[used_id][it.vertex] = std::numeric_limits<double>::max();
+					}
+				}
+
+				L_temp_595[v] = new_Lv;
+
+				mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+				Qid_595.push(used_id);
+				mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+
+				return 1; // return to results; the return type must be the same with results
+				})
+		);
+	}
+}
+
 
 /*the following parallel PLL_with_non_adj_reduction code cannot be run parallelly, due to the above globel values*/
 
@@ -177,7 +225,6 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	L_temp_595.resize(max_N_ID); // L
 	Messages.resize(max_N_ID);
 	int N = input_graph.hash_of_vectors.size();
-	C.resize(N);
 
 	/*sorting vertices*/
 	vector <vector<pair<int, double>>>().swap(adjs);
@@ -194,8 +241,11 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	unordered_map<int, int> vertexID_old_to_new;
 	vertexID_new_to_old_595.resize(N);
 	for (int i = 0; i < N; i++) {
-		vertexID_old_to_new[sorted_vertices[i].first] = i;
-		vertexID_new_to_old_595[i] = sorted_vertices[i].first;
+		//vertexID_old_to_new[sorted_vertices[i].first] = i;
+		//vertexID_new_to_old_595[i] = sorted_vertices[i].first;
+
+		vertexID_old_to_new[i] = i;
+		vertexID_new_to_old_595[i] = i;
 	}
 	vector<pair<int, int>>().swap(sorted_vertices);
 	ideal_graph_595 = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID(input_graph, vertexID_old_to_new);
@@ -415,8 +465,6 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 		}
 		Qid_595.push(i);
 	}
-
-
 	int batch_size = N / T;
 	int push_num = 0;
 	vector<int> batch_V;
@@ -425,8 +473,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 			batch_V.push_back(v_k);	
 		}
 		if (batch_V.size() == batch_size || v_k == N - 1) {
-			// batch_process
-
+			batch_process(N, batch_V, pool, results);
 			vector<int>().swap(batch_V);
 		}
 	}
@@ -434,8 +481,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	case_info.time_generate_labels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
-
-
+	clean_labels(N, pool, results);/*remove redundant labels*/
 
 /*
 	update predecessors for this non_adj_reduction,
@@ -473,16 +519,6 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	//----------------------------------------------- step 4: canonical_repair ---------------------------------------------------------------
 	//cout << "step 4: canonical_repair" << endl;
 
-
-	//cout << "print_L_temp_595:" << endl;
-	//for (int i = 0; i < L_temp_595.size(); i++) {
-	//	cout << "L[" << i << "]=";
-	//	for (int j = 0; j < L_temp_595[i].size(); j++) {
-	//		cout << "{" << L_temp_595[i][j].vertex << "," << L_temp_595[i][j].distance << "," << L_temp_595[i][j].parent_vertex << "}";
-	//	}
-	//	cout << endl;
-	//}
-
 	/*canonical_repair based on the sorted new ID order, not the original ID order!*/
 	if (case_info.use_canonical_repair) {
 		begin = std::chrono::high_resolution_clock::now();
@@ -514,18 +550,6 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 		case_info.time_canonical_repair2 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 	}
 
-	//cout << "print_L_temp_595:" << endl;
-	//for (int i = 0; i < L_temp_595.size(); i++) {
-	//	cout << "L[" << i << "]=";
-	//	for (int j = 0; j < L_temp_595[i].size(); j++) {
-	//		cout << "{" << L_temp_595[i][j].vertex << "," << L_temp_595[i][j].distance << "," << L_temp_595[i][j].parent_vertex << "}";
-	//	}
-	//	cout << endl;
-	//}
-
-	//---------------------------------------------------------------------------------------------------------------------------------------
-
-
 	//----------------------------------------------- step 5: update_old_IDs_in_labels ---------------------------------------------------------------
 	//cout << "step 5: update_old_IDs_in_labels" << endl;
 	begin = std::chrono::high_resolution_clock::now();
@@ -539,6 +563,5 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 
 
 	graph_hash_of_mixed_weighted_two_hop_clear_global_values();
-	vector<set<int>>().swap(C);
 	vector<vector<two_hop_label_v1>>().swap(Messages);
 }
