@@ -35,6 +35,7 @@ rm A
 */
 #include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_v1.h>
 #include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PSL_v1.h>
+#include <build_in_progress/HL/two_hop_v1/VCPLL.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_read_graph_with_weight.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>
@@ -288,6 +289,106 @@ void test_PLL_PSL() {
 	cout << "avg_canonical_repair_remove_label_ratio: " << avg_canonical_repair_remove_label_ratio << endl;
 }
 
+void test_VCPLL() {
+
+	/*parameters*/
+	int iteration_graph_times = 1e1, iteration_source_times = 10, iteration_terminal_times = 10;
+	int V = 5, E = 7, precision = 1, thread_num = 5;
+	double ec_min = 2, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
+
+	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
+	double avg_canonical_repair_remove_label_ratio = 0;
+
+	int T = 100;
+
+	bool weighted = true;
+	if (ec_min == 1 && ec_max == 1) {
+		weighted = false;
+	}
+
+	/*reduction method selection*/
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+	mm.use_2019R1 = 0;
+	mm.use_2019R2 = 0;
+	mm.use_enhanced2019R2 = 0;
+	mm.use_non_adj_reduc_degree = 0;
+	mm.max_degree_MG_enhanced2019R2 = 100;
+	mm.max_labal_size = 6e9;
+	mm.max_run_time_seconds = 1e9;
+	mm.use_canonical_repair = true;
+
+	/*iteration*/
+	for (int i = 0; i < iteration_graph_times; i++) {
+		cout << i << endl;
+
+		/*input and output; below is for generating random new graph, or read saved graph*/
+		int generate_new_graph = 1;
+		std::unordered_set<int> generated_group_vertices;
+		graph_hash_of_mixed_weighted instance_graph, generated_group_graph;
+		if (generate_new_graph == 1) {
+			instance_graph = graph_hash_of_mixed_weighted_generate_random_graph(V, E, 0, 0, ec_min, ec_max, precision, boost_random_time_seed);
+			graph_hash_of_mixed_weighted_save_graph_with_weight("simple_iterative_tests.txt", instance_graph, 0);
+		}
+		else {
+			double lambda;
+			graph_hash_of_mixed_weighted_read_graph_with_weight("simple_iterative_tests.txt", instance_graph, lambda);
+		}
+		graph_hash_of_mixed_weighted_print(instance_graph);
+
+
+		auto begin = std::chrono::high_resolution_clock::now();
+		try {
+			VCPLL(instance_graph, V + 1, weighted, thread_num, T, mm);
+			if (1) {
+				cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
+				cout << "mm.time_2019R1: " << mm.time_2019R1 << "s" << endl;
+				cout << "mm.time_2019R2_or_enhanced_pre: " << mm.time_2019R2_or_enhanced_pre << "s" << endl;
+				cout << "mm.time_2019R2_or_enhanced_fixlabels: " << mm.time_2019R2_or_enhanced_fixlabels << "s" << endl;
+				cout << "mm.time_generate_labels: " << mm.time_generate_labels << "s" << endl;
+				cout << "mm.time_canonical_repair1: " << mm.time_canonical_repair1 << "s" << endl;
+				cout << "mm.time_canonical_repair2: " << mm.time_canonical_repair2 << "s" << endl;
+				cout << "mm.time_update_old_IDs_in_labels: " << mm.time_update_old_IDs_in_labels << "s" << endl;
+			}
+		}
+		catch (string s) {
+			cout << s << endl;
+			graph_hash_of_mixed_weighted_two_hop_clear_global_values();
+			continue;
+		}
+		auto end = std::chrono::high_resolution_clock::now();
+		double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+		avg_index_time = avg_index_time + runningtime / iteration_graph_times;
+
+		avg_reduce_V_num_2019R1 = avg_reduce_V_num_2019R1 + (double)mm.reduce_V_num_2019R1 / iteration_graph_times;
+		avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
+		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
+
+		/*debug*/
+		if (0) {
+			graph_hash_of_mixed_weighted_print(instance_graph);
+			mm.print_L();
+			mm.print_reduction_measures_2019R1();
+			mm.print_reduction_measures_2019R2();
+			mm.print_f_2019R1();
+		}
+
+		graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);
+
+		long long int index_size = 0;
+		for (auto it = mm.L.begin(); it != mm.L.end(); it++) {
+			index_size = index_size + (*it).size();
+		}
+		avg_index_size_per_v = avg_index_size_per_v + (double)index_size / V / iteration_graph_times;
+
+		mm.clear_labels();
+	}
+
+	cout << "avg_index_time: " << avg_index_time << "s" << endl;
+	cout << "avg_index_size_per_v: " << avg_index_size_per_v << endl;
+	cout << "avg_reduce_V_num_2019R1: " << avg_reduce_V_num_2019R1 << endl;
+	cout << "avg_MG_num: " << avg_MG_num << endl;
+	cout << "avg_canonical_repair_remove_label_ratio: " << avg_canonical_repair_remove_label_ratio << endl;
+}
 
 void example_PLL_PSL() {
 
