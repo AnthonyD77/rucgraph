@@ -59,7 +59,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 		std::unordered_map<int, double> distances;
 		std::unordered_map<int, int> predecessors;
 
-		//source = 3; cout << "source = " << source << endl;
+		//source = 0; cout << "source = " << source << endl;
 
 		graph_hash_of_mixed_weighted_shortest_paths_source_to_all(instance_graph, source, distances, predecessors);
 
@@ -67,7 +67,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 
 			int terminal = dist(boost_random_time_seed);
 
-			//terminal = 0; cout << "terminal = " << terminal << endl;
+			//terminal = 2; cout << "terminal = " << terminal << endl;
 
 			double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance
 			(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
@@ -293,7 +293,7 @@ void test_VCPLL() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 500, precision = 1, thread_num = 5;
+	int V = 100, E = 150, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
@@ -303,8 +303,8 @@ void test_VCPLL() {
 
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-	mm.use_2019R1 = 0;
-	mm.use_2019R2 = 0;
+	mm.use_2019R1 = 1;
+	mm.use_2019R2 = 1;
 	mm.use_enhanced2019R2 = 0;
 	mm.use_non_adj_reduc_degree = 0;
 	mm.max_degree_MG_enhanced2019R2 = 100;

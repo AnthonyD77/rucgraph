@@ -189,6 +189,9 @@ void clean_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& result
 				})
 		);
 	}
+	for (auto&& result : results)
+		result.get(); //all threads finish here
+	results.clear();
 }
 
 
@@ -482,6 +485,9 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
 	clean_labels(N, pool, results);/*remove redundant labels*/
+
+
+	//graph_v_of_v_idealID_print(ideal_graph_595);
 
 /*
 	update predecessors for this non_adj_reduction,
