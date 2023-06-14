@@ -13,7 +13,6 @@
 
 /*global values*/
 vector<vector<two_hop_label_v1>> Messages;
-vector<unordered_map<int, pair<double, int>>> Hash;
 
 void Scatter(int a) {
 	int a_adj_size = ideal_graph_595[a].size();
@@ -50,10 +49,6 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		T_dij_595[used_id][L_v_i_vertex] = L_temp_595[v][i].distance; //allocate T values for L_temp_595[v_k]
 		T_changed_vertices.push(L_v_i_vertex);
 	}
-	for (auto& label : Hash[v]) {
-		T_dij_595[used_id][label.first] = label.second.first;
-		T_changed_vertices.push(label.first);
-	}
 	mtx_595[v].unlock();
 
 	vector<two_hop_label_v1>().swap(L_595[v]);
@@ -72,7 +67,7 @@ void Gather(int v, vector<int>& ActiveVertices) {
 			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];
 			mtx_595[u].unlock();
 			if (query_v_u > dis) { query_v_u = dis; }
-		} //求query的值
+		} //求query的值		
 #else
 		mtx_595[u].lock();
 		auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
@@ -82,29 +77,14 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		} //求query的值
 		mtx_595[u].unlock();
 #endif
-		mtx_595[u].lock();
-		for (auto& label : Hash[u]) {
-			double dis = label.second.first + T_dij_595[used_id][label.first];
-			if (query_v_u > dis) { query_v_u = dis; }
-		}
-		mtx_595[u].unlock();
-
+		
 		if (it.distance + 1e-5 < query_v_u) {
 			L_595[v].push_back(it);
 		}
 	}
 	if (L_595[v].size()) {
 		mtx_595[v].lock();
-		for (auto& label : L_595[v]) {
-			if (Hash[v].count(label.vertex) == 0) {
-				Hash[v][label.vertex] = { label.distance,label.parent_vertex };
-			}
-			else {
-				if (Hash[v][label.vertex].first > label.distance) {
-					Hash[v][label.vertex] = { label.distance,label.parent_vertex };
-				}
-			}
-		}
+		L_temp_595[v].insert(L_temp_595[v].end(), L_595[v].begin(), L_595[v].end());
 		mtx_595[v].unlock();
 		mtx_595[max_N_ID_for_mtx_595 - 1].lock();
 		ActiveVertices.push_back(v);
@@ -131,7 +111,6 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		x.parent_vertex = u;
 		L_595[u] = { x };
 		L_temp_595[u].push_back(x);
-		Hash[u][u] = { 0,u };
 	}
 
 	while (ActiveVertices.size()) {
@@ -165,57 +144,9 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		results.clear();
 	}
 
-
-	/*hash cleaning and insert L_temp_595*/
 	for (int v = 0; v < N; v++) {
-		if (Hash[v].size()) {
-			results.emplace_back(
-				pool.enqueue([v] { // pass const type value j to thread; [] can be empty					
-					for (auto& label : Hash[v]) {
-						int u = label.first;
-						/*query d_uv*/
-						double query_v_u = std::numeric_limits<double>::max();
-						for (auto& label2 : Hash[u]) {
-							if (Hash[v].count(label2.first) == 1) {
-								double query_d = Hash[v][label2.first].first + label2.second.first;
-								if (query_d < query_v_u) {
-									query_v_u = query_d;
-								}
-							}
-						}
-						/*clean*/
-						if (query_v_u + 1e-5 > label.second.first) {
-							two_hop_label_v1 x;
-							x.vertex = label.first;
-							x.distance = label.second.first;
-							x.parent_vertex = label.second.second;
-							L_temp_595[v].push_back(x);
-						}
-						//else {
-						//	cout << "clean" << endl;
-						//}
-					}
-					return 1; // return to results; the return type must be the same with results
-					})
-			);
-		}
 		vector<two_hop_label_v1>().swap(L_595[v]);
 	}
-	for (auto&& result : results)
-		result.get(); //all threads finish here
-	results.clear();
-
-	///*no hash cleaning*/
-	//for (int v = 0; v < N; v++) {
-	//	for (auto& label : Hash[v]) {
-	//		two_hop_label_v1 x;
-	//		x.vertex = label.first;
-	//		x.distance = label.second.first;
-	//		x.parent_vertex = label.second.second;
-	//		L_temp_595[v].push_back(x);
-	//	}
-	//	vector<two_hop_label_v1>().swap(L_595[v]);
-	//}
 }
 
 void clean_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& results) {
@@ -289,7 +220,6 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	L_595.resize(max_N_ID); // deltaL
 	L_temp_595.resize(max_N_ID); // L
 	Messages.resize(max_N_ID);
-	Hash.resize(max_N_ID);
 	int N = input_graph.hash_of_vectors.size();
 
 	/*sorting vertices*/
@@ -633,5 +563,4 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 
 	graph_hash_of_mixed_weighted_two_hop_clear_global_values();
 	vector<vector<two_hop_label_v1>>().swap(Messages);
-	vector<unordered_map<int, pair<double, int>>>().swap(Hash);
 }
