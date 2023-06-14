@@ -292,14 +292,14 @@ void test_PLL_PSL() {
 void test_VCPLL() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e1, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 10, E = 16, precision = 1, thread_num = 5;
+	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
+	int V = 100, E = 500, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
 	double avg_canonical_repair_remove_label_ratio = 0;
 
-	int T = 1;
+	int T = 2;
 
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;

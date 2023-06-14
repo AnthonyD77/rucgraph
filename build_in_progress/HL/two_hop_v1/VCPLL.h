@@ -81,14 +81,14 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		if (it.distance + 1e-5 < query_v_u) {
 			L_595[v].push_back(it);
 		}
-		if (L_595[v].size()) {
-			mtx_595[v].lock();
-			L_temp_595[v].insert(L_temp_595[v].end(), L_595[v].begin(), L_595[v].end());
-			mtx_595[v].unlock();
-			mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-			ActiveVertices.push_back(v);
-			mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
-		}
+	}
+	if (L_595[v].size()) {
+		mtx_595[v].lock();
+		L_temp_595[v].insert(L_temp_595[v].end(), L_595[v].begin(), L_595[v].end());
+		mtx_595[v].unlock();
+		mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+		ActiveVertices.push_back(v);
+		mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 	}
 
 	while (T_changed_vertices.size() > 0) {
@@ -115,7 +115,7 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 
 	while (ActiveVertices.size()) {
 
-		cout << "x" << endl;
+		//cout << "x" << endl;
 
 		for (auto a : ActiveVertices) {
 			results.emplace_back(
@@ -146,7 +146,7 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		results.clear();
 	}
 
-	cout << "y" << endl;
+	//cout << "y" << endl;
 
 	for (int v = 0; v < N; v++) {
 		vector<two_hop_label_v1>().swap(L_595[v]);
@@ -241,12 +241,12 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	unordered_map<int, int> vertexID_old_to_new;
 	vertexID_new_to_old_595.resize(N);
 	for (int i = 0; i < N; i++) {
-		//vertexID_old_to_new[sorted_vertices[i].first] = i;
-		//vertexID_new_to_old_595[i] = sorted_vertices[i].first;
-
-		vertexID_old_to_new[i] = i;
-		vertexID_new_to_old_595[i] = i;
+		vertexID_old_to_new[sorted_vertices[i].first] = i;
+		vertexID_new_to_old_595[i] = sorted_vertices[i].first;		
+		//vertexID_old_to_new[i] = i;
+		//vertexID_new_to_old_595[i] = i;
 	}
+	//cout << "rank above" << endl;
 	vector<pair<int, int>>().swap(sorted_vertices);
 	ideal_graph_595 = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID(input_graph, vertexID_old_to_new);
 
