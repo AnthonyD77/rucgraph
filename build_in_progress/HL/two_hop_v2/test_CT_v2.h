@@ -84,8 +84,8 @@ pair<double, double> querying(graph_hash_of_mixed_weighted_CT_v2_case_info& case
 void test_CT() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e2, iteration_source_times = 100, iteration_terminal_times = 100;
-	int V = 100, E = 150, precision = 1;
+	int iteration_graph_times = 1e1, iteration_source_times = 100, iteration_terminal_times = 100;
+	int V = 100, E = 1000, precision = 1;
 	double ec_min = 0.1, ec_max = 1; // since ec_min = 0.01, precision should be at least 2! Otherwise ec may be 0, and causes bugs in CT
 
 
@@ -123,7 +123,7 @@ void test_CT() {
 		case_info.two_hop_case_info.use_non_adj_reduc_degree = 0;
 		case_info.two_hop_case_info.use_canonical_repair = 1;
 		case_info.d = 20;
-		case_info.use_PLL = 1;
+		case_info.use_PLL = -1;
 		case_info.thread_num = 5;
 		if (1) {	
 			auto begin = std::chrono::high_resolution_clock::now();

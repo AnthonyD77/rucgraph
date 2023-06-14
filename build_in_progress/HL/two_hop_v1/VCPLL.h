@@ -22,14 +22,14 @@ void Scatter(int a) {
 		double ec = ideal_graph_595[a][i].second;
 
 		mtx_595[v].lock();
-		for (auto& it : L_595[a]) {	
+		for (auto& it : L_595[a]) {
 			if (it.vertex < v) {
 				two_hop_label_v1 x;
 				x.vertex = it.vertex;
 				x.distance = it.distance + ec;
 				x.parent_vertex = a;
 				Messages[v].push_back(x);
-			}		
+			}
 		}
 		mtx_595[v].unlock();
 	}
@@ -121,7 +121,7 @@ void Gather(int v, vector<int>& ActiveVertices) {
 	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 }
 
-void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<std::future<int>>& results) {
+void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<std::future<int>>& results, bool use_hash_clean) {
 
 	auto ActiveVertices = batch_V;
 	for (auto u : ActiveVertices) {
@@ -168,7 +168,7 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 
 	/*hash cleaning and insert L_temp_595*/
 	for (int v = 0; v < N; v++) {
-		if (Hash[v].size()) {
+		if (use_hash_clean) {
 			results.emplace_back(
 				pool.enqueue([v] { // pass const type value j to thread; [] can be empty					
 					for (auto& label : Hash[v]) {
@@ -194,6 +194,20 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 						//else {
 						//	cout << "clean" << endl;
 						//}
+					}
+					return 1; // return to results; the return type must be the same with results
+					})
+			);
+		}
+		else {
+			results.emplace_back(
+				pool.enqueue([v] { // pass const type value j to thread; [] can be empty					
+					for (auto& label : Hash[v]) {
+						two_hop_label_v1 x;
+						x.vertex = label.first;
+						x.distance = label.second.first;
+						x.parent_vertex = label.second.second;
+						L_temp_595[v].push_back(x);
 					}
 					return 1; // return to results; the return type must be the same with results
 					})
@@ -259,7 +273,7 @@ void clean_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& result
 	results.clear();
 }
 
-void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted, int num_of_threads, int T, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
+void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool use_hash_clean, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
 {
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
 	//cout << "step 1: initialization" << endl;
@@ -308,7 +322,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	vertexID_new_to_old_595.resize(N);
 	for (int i = 0; i < N; i++) {
 		vertexID_old_to_new[sorted_vertices[i].first] = i;
-		vertexID_new_to_old_595[i] = sorted_vertices[i].first;		
+		vertexID_new_to_old_595[i] = sorted_vertices[i].first;
 		//vertexID_old_to_new[i] = i;
 		//vertexID_new_to_old_595[i] = i;
 	}
@@ -377,10 +391,6 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	}
 
 	/*reduction 2; 用了2019 R2 enhance之后的图就是weighted，不能使用Unweighted bfs了！*/
-	if (weighted == 0 && case_info.use_2019R2 + case_info.use_enhanced2019R2 > 0) {
-		cout << "weighted = 1; // 用了2019 R2 enhance之后的图就是weighted，不能使用Unweighted bfs了！" << endl;
-		weighted = 1;
-	}
 	begin = std::chrono::high_resolution_clock::now();
 	if (case_info.use_2019R2) {
 		case_info.MG_num = 0;
@@ -531,15 +541,15 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 		}
 		Qid_595.push(i);
 	}
-	int batch_size = N / T;
+	int batch_size = 512;
 	int push_num = 0;
 	vector<int> batch_V;
 	for (int v_k = 0; v_k < N; v_k++) {
 		if (ideal_graph_595[v_k].size() > 0) {  // not from isolated vertices
-			batch_V.push_back(v_k);	
+			batch_V.push_back(v_k);
 		}
 		if (batch_V.size() == batch_size || v_k == N - 1) {
-			batch_process(N, batch_V, pool, results);
+			batch_process(N, batch_V, pool, results, use_hash_clean);
 			vector<int>().swap(batch_V);
 		}
 	}

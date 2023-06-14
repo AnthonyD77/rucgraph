@@ -299,8 +299,6 @@ void test_VCPLL() {
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
 	double avg_canonical_repair_remove_label_ratio = 0;
 
-	int T = 2;
-
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 	mm.use_2019R1 = 0;
@@ -333,7 +331,7 @@ void test_VCPLL() {
 
 		auto begin = std::chrono::high_resolution_clock::now();
 		try {
-			VCPLL(instance_graph, V + 1, 1, thread_num, T, mm);
+			VCPLL(instance_graph, V + 1, 1, thread_num, mm);
 			if (0) {
 				cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
 				cout << "mm.time_2019R1: " << mm.time_2019R1 << "s" << endl;

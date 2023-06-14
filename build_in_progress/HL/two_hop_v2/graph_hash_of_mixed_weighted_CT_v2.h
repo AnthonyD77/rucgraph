@@ -9,7 +9,7 @@
 #include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_v1.h>
 #include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PSL_v1.h>
 #include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_dummy_v1.h>
-
+#include <build_in_progress/HL/two_hop_v1/VCPLL.h>
 
 
 
@@ -36,7 +36,7 @@ public:
 
 	/*parameters*/
 	int thread_num = 1;
-	bool use_PLL = true; // 0 use PSL
+	int use_PLL = true; // 0 use PSL; -1 use BVC-PLL
 	int d = 3;
 	// set d as an large number to test the correctness of CT-index
 	// set d as 0 to test the correctness of PLL on core
@@ -783,11 +783,14 @@ void CT_v2(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_o
 		}
 	}
 	case_info.core_graph = hash_g;
-	if (case_info.use_PLL) {
+	if (case_info.use_PLL == 1) {
 		graph_hash_of_mixed_weighted_PLL_v1(hash_g, max_N_ID, 1, case_info.thread_num, case_info.two_hop_case_info);
 	}
-	else {
+	else if (case_info.use_PLL == 0) {
 		graph_hash_of_mixed_weighted_PSL_v1(hash_g, max_N_ID, case_info.thread_num, case_info.two_hop_case_info);
+	}
+	else if (case_info.use_PLL == -1) {
+		VCPLL(hash_g, max_N_ID, 1, case_info.thread_num, case_info.two_hop_case_info);
 	}
 	//case_info.two_hop_case_info.print_L();
 	auto end5 = std::chrono::high_resolution_clock::now();
