@@ -35,12 +35,7 @@ void Scatter(int a) {
 	}
 }
 
-void Gather(int v, vector<int>& ActiveVertices) {
-
-	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-	int used_id = Qid_595.front();
-	Qid_595.pop();
-	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+void Gather(int v, vector<int>& ActiveVertices, int used_id) {
 	
 	queue<int> T_changed_vertices;
 	int L_v_size = L_temp_595[v].size();
@@ -58,8 +53,6 @@ void Gather(int v, vector<int>& ActiveVertices) {
 
 	vector<two_hop_label_v1>().swap(L_595[v]);
 
-	//cout << "Messages[v].size(): " << Messages[v].size() << endl;
-
 	for (auto& it : Messages[v]) {
 		int u = it.vertex;
 		double query_v_u = std::numeric_limits<double>::max();
@@ -76,6 +69,7 @@ void Gather(int v, vector<int>& ActiveVertices) {
 			if (query_v_u > dis) { query_v_u = dis; }
 		} //求query的值
 #endif
+		/*it is too slow to add the following codes, since it makes it necessary to lock Hash; but it's necessary when there is just 1 batch, as L_temp_595 is empty when processing this batch*/
 		mtx_595[u].lock();
 		for (auto& label : Hash[u]) {
 			double dis = label.second.first + T_dij_595[used_id][label.first];
@@ -105,17 +99,13 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 	}
 
-	while (T_changed_vertices.size() > 0) {
+	while (T_changed_vertices.size()) {
 		T_dij_595[used_id][T_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate T values
 		T_changed_vertices.pop();
 	}
-
-	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-	Qid_595.push(used_id);
-	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 }
 
-void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<std::future<int>>& results, bool use_hash_clean) {
+void batch_process(int N, vector<int>& batch_V, int num_of_threads, ThreadPool& pool, std::vector<std::future<int>>& results, bool use_hash_clean) {
 
 	auto ActiveVertices = batch_V;
 	for (auto u : ActiveVertices) {
@@ -128,16 +118,25 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		Hash[u][u] = { 0,u };
 	}
 
+	vector<vector<int>> Vs(num_of_threads);
+
 	int mmm = 0;
 
 	while (ActiveVertices.size()) {
+		cout << "while Scatter " << ++mmm << endl;
 
-		cout << "while " << ++mmm << endl;
-
+		int xx1 = 0;
 		for (auto a : ActiveVertices) {
+			Vs[xx1++ % num_of_threads].push_back(a);
+		}
+		for (int i = 0; i < num_of_threads; i++) {
+			auto& p = Vs[i];
 			results.emplace_back(
-				pool.enqueue([a] { // pass const type value j to thread; [] can be empty
-					Scatter(a);
+				pool.enqueue([&p] { // pass const type value j to thread; [] can be empty
+					for (auto v : p) {
+						Scatter(v);
+					}
+					vector<int>().swap(p);
 					return 1; // return to results; the return type must be the same with results
 					})
 			);
@@ -145,18 +144,28 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		for (auto&& result : results)
 			result.get(); //all threads finish here
 		results.clear();
-		vector<int>().swap(ActiveVertices);
 
+		cout << "while Gather " << mmm << endl;
+
+		vector<int>().swap(ActiveVertices);
 		auto& xx = ActiveVertices;
+
 		for (int v = 0; v < N; v++) {
 			if (Messages[v].size()) {
-				results.emplace_back(
-					pool.enqueue([v, &xx] { // pass const type value j to thread; [] can be empty
-						Gather(v, xx);
-						return 1; // return to results; the return type must be the same with results
-						})
-				);
+				Vs[xx1++ % num_of_threads].push_back(v);
 			}
+		}
+		for (int i = 0; i < num_of_threads; i++) {
+			auto& p = Vs[i];
+			results.emplace_back(
+				pool.enqueue([&p, &xx, i] { // pass const type value j to thread; [] can be empty
+					for (auto v : p) {
+						Gather(v, xx, i);
+					}
+					vector<int>().swap(p);
+					return 1; // return to results; the return type must be the same with results
+					})
+			);
 		}
 		for (auto&& result : results)
 			result.get(); //all threads finish here
@@ -539,7 +548,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool use_has
 		}
 		if (batch_V.size() == batch_size || v_k == N - 1) {
 			cout << "batch_process " << ++batch_ID << endl;
-			batch_process(N, batch_V, pool, results, use_hash_clean);
+			batch_process(N, batch_V, num_of_threads, pool, results, use_hash_clean);
 			vector<int>().swap(batch_V);
 		}
 	}
