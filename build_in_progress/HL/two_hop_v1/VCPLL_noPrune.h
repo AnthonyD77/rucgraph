@@ -19,18 +19,18 @@ void Scatter(int a) {
 	for (int i = 0; i < a_adj_size; i++) {
 		int v = ideal_graph_595[a][i].first; // this needs to be locked
 		double ec = ideal_graph_595[a][i].second;
-
-		mtx_595[v].lock();
+		
 		for (auto& it : L_595[a]) {	
 			if (it.vertex < v) {
 				two_hop_label_v1 x;
 				x.vertex = it.vertex;
 				x.distance = it.distance + ec;
 				x.parent_vertex = a;
+				mtx_595[v].lock();
 				Messages[v].push_back(x);
+				mtx_595[v].unlock();
 			}		
-		}
-		mtx_595[v].unlock();
+		}	
 	}
 }
 
@@ -52,8 +52,6 @@ void Gather(int v, vector<int>& ActiveVertices) {
 	mtx_595[v].unlock();
 
 	vector<two_hop_label_v1>().swap(L_595[v]);
-
-	//cout << "Messages[v].size(): " << Messages[v].size() << endl;
 
 	for (auto& it : Messages[v]) {
 		int u = it.vertex;
@@ -95,6 +93,8 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		T_dij_595[used_id][T_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate T values
 		T_changed_vertices.pop();
 	}
+
+	vector<two_hop_label_v1>().swap(Messages[v]);
 
 	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
 	Qid_595.push(used_id);
@@ -461,7 +461,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 		}
 		Qid_595.push(i);
 	}
-	int batch_size = 512;
+	int batch_size = N;
 	int push_num = 0;
 	vector<int> batch_V;
 	for (int v_k = 0; v_k < N; v_k++) {

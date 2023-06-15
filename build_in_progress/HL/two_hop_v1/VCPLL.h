@@ -36,43 +36,68 @@ void Scatter(int a) {
 }
 
 void Gather(int v, vector<int>& ActiveVertices, int used_id) {
+
+	auto& TT = T_dij_595[used_id];
 	
-	queue<int> T_changed_vertices;
-	int L_v_size = L_temp_595[v].size();
-	for (int i = 0; i < L_v_size; i++) {
-		int L_v_i_vertex = L_temp_595[v][i].vertex;
-		T_dij_595[used_id][L_v_i_vertex] = L_temp_595[v][i].distance; //allocate T values for L_temp_595[v_k]
-		T_changed_vertices.push(L_v_i_vertex);
+	vector<int> T_changed_vertices;
+
+	/*new idea: remove redundant labels in Messages[v]   (there may be multiple labels in Messages[v] with the same hub, you only need to keep the minimum distance one)*/
+	vector<two_hop_label_v1> new_Messages_v;
+	for (auto& it : Messages[v]) {
+		int u = it.vertex;
+		if (TT[u] > it.distance) {
+			TT[u] = it.distance;
+		}
 	}
+	for (auto& it : Messages[v]) {
+		int u = it.vertex;
+		if (TT[u] == it.distance) {
+			new_Messages_v.push_back(it);
+			TT[u] = std::numeric_limits<double>::max();
+		}
+	}
+
+	/*L_temp_595 is not needed when there is only 1 batch*/
+	//int L_v_size = L_temp_595[v].size(); 
+	//for (int i = 0; i < L_v_size; i++) {
+	//	int L_v_i_vertex = L_temp_595[v][i].vertex;
+	//	TT[L_v_i_vertex] = L_temp_595[v][i].distance; //allocate T values for L_temp_595[v_k]
+	//	T_changed_vertices.push_back(L_v_i_vertex);
+	//}
 	mtx_595[v].lock();
 	for (auto& label : Hash[v]) {
-		T_dij_595[used_id][label.first] = label.second.first;
-		T_changed_vertices.push(label.first);
+		TT[label.first] = label.second.first;
+		T_changed_vertices.push_back(label.first);
 	}
 	mtx_595[v].unlock();
 
 	vector<two_hop_label_v1>().swap(L_595[v]);
 
-	for (auto& it : Messages[v]) {
+	for (auto& it : new_Messages_v) {
+
+		if (TT[it.vertex] < it.distance + 1e-5) { // new idea, can accelerate
+			continue;
+		}
+
 		int u = it.vertex;
 		double query_v_u = std::numeric_limits<double>::max();
-#ifdef _WIN32
-		auto L_u_size = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
-		for (int i = 0; i < L_u_size; i++) {
-			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];
-			if (query_v_u > dis) { query_v_u = dis; }
-		} //求query的值
-#else
-		auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
-		for (int i = 0; i < L_u_size1; i++) {
-			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
-			if (query_v_u > dis) { query_v_u = dis; }
-		} //求query的值
-#endif
+//#ifdef _WIN32
+//		auto L_u_size = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
+//		for (int i = 0; i < L_u_size; i++) {
+//			double dis = L_temp_595[u][i].distance + TT[L_temp_595[u][i].vertex];
+//			if (query_v_u > dis) { query_v_u = dis; }
+//		} //求query的值
+//#else
+//		auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
+//		for (int i = 0; i < L_u_size1; i++) {
+//			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
+//			if (query_v_u > dis) { query_v_u = dis; }
+//		} //求query的值
+//#endif
 		/*it is too slow to add the following codes, since it makes it necessary to lock Hash; but it's necessary when there is just 1 batch, as L_temp_595 is empty when processing this batch*/
 		mtx_595[u].lock();
 		for (auto& label : Hash[u]) {
-			double dis = label.second.first + T_dij_595[used_id][label.first];
+			double dis = label.second.first + TT[label.first];
 			if (query_v_u > dis) { query_v_u = dis; }
 		}
 		mtx_595[u].unlock();
@@ -84,16 +109,8 @@ void Gather(int v, vector<int>& ActiveVertices, int used_id) {
 	if (L_595[v].size()) {
 		mtx_595[v].lock();
 		auto& it2 = Hash[v];
-		for (auto& label : L_595[v]) {
-			auto it3 = it2.find(label.vertex);
-			if (it3 == it2.end()) {
-				it2[label.vertex] = { label.distance,label.parent_vertex };
-			}
-			else {
-				if (it3->second.first > label.distance) {
-					it3->second = { label.distance,label.parent_vertex };
-				}
-			}
+		for (auto& label : L_595[v]) { // since redundant labels in Messages[v] have been removed, it's guarantted that it2[label.vertex].first < label.distance
+			it2[label.vertex] = { label.distance,label.parent_vertex };
 		}
 		mtx_595[v].unlock();
 		mtx_595[max_N_ID_for_mtx_595 - 1].lock();
@@ -103,10 +120,10 @@ void Gather(int v, vector<int>& ActiveVertices, int used_id) {
 
 	vector<two_hop_label_v1>().swap(Messages[v]);
 
-	while (T_changed_vertices.size()) {
-		T_dij_595[used_id][T_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate T values
-		T_changed_vertices.pop();
+	for (auto v : T_changed_vertices) {
+		TT[v] = std::numeric_limits<double>::max(); // reverse-allocate T values
 	}
+	vector<int>().swap(T_changed_vertices);
 }
 
 void batch_process(int N, vector<int>& batch_V, int num_of_threads, ThreadPool& pool, std::vector<std::future<int>>& results, bool use_hash_clean) {
@@ -534,13 +551,8 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool use_has
 	T_dij_595.resize(num_of_threads);
 	for (int i = 0; i < num_of_threads; i++)
 	{
-		P_dij_595[i].resize(N);
-		T_dij_595[i].resize(N);
-		for (int j = 0; j < N; j++)
-		{
-			P_dij_595[i][j] = std::numeric_limits<double>::max();
-			T_dij_595[i][j] = std::numeric_limits<double>::max();
-		}
+		P_dij_595[i].resize(N, std::numeric_limits<double>::max());
+		T_dij_595[i].resize(N, std::numeric_limits<double>::max());
 		Qid_595.push(i);
 	}
 	int batch_size = N; // 512 is very slow
