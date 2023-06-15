@@ -219,17 +219,9 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		result.get(); //all threads finish here
 	results.clear();
 
-	///*no hash cleaning*/
-	//for (int v = 0; v < N; v++) {
-	//	for (auto& label : Hash[v]) {
-	//		two_hop_label_v1 x;
-	//		x.vertex = label.first;
-	//		x.distance = label.second.first;
-	//		x.parent_vertex = label.second.second;
-	//		L_temp_595[v].push_back(x);
-	//	}
-	//	vector<two_hop_label_v1>().swap(L_595[v]);
-	//}
+	for (int v = 0; v < N; v++) {
+		unordered_map<int, pair<double, int>>().swap(Hash[v]);
+	}
 }
 
 void clean_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& results) {
