@@ -20,18 +20,18 @@ void Scatter(int a) {
 	for (int i = 0; i < a_adj_size; i++) {
 		int v = ideal_graph_595[a][i].first; // this needs to be locked
 		double ec = ideal_graph_595[a][i].second;
-
-		mtx_595[v].lock();
+	
 		for (auto& it : L_595[a]) {
 			if (it.vertex < v) {
 				two_hop_label_v1 x;
 				x.vertex = it.vertex;
 				x.distance = it.distance + ec;
 				x.parent_vertex = a;
+				mtx_595[v].lock();
 				Messages[v].push_back(x);
+				mtx_595[v].unlock();
 			}
-		}
-		mtx_595[v].unlock();
+		}	
 	}
 }
 
@@ -41,8 +41,7 @@ void Gather(int v, vector<int>& ActiveVertices) {
 	int used_id = Qid_595.front();
 	Qid_595.pop();
 	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
-
-	mtx_595[v].lock();
+	
 	queue<int> T_changed_vertices;
 	int L_v_size = L_temp_595[v].size();
 	for (int i = 0; i < L_v_size; i++) {
@@ -50,6 +49,7 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		T_dij_595[used_id][L_v_i_vertex] = L_temp_595[v][i].distance; //allocate T values for L_temp_595[v_k]
 		T_changed_vertices.push(L_v_i_vertex);
 	}
+	mtx_595[v].lock();
 	for (auto& label : Hash[v]) {
 		T_dij_595[used_id][label.first] = label.second.first;
 		T_changed_vertices.push(label.first);
@@ -64,23 +64,17 @@ void Gather(int v, vector<int>& ActiveVertices) {
 		int u = it.vertex;
 		double query_v_u = std::numeric_limits<double>::max();
 #ifdef _WIN32
-		mtx_595[u].lock();
 		auto L_u_size = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
-		mtx_595[u].unlock();
 		for (int i = 0; i < L_u_size; i++) {
-			mtx_595[u].lock();      // put lock in for loop is very slow, but it may be the only way under Windows
 			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];
-			mtx_595[u].unlock();
 			if (query_v_u > dis) { query_v_u = dis; }
 		} //求query的值
 #else
-		mtx_595[u].lock();
 		auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
 		for (int i = 0; i < L_u_size1; i++) {
 			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
 			if (query_v_u > dis) { query_v_u = dis; }
 		} //求query的值
-		mtx_595[u].unlock();
 #endif
 		mtx_595[u].lock();
 		for (auto& label : Hash[u]) {
@@ -134,7 +128,11 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		Hash[u][u] = { 0,u };
 	}
 
+	int mmm = 0;
+
 	while (ActiveVertices.size()) {
+
+		cout << "while " << ++mmm << endl;
 
 		for (auto a : ActiveVertices) {
 			results.emplace_back(
@@ -532,7 +530,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool use_has
 		}
 		Qid_595.push(i);
 	}
-	int batch_size = 512;
+	int batch_size = N; // 512 is very slow
 	int batch_ID = 0;
 	vector<int> batch_V;
 	for (int v_k = 0; v_k < N; v_k++) {
