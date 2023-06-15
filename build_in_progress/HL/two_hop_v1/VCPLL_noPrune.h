@@ -190,7 +190,7 @@ void clean_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& result
 	results.clear();
 }
 
-void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted, int num_of_threads, int T, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
+void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
 {
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
 	//cout << "step 1: initialization" << endl;
@@ -461,7 +461,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 		}
 		Qid_595.push(i);
 	}
-	int batch_size = N / T;
+	int batch_size = 512;
 	int push_num = 0;
 	vector<int> batch_V;
 	for (int v_k = 0; v_k < N; v_k++) {

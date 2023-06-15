@@ -165,7 +165,6 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		results.clear();
 	}
 
-
 	/*hash cleaning and insert L_temp_595*/
 	for (int v = 0; v < N; v++) {
 		if (use_hash_clean) {
@@ -534,13 +533,14 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool use_has
 		Qid_595.push(i);
 	}
 	int batch_size = 512;
-	int push_num = 0;
+	int batch_ID = 0;
 	vector<int> batch_V;
 	for (int v_k = 0; v_k < N; v_k++) {
 		if (ideal_graph_595[v_k].size() > 0) {  // not from isolated vertices
 			batch_V.push_back(v_k);
 		}
 		if (batch_V.size() == batch_size || v_k == N - 1) {
+			cout << "batch_process " << ++batch_ID << endl;
 			batch_process(N, batch_V, pool, results, use_hash_clean);
 			vector<int>().swap(batch_V);
 		}

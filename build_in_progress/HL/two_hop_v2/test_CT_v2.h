@@ -84,7 +84,7 @@ pair<double, double> querying(graph_hash_of_mixed_weighted_CT_v2_case_info& case
 void test_CT() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e1, iteration_source_times = 100, iteration_terminal_times = 100;
+	int iteration_graph_times = 1e0, iteration_source_times = 100, iteration_terminal_times = 100;
 	int V = 100, E = 1000, precision = 1;
 	double ec_min = 0.1, ec_max = 1; // since ec_min = 0.01, precision should be at least 2! Otherwise ec may be 0, and causes bugs in CT
 
@@ -134,7 +134,7 @@ void test_CT() {
 			avg_CT_index_bit_size = avg_CT_index_bit_size + case_info.compute_label_bit_size() / iteration_graph_times;
 
 			/*print sub_time*/
-			if (0) {
+			if (1) {
 				cout << "case_info.time1_initialization = " << case_info.time1_initialization << "s" << endl;
 				cout << "case_info.time2_tree_decomposition = " << case_info.time2_tree_decomposition << "s" << endl;
 				cout << "case_info.time3_tree_indexs = " << case_info.time3_tree_indexs << "s" << endl;
