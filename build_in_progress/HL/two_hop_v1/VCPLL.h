@@ -83,13 +83,15 @@ void Gather(int v, vector<int>& ActiveVertices, int used_id) {
 	}
 	if (L_595[v].size()) {
 		mtx_595[v].lock();
+		auto& it2 = Hash[v];
 		for (auto& label : L_595[v]) {
-			if (Hash[v].count(label.vertex) == 0) {
-				Hash[v][label.vertex] = { label.distance,label.parent_vertex };
+			auto it3 = it2.find(label.vertex);
+			if (it3 == it2.end()) {
+				it2[label.vertex] = { label.distance,label.parent_vertex };
 			}
 			else {
-				if (Hash[v][label.vertex].first > label.distance) {
-					Hash[v][label.vertex] = { label.distance,label.parent_vertex };
+				if (it3->second.first > label.distance) {
+					it3->second = { label.distance,label.parent_vertex };
 				}
 			}
 		}
@@ -98,6 +100,8 @@ void Gather(int v, vector<int>& ActiveVertices, int used_id) {
 		ActiveVertices.push_back(v);
 		mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 	}
+
+	vector<two_hop_label_v1>().swap(Messages[v]);
 
 	while (T_changed_vertices.size()) {
 		T_dij_595[used_id][T_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate T values
