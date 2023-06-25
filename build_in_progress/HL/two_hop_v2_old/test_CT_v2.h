@@ -84,8 +84,8 @@ pair<double, double> querying(graph_hash_of_mixed_weighted_CT_v2_case_info& case
 void test_CT() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e2, iteration_source_times = 100, iteration_terminal_times = 100;
-	int V = 100, E = 150, precision = 1;
+	int iteration_graph_times = 2e0, iteration_source_times = 100, iteration_terminal_times = 100;
+	int V = 2000, E = 10000, precision = 1;
 	double ec_min = 0.1, ec_max = 1; // since ec_min = 0.01, precision should be at least 2! Otherwise ec may be 0, and causes bugs in CT
 
 
@@ -121,9 +121,9 @@ void test_CT() {
 		case_info.two_hop_case_info.use_2019R2 = 1;
 		case_info.two_hop_case_info.use_enhanced2019R2 = 0;
 		case_info.two_hop_case_info.use_non_adj_reduc_degree = 0;
-		case_info.two_hop_case_info.use_canonical_repair = 1;
-		case_info.d = 20;
-		case_info.use_PLL = 1;
+		case_info.two_hop_case_info.use_canonical_repair = 0;
+		case_info.d = 0;
+		case_info.use_PLL = -1;
 		case_info.thread_num = 5;
 		if (1) {	
 			auto begin = std::chrono::high_resolution_clock::now();
@@ -262,38 +262,6 @@ void test_CT() {
 
 			}
 
-		}
-
-
-		/*due to global query values, use PLL and PSL after check*/
-
-		/*PLL*/
-		if (0) {
-			graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-			mm.use_2019R1 = case_info.two_hop_case_info.use_2019R1;
-			mm.use_2019R2 = case_info.two_hop_case_info.use_2019R2;
-			mm.use_enhanced2019R2 = case_info.two_hop_case_info.use_enhanced2019R2;
-			mm.use_non_adj_reduc_degree = case_info.two_hop_case_info.use_non_adj_reduc_degree;
-			auto begin = std::chrono::high_resolution_clock::now();
-			graph_hash_of_mixed_weighted_PLL_v1(instance_graph, V + 1, 1, case_info.thread_num, mm);
-			auto end = std::chrono::high_resolution_clock::now();
-			double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-			avg_PLL_time = avg_PLL_time + runningtime / iteration_graph_times;
-			avg_PLL_index_bit_size = avg_PLL_index_bit_size + mm.compute_label_bit_size() / iteration_graph_times;
-		}
-		/*PSL*/
-		if (0) {
-			graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-			mm.use_2019R1 = case_info.two_hop_case_info.use_2019R1;
-			mm.use_2019R2 = case_info.two_hop_case_info.use_2019R2;
-			mm.use_enhanced2019R2 = case_info.two_hop_case_info.use_enhanced2019R2;
-			mm.use_non_adj_reduc_degree = case_info.two_hop_case_info.use_non_adj_reduc_degree;
-			auto begin = std::chrono::high_resolution_clock::now();
-			graph_hash_of_mixed_weighted_PSL_v1(instance_graph, V + 1, case_info.thread_num, mm);
-			auto end = std::chrono::high_resolution_clock::now();
-			double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-			avg_PSL_time = avg_PSL_time + runningtime / iteration_graph_times;
-			avg_PSL_index_bit_size = avg_PSL_index_bit_size + mm.compute_label_bit_size() / iteration_graph_times;
 		}
 	}
 

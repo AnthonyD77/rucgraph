@@ -13,95 +13,120 @@
 
 /*global values*/
 vector<vector<two_hop_label_v1>> Messages;
+vector<unordered_map<int, pair<double, int>>> Hash;
 
 void Scatter(int a) {
 	int a_adj_size = ideal_graph_595[a].size();
 	for (int i = 0; i < a_adj_size; i++) {
 		int v = ideal_graph_595[a][i].first; // this needs to be locked
 		double ec = ideal_graph_595[a][i].second;
-
-		mtx_595[v].lock();
-		for (auto& it : L_595[a]) {	
+	
+		for (auto& it : L_595[a]) {
 			if (it.vertex < v) {
 				two_hop_label_v1 x;
 				x.vertex = it.vertex;
 				x.distance = it.distance + ec;
 				x.parent_vertex = a;
+				mtx_595[v].lock();
 				Messages[v].push_back(x);
-			}		
-		}
-		mtx_595[v].unlock();
+				mtx_595[v].unlock();
+			}
+		}	
 	}
 }
 
-void Gather(int v, vector<int>& ActiveVertices) {
+void Gather(int v, vector<int>& ActiveVertices, int used_id) {
 
-	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-	int used_id = Qid_595.front();
-	Qid_595.pop();
-	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+	auto& TT = T_dij_595[used_id];
+	
+	vector<int> T_changed_vertices;
 
+	/*new idea: remove redundant labels in Messages[v]   (there may be multiple labels in Messages[v] with the same hub, you only need to keep the minimum distance one)*/
+	vector<two_hop_label_v1> new_Messages_v;
+	for (auto& it : Messages[v]) {
+		int u = it.vertex;
+		if (TT[u] > it.distance) {
+			TT[u] = it.distance;
+		}
+	}
+	for (auto& it : Messages[v]) {
+		int u = it.vertex;
+		if (TT[u] == it.distance) {
+			new_Messages_v.push_back(it);
+			TT[u] = std::numeric_limits<double>::max();
+		}
+	}
+
+	/*L_temp_595 is not needed when there is only 1 batch*/
+	//int L_v_size = L_temp_595[v].size(); 
+	//for (int i = 0; i < L_v_size; i++) {
+	//	int L_v_i_vertex = L_temp_595[v][i].vertex;
+	//	TT[L_v_i_vertex] = L_temp_595[v][i].distance; //allocate T values for L_temp_595[v_k]
+	//	T_changed_vertices.push_back(L_v_i_vertex);
+	//}
 	mtx_595[v].lock();
-	queue<int> T_changed_vertices;
-	int L_v_size = L_temp_595[v].size();
-	for (int i = 0; i < L_v_size; i++) {
-		int L_v_i_vertex = L_temp_595[v][i].vertex;
-		T_dij_595[used_id][L_v_i_vertex] = L_temp_595[v][i].distance; //allocate T values for L_temp_595[v_k]
-		T_changed_vertices.push(L_v_i_vertex);
+	for (auto& label : Hash[v]) {
+		TT[label.first] = label.second.first;
+		T_changed_vertices.push_back(label.first);
 	}
 	mtx_595[v].unlock();
 
 	vector<two_hop_label_v1>().swap(L_595[v]);
 
-	//cout << "Messages[v].size(): " << Messages[v].size() << endl;
+	for (auto& it : new_Messages_v) {
 
-	for (auto& it : Messages[v]) {
+		if (TT[it.vertex] < it.distance + 1e-5) { // new idea, can accelerate
+			continue;
+		}
+
 		int u = it.vertex;
 		double query_v_u = std::numeric_limits<double>::max();
-#ifdef _WIN32
+//#ifdef _WIN32
+//		auto L_u_size = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
+//		for (int i = 0; i < L_u_size; i++) {
+//			double dis = L_temp_595[u][i].distance + TT[L_temp_595[u][i].vertex];
+//			if (query_v_u > dis) { query_v_u = dis; }
+//		} //求query的值
+//#else
+//		auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
+//		for (int i = 0; i < L_u_size1; i++) {
+//			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
+//			if (query_v_u > dis) { query_v_u = dis; }
+//		} //求query的值
+//#endif
+		/*it is too slow to add the following codes, since it makes it necessary to lock Hash; but it's necessary when there is just 1 batch, as L_temp_595 is empty when processing this batch*/
 		mtx_595[u].lock();
-		auto L_u_size = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
-		mtx_595[u].unlock();
-		for (int i = 0; i < L_u_size; i++) {
-			mtx_595[u].lock();      // put lock in for loop is very slow, but it may be the only way under Windows
-			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];
-			mtx_595[u].unlock();
+		for (auto& label : Hash[u]) {
+			double dis = label.second.first + TT[label.first];
 			if (query_v_u > dis) { query_v_u = dis; }
-		} //求query的值		
-#else
-		mtx_595[u].lock();
-		auto L_u_size1 = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
-		for (int i = 0; i < L_u_size1; i++) {
-			double dis = L_temp_595[u][i].distance + T_dij_595[used_id][L_temp_595[u][i].vertex];   // dont know why this code does not work under Windows
-			if (query_v_u > dis) { query_v_u = dis; }
-		} //求query的值
+		}
 		mtx_595[u].unlock();
-#endif
-		
+
 		if (it.distance + 1e-5 < query_v_u) {
 			L_595[v].push_back(it);
 		}
-		if (L_595[v].size()) {
-			mtx_595[v].lock();
-			L_temp_595[v].insert(L_temp_595[v].end(), L_595[v].begin(), L_595[v].end());
-			mtx_595[v].unlock();
-			mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-			ActiveVertices.push_back(v);
-			mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+	}
+	if (L_595[v].size()) {
+		mtx_595[v].lock();
+		auto& it2 = Hash[v];
+		for (auto& label : L_595[v]) { // since redundant labels in Messages[v] have been removed, it's guarantted that it2[label.vertex].first < label.distance
+			it2[label.vertex] = { label.distance,label.parent_vertex };
 		}
+		mtx_595[v].unlock();
+		mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+		ActiveVertices.push_back(v);
+		mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 	}
 
-	while (T_changed_vertices.size() > 0) {
-		T_dij_595[used_id][T_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate T values
-		T_changed_vertices.pop();
-	}
+	vector<two_hop_label_v1>().swap(Messages[v]);
 
-	mtx_595[max_N_ID_for_mtx_595 - 1].lock();
-	Qid_595.push(used_id);
-	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+	for (auto v : T_changed_vertices) {
+		TT[v] = std::numeric_limits<double>::max(); // reverse-allocate T values
+	}
+	vector<int>().swap(T_changed_vertices);
 }
 
-void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<std::future<int>>& results) {
+void batch_process(int N, vector<int>& batch_V, int num_of_threads, ThreadPool& pool, std::vector<std::future<int>>& results, bool use_hash_clean) {
 
 	auto ActiveVertices = batch_V;
 	for (auto u : ActiveVertices) {
@@ -111,16 +136,28 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		x.parent_vertex = u;
 		L_595[u] = { x };
 		L_temp_595[u].push_back(x);
+		Hash[u][u] = { 0,u };
 	}
 
+	vector<vector<int>> Vs(num_of_threads);
+
+	int mmm = 0;
+
 	while (ActiveVertices.size()) {
+		cout << "while Scatter " << ++mmm << endl;
 
-		cout << "x" << endl;
-
+		int xx1 = 0;
 		for (auto a : ActiveVertices) {
+			Vs[xx1++ % num_of_threads].push_back(a);
+		}
+		for (int i = 0; i < num_of_threads; i++) {
+			auto& p = Vs[i];
 			results.emplace_back(
-				pool.enqueue([a] { // pass const type value j to thread; [] can be empty
-					Scatter(a);
+				pool.enqueue([&p] { // pass const type value j to thread; [] can be empty
+					for (auto v : p) {
+						Scatter(v);
+					}
+					vector<int>().swap(p);
 					return 1; // return to results; the return type must be the same with results
 					})
 			);
@@ -128,28 +165,89 @@ void batch_process(int N, vector<int>& batch_V, ThreadPool& pool, std::vector<st
 		for (auto&& result : results)
 			result.get(); //all threads finish here
 		results.clear();
-		vector<int>().swap(ActiveVertices);
 
+		cout << "while Gather " << mmm << endl;
+
+		vector<int>().swap(ActiveVertices);
 		auto& xx = ActiveVertices;
+
 		for (int v = 0; v < N; v++) {
 			if (Messages[v].size()) {
-				results.emplace_back(
-					pool.enqueue([v, &xx] { // pass const type value j to thread; [] can be empty
-						Gather(v, xx);
-						return 1; // return to results; the return type must be the same with results
-						})
-				);
+				Vs[xx1++ % num_of_threads].push_back(v);
 			}
+		}
+		for (int i = 0; i < num_of_threads; i++) {
+			auto& p = Vs[i];
+			results.emplace_back(
+				pool.enqueue([&p, &xx, i] { // pass const type value j to thread; [] can be empty
+					for (auto v : p) {
+						Gather(v, xx, i);
+					}
+					vector<int>().swap(p);
+					return 1; // return to results; the return type must be the same with results
+					})
+			);
 		}
 		for (auto&& result : results)
 			result.get(); //all threads finish here
 		results.clear();
 	}
 
-	cout << "y" << endl;
+	/*hash cleaning and insert L_temp_595*/
+	for (int v = 0; v < N; v++) {
+		if (use_hash_clean) {
+			results.emplace_back(
+				pool.enqueue([v] { // pass const type value j to thread; [] can be empty					
+					for (auto& label : Hash[v]) {
+						int u = label.first;
+						/*query d_uv*/
+						double query_v_u = std::numeric_limits<double>::max();
+						for (auto& label2 : Hash[u]) {
+							if (Hash[v].count(label2.first) == 1) {
+								double query_d = Hash[v][label2.first].first + label2.second.first;
+								if (query_d < query_v_u) {
+									query_v_u = query_d;
+								}
+							}
+						}
+						/*clean*/
+						if (query_v_u + 1e-5 > label.second.first) {
+							two_hop_label_v1 x;
+							x.vertex = label.first;
+							x.distance = label.second.first;
+							x.parent_vertex = label.second.second;
+							L_temp_595[v].push_back(x);
+						}
+						//else {
+						//	cout << "clean" << endl;
+						//}
+					}
+					return 1; // return to results; the return type must be the same with results
+					})
+			);
+		}
+		else {
+			results.emplace_back(
+				pool.enqueue([v] { // pass const type value j to thread; [] can be empty					
+					for (auto& label : Hash[v]) {
+						two_hop_label_v1 x;
+						x.vertex = label.first;
+						x.distance = label.second.first;
+						x.parent_vertex = label.second.second;
+						L_temp_595[v].push_back(x);
+					}
+					return 1; // return to results; the return type must be the same with results
+					})
+			);
+		}
+		vector<two_hop_label_v1>().swap(L_595[v]);
+	}
+	for (auto&& result : results)
+		result.get(); //all threads finish here
+	results.clear();
 
 	for (int v = 0; v < N; v++) {
-		vector<two_hop_label_v1>().swap(L_595[v]);
+		unordered_map<int, pair<double, int>>().swap(Hash[v]);
 	}
 }
 
@@ -189,12 +287,12 @@ void clean_labels(int N, ThreadPool& pool, std::vector<std::future<int>>& result
 				})
 		);
 	}
+	for (auto&& result : results)
+		result.get(); //all threads finish here
+	results.clear();
 }
 
-
-/*the following parallel PLL_with_non_adj_reduction code cannot be run parallelly, due to the above globel values*/
-
-void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted, int num_of_threads, int T, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
+void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool use_hash_clean, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
 {
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
 	//cout << "step 1: initialization" << endl;
@@ -224,6 +322,7 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	L_595.resize(max_N_ID); // deltaL
 	L_temp_595.resize(max_N_ID); // L
 	Messages.resize(max_N_ID);
+	Hash.resize(max_N_ID);
 	int N = input_graph.hash_of_vectors.size();
 
 	/*sorting vertices*/
@@ -241,12 +340,12 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	unordered_map<int, int> vertexID_old_to_new;
 	vertexID_new_to_old_595.resize(N);
 	for (int i = 0; i < N; i++) {
-		//vertexID_old_to_new[sorted_vertices[i].first] = i;
-		//vertexID_new_to_old_595[i] = sorted_vertices[i].first;
-
-		vertexID_old_to_new[i] = i;
-		vertexID_new_to_old_595[i] = i;
+		vertexID_old_to_new[sorted_vertices[i].first] = i;
+		vertexID_new_to_old_595[i] = sorted_vertices[i].first;
+		//vertexID_old_to_new[i] = i;
+		//vertexID_new_to_old_595[i] = i;
 	}
+	//cout << "rank above" << endl;
 	vector<pair<int, int>>().swap(sorted_vertices);
 	ideal_graph_595 = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID(input_graph, vertexID_old_to_new);
 
@@ -311,10 +410,6 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	}
 
 	/*reduction 2; 用了2019 R2 enhance之后的图就是weighted，不能使用Unweighted bfs了！*/
-	if (weighted == 0 && case_info.use_2019R2 + case_info.use_enhanced2019R2 > 0) {
-		cout << "weighted = 1; // 用了2019 R2 enhance之后的图就是weighted，不能使用Unweighted bfs了！" << endl;
-		weighted = 1;
-	}
 	begin = std::chrono::high_resolution_clock::now();
 	if (case_info.use_2019R2) {
 		case_info.MG_num = 0;
@@ -456,24 +551,20 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	T_dij_595.resize(num_of_threads);
 	for (int i = 0; i < num_of_threads; i++)
 	{
-		P_dij_595[i].resize(N);
-		T_dij_595[i].resize(N);
-		for (int j = 0; j < N; j++)
-		{
-			P_dij_595[i][j] = std::numeric_limits<double>::max();
-			T_dij_595[i][j] = std::numeric_limits<double>::max();
-		}
+		P_dij_595[i].resize(N, std::numeric_limits<double>::max());
+		T_dij_595[i].resize(N, std::numeric_limits<double>::max());
 		Qid_595.push(i);
 	}
-	int batch_size = N / T;
-	int push_num = 0;
+	int batch_size = N; // 512 is very slow
+	int batch_ID = 0;
 	vector<int> batch_V;
 	for (int v_k = 0; v_k < N; v_k++) {
 		if (ideal_graph_595[v_k].size() > 0) {  // not from isolated vertices
-			batch_V.push_back(v_k);	
+			batch_V.push_back(v_k);
 		}
 		if (batch_V.size() == batch_size || v_k == N - 1) {
-			batch_process(N, batch_V, pool, results);
+			cout << "batch_process " << ++batch_ID << endl;
+			batch_process(N, batch_V, num_of_threads, pool, results, use_hash_clean);
 			vector<int>().swap(batch_V);
 		}
 	}
@@ -482,6 +573,9 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
 	clean_labels(N, pool, results);/*remove redundant labels*/
+
+
+	//graph_v_of_v_idealID_print(ideal_graph_595);
 
 /*
 	update predecessors for this non_adj_reduction,
@@ -564,4 +658,5 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighte
 
 	graph_hash_of_mixed_weighted_two_hop_clear_global_values();
 	vector<vector<two_hop_label_v1>>().swap(Messages);
+	vector<unordered_map<int, pair<double, int>>>().swap(Hash);
 }
