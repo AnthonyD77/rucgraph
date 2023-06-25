@@ -20,8 +20,6 @@ bool operator<(PLL_v1_node_for_sp const& x, PLL_v1_node_for_sp const& y) {
 }
 typedef typename boost::heap::fibonacci_heap<PLL_v1_node_for_sp>::handle_type graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp;
 
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL_dummy_v1.h>
-
 void update_2019R1_condition_PLL_with_non_adj_reduction(int v1, int ideal_graph_size, vector<int>* reduction_measures_2, vector<int>* f_2019R1) {
 	/*here, we assume v1 and v2 have the same number of adjs*/
 
@@ -194,9 +192,11 @@ void graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(int v_k, i
 						node.vertex = adj_v;
 						node.parent_vertex = u;
 						node.priority_value = P_u + ec;
-						Q_handles[adj_v] = Q.push(node);
-						P_dij_595[used_id][adj_v] = node.priority_value;
-						P_changed_vertices.push(adj_v);
+						if (!global_use_2M_prune || node.priority_value < TwoM_value) {
+							Q_handles[adj_v] = Q.push(node);
+							P_dij_595[used_id][adj_v] = node.priority_value;
+							P_changed_vertices.push(adj_v);
+						}
 					}
 					else {
 						if (P_dij_595[used_id][adj_v] > P_u + ec) {
@@ -399,13 +399,15 @@ void graph_hash_of_mixed_weighted_PLL_v1
 	//cout << "step 1: initialization" << endl;
 
 	auto begin = std::chrono::high_resolution_clock::now();
+
 	/*information prepare*/
 	begin_time_595 = std::chrono::high_resolution_clock::now();
 	max_run_time_nanoseconds_595 = case_info.max_run_time_seconds * 1e9;
 	labal_size_595 = 0;
 	max_labal_size_595 = case_info.max_labal_size;
 
-	full_two_hop_labels = !case_info.use_dummy_dij_search_in_PLL;
+	global_use_2M_prune = case_info.use_2M_prune;
+	full_two_hop_labels = !case_info.use_2M_prune;
 
 	if (max_N_ID > max_N_ID_for_mtx_595) {
 		cout << "max_N_ID > max_N_ID_for_mtx_595; max_N_ID_for_mtx_595 is too small!" << endl;
@@ -669,22 +671,12 @@ void graph_hash_of_mixed_weighted_PLL_v1
 		int push_num = 0;
 		for (int v_k = 0; v_k < N; v_k++) {
 			if (ideal_graph_595[v_k].size() > 0) {  // not from isolated vertices
-				if (case_info.use_dummy_dij_search_in_PLL) {
-					results.emplace_back(
-						pool.enqueue([v_k, N] { // pass const type value j to thread; [] can be empty
-							graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed_dummy(v_k, N);
-							return 1; // return to results; the return type must be the same with results
-							})
-					);
-				}
-				else {
-					results.emplace_back(
-						pool.enqueue([v_k, N] { // pass const type value j to thread; [] can be empty
-							graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(v_k, N);
-							return 1; // return to results; the return type must be the same with results
-							})
-					);
-				}
+				results.emplace_back(
+					pool.enqueue([v_k, N] { // pass const type value j to thread; [] can be empty
+						graph_hash_of_mixed_weighted_HL_PLL_v1_thread_function_dij_mixed(v_k, N);
+						return 1; // return to results; the return type must be the same with results
+						})
+				);
 				push_num++;
 			}
 			if (push_num % num_of_threads_per_push == 0) {

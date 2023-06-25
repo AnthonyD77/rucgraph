@@ -304,7 +304,8 @@ void VCPLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool use_has
 	labal_size_595 = 0;
 	max_labal_size_595 = case_info.max_labal_size;
 
-	full_two_hop_labels = !case_info.use_dummy_dij_search_in_PLL;
+	global_use_2M_prune = case_info.use_2M_prune;
+	full_two_hop_labels = !case_info.use_2M_prune;
 
 	if (max_N_ID > max_N_ID_for_mtx_595) {
 		cout << "max_N_ID > max_N_ID_for_mtx_595; max_N_ID_for_mtx_595 is too small!" << endl;

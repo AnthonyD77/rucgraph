@@ -49,6 +49,8 @@ vector<int> f_2019R1_new_ID;
 vector<vector<two_hop_label_v1>> incremental_label_vectors;
 vector <vector<pair<int, double>>> adjs_new_IDs;
 vector<pair<int, double>> min_adjs_new_IDs;
+bool global_use_2M_prune = false;
+double TwoM_value = 2 * 1e6; // suppose that dummy edge has a weight of 1e6
 
 void graph_hash_of_mixed_weighted_two_hop_clear_global_values() {
 
@@ -100,11 +102,11 @@ class graph_hash_of_mixed_weighted_two_hop_case_info_v1 {
 public:
 
 	/*use reduction info*/
+	bool use_2M_prune = false;
 	bool use_2019R1 = false;
 	bool use_2019R2 = false;
 	bool use_enhanced2019R2 = false;
 	bool use_non_adj_reduc_degree = false; // use_enhanced2019R2 和 use_non_adj_reduc_degree 貌似效果基本一样
-	bool use_dummy_dij_search_in_PLL = false;
 	int max_degree_MG_enhanced2019R2 = 100;
 	int reduce_V_num_2019R1 = 0, MG_num = 0;
 
