@@ -6,7 +6,7 @@
 #include <boost/heap/fibonacci_heap.hpp>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID.h>
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted_update_vertexIDs.h>
 
 
@@ -20,7 +20,7 @@ bool operator<(PLL_v1_node_for_sp const& x, PLL_v1_node_for_sp const& y) {
 }
 typedef typename boost::heap::fibonacci_heap<PLL_v1_node_for_sp>::handle_type graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp;
 
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_dummy_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL_dummy_v1.h>
 
 void update_2019R1_condition_PLL_with_non_adj_reduction(int v1, int ideal_graph_size, vector<int>* reduction_measures_2, vector<int>* f_2019R1) {
 	/*here, we assume v1 and v2 have the same number of adjs*/

@@ -14,7 +14,7 @@ using namespace std;
 #include <boost/random.hpp>
 boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
 
-#include <build_in_progress/HL/two_hop_v1/test_PLL_PSL_v1.h>
+#include <build_in_progress/HL/VtoG/test_PLL_PSL.h>
 
 
 int main()
@@ -33,9 +33,9 @@ rm A
 
 
 */
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_v1.h>
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PSL_v1.h>
-#include <build_in_progress/HL/two_hop_v1/VCPLL.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PSL_v1.h>
+#include <build_in_progress/HL/VtoG/VCPLL.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_read_graph_with_weight.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL_v1.h>
 
 /*
 suppose that 0,...,max_non_dummy_ID are non-dummy vertices, max_non_dummy_ID+1,...,max_N_ID-1 are dummy vertices
