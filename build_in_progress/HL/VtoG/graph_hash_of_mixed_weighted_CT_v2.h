@@ -5,11 +5,10 @@
 #include <cmath>
 #include <fstream>
 #include <graph_v_of_v_idealID/graph_v_of_v_idealID.h>
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_v1.h>
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PSL_v1.h>
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_PLL_dummy_v1.h>
-#include <build_in_progress/HL/two_hop_v1/VCPLL.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PSL_v1.h>
+#include <build_in_progress/HL/VtoG/VCPLL.h>
 
 
 
@@ -160,12 +159,12 @@ public:
 
 		outputFile << endl << endl;
 		outputFile << "Core info:" << endl;
+		outputFile << "use_2M_prune=" << two_hop_case_info.use_2M_prune << endl;
 		outputFile << "use_2019R1=" << two_hop_case_info.use_2019R1 << endl;
 		outputFile << "use_2019R2=" << two_hop_case_info.use_2019R2 << endl;
 		outputFile << "use_enhanced2019R2=" << two_hop_case_info.use_enhanced2019R2 << endl;
 		outputFile << "use_non_adj_reduc_degree=" << two_hop_case_info.use_non_adj_reduc_degree << endl;
-		outputFile << "max_degree_MG_enhanced2019R2=" << two_hop_case_info.max_degree_MG_enhanced2019R2 << endl;
-		outputFile << "use_dummy_dij_search_in_PLL=" << two_hop_case_info.use_dummy_dij_search_in_PLL << endl;
+		outputFile << "max_degree_MG_enhanced2019R2=" << two_hop_case_info.max_degree_MG_enhanced2019R2 << endl;		
 		outputFile << "reduce_V_num_2019R1=" << two_hop_case_info.reduce_V_num_2019R1 << endl;
 		outputFile << "MG_num=" << two_hop_case_info.MG_num << endl;
 

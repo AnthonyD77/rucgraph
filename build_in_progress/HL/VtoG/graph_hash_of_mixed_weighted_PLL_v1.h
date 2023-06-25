@@ -798,6 +798,7 @@ void graph_hash_of_mixed_weighted_PLL_v1
 			min_adjs_new_IDs[it->first] = new_ID_g.min_adj(it->first);
 		}
 		end = std::chrono::high_resolution_clock::now();
+
 		case_info.time_canonical_repair1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 
 

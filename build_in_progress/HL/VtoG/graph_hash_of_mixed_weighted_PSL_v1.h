@@ -6,9 +6,6 @@
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID.h>
 #include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
 
- 
-
-
 void update_2019R1_condition_PSL_enhancedoriginalR2(int v1, int ideal_graph_size, vector<int>* reduction_measures_2, vector<int>* f_2019R1) {
 	/*here, we assume v1 and v2 have the same number of adjs*/
 
@@ -159,6 +156,11 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_dij(int u, graph_hash_o
 
 					/* query pruning */
 					double dis = L_595[v_1][k].distance + ec + ec_2;
+
+					if (global_use_2M_prune && dis >= TwoM_value) {
+						continue;
+					}
+
 					int w_label_size = L_595[w].size();
 					bool flag = false;
 					for (int k = 0; k < w_label_size; k++)
@@ -195,6 +197,11 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_dij(int u, graph_hash_o
 
 				/* query pruning */
 				double dis = L_595[v][j].distance + ec;
+
+				if (global_use_2M_prune && dis >= TwoM_value) {
+					continue;
+				}
+
 				int w_label_size = L_595[w].size();
 				bool flag = false;
 				for (int k = 0; k < w_label_size; k++)
@@ -354,6 +361,8 @@ void graph_hash_of_mixed_weighted_PSL_v1
 	labal_size_595 = 0;
 	max_labal_size_595 = case_info.max_labal_size;
 
+	global_use_2M_prune = case_info.use_2M_prune;
+	full_two_hop_labels = !case_info.use_2M_prune;
 
 	mtx_595_1.lock();
 	if (this_parallel_PLL_PSL_is_running_595 == true) {

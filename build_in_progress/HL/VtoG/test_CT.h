@@ -12,7 +12,7 @@ using namespace std;
 // header files in the Boost library: https://www.boost.org/
 #include <boost/random.hpp>
 boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
-#include <build_in_progress/HL/two_hop_v2/test_CT_v2.h>
+#include <build_in_progress/HL/VtoG/test_CT.h>
 
 int main()
 {
@@ -22,7 +22,7 @@ int main()
 ---------------------------------------------------------------------------------------------
 
 */
-#include <build_in_progress/HL/two_hop_v2/graph_hash_of_mixed_weighted_CT_v2.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_CT_v2.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_read_graph_with_weight.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>
@@ -84,8 +84,8 @@ pair<double, double> querying(graph_hash_of_mixed_weighted_CT_v2_case_info& case
 void test_CT() {
 
 	/*parameters*/
-	int iteration_graph_times = 2e0, iteration_source_times = 100, iteration_terminal_times = 100;
-	int V = 2000, E = 10000, precision = 1;
+	int iteration_graph_times = 1e1, iteration_source_times = 100, iteration_terminal_times = 100;
+	int V = 100, E = 500, precision = 1;
 	double ec_min = 0.1, ec_max = 1; // since ec_min = 0.01, precision should be at least 2! Otherwise ec may be 0, and causes bugs in CT
 
 
@@ -123,7 +123,7 @@ void test_CT() {
 		case_info.two_hop_case_info.use_non_adj_reduc_degree = 0;
 		case_info.two_hop_case_info.use_canonical_repair = 0;
 		case_info.d = 0;
-		case_info.use_PLL = -1;
+		case_info.use_PLL = 1;
 		case_info.thread_num = 5;
 		if (1) {	
 			auto begin = std::chrono::high_resolution_clock::now();
