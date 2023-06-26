@@ -161,7 +161,7 @@ void test_PLL_PSL() {
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 	mm.use_2019R1 = 0;
-	mm.use_2019R2 = 0;
+	mm.use_2019R2 = 1;
 	mm.use_enhanced2019R2 = 0;
 	mm.use_non_adj_reduc_degree = 0;
 	mm.max_degree_MG_enhanced2019R2 = 100;
