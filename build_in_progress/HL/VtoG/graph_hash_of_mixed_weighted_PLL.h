@@ -6,7 +6,7 @@
 #include <boost/heap/fibonacci_heap.hpp>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID.h>
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels.h>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted_update_vertexIDs.h>
 
 
@@ -392,8 +392,7 @@ vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HL_PLL_v1_transfor
 
 /*the following parallel PLL_with_non_adj_reduction code cannot be run parallelly, due to the above globel values*/
 
-void graph_hash_of_mixed_weighted_PLL_v1
-(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
+void PLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info)
 {
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
 	//cout << "step 1: initialization" << endl;

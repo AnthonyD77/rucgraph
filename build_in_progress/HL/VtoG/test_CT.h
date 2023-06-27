@@ -22,7 +22,7 @@ int main()
 ---------------------------------------------------------------------------------------------
 
 */
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_CT_v2.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_CT.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_read_graph_with_weight.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>
@@ -76,11 +76,6 @@ pair<double, double> querying(graph_hash_of_mixed_weighted_CT_v2_case_info& case
 	return { query_dis_avg_time , query_path_avg_time };
 }
 
-
-
-
-
-
 void test_CT() {
 
 	/*parameters*/
@@ -127,7 +122,7 @@ void test_CT() {
 		case_info.thread_num = 5;
 		if (1) {	
 			auto begin = std::chrono::high_resolution_clock::now();
-			CT_v2(instance_graph, V + 1, case_info);
+			CT(instance_graph, V + 1, case_info);
 			auto end = std::chrono::high_resolution_clock::now();
 			double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 			avg_CT_time = avg_CT_time + runningtime / iteration_graph_times;

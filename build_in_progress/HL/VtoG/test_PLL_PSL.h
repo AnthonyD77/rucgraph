@@ -33,8 +33,8 @@ rm A
 
 
 */
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL_v1.h>
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PSL_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PSL.h>
 #include <build_in_progress/HL/VtoG/VCPLL.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_read_graph_with_weight.h>
@@ -191,10 +191,10 @@ void test_PLL_PSL() {
 		auto begin = std::chrono::high_resolution_clock::now();
 		try {
 			if (use_PLL) {
-				graph_hash_of_mixed_weighted_PLL_v1(instance_graph, V + 1, weighted, thread_num, mm);
+				PLL(instance_graph, V + 1, weighted, thread_num, mm);
 			}
 			else {
-				graph_hash_of_mixed_weighted_PSL_v1(instance_graph, V + 1, thread_num, mm);
+				PSL(instance_graph, V + 1, thread_num, mm);
 			}
 			if (0) {
 				cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
@@ -233,10 +233,10 @@ void test_PLL_PSL() {
 		if (1) {
 			auto mm2 = mm;
 			if (!use_PLL) { // use different method here
-				graph_hash_of_mixed_weighted_PLL_v1(instance_graph, V + 1, weighted, 1, mm2); // single thread
+				PLL(instance_graph, V + 1, weighted, 1, mm2); // single thread
 			}
 			else {
-				graph_hash_of_mixed_weighted_PSL_v1(instance_graph, V + 1, 1, mm2); // single thread
+				PSL(instance_graph, V + 1, 1, mm2); // single thread
 			}
 
 			auto& L1 = mm.L;
@@ -427,7 +427,7 @@ void example_PLL_PSL() {
 	mm.max_run_time_seconds = 1e9;
 	mm.use_canonical_repair = true;
 
-	graph_hash_of_mixed_weighted_PSL_v1(g, 10, 1, mm);
+	PSL(g, 10, 1, mm);
 
 
 

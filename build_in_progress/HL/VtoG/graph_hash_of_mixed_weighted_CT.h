@@ -5,9 +5,9 @@
 #include <cmath>
 #include <fstream>
 #include <graph_v_of_v_idealID/graph_v_of_v_idealID.h>
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL_v1.h>
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PSL_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PLL.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_PSL.h>
 #include <build_in_progress/HL/VtoG/VCPLL.h>
 
 
@@ -310,7 +310,7 @@ void dfs(int& total, vector<int>& first_pos, int x, vector<vector<int>>& son, ve
 
 /*indexing function*/
 
-void CT_v2(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_of_mixed_weighted_CT_v2_case_info& case_info) {
+void CT(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_of_mixed_weighted_CT_v2_case_info& case_info) {
 
 
 	//--------------------------------- step 1: initialization ---------------------------
@@ -783,10 +783,10 @@ void CT_v2(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_o
 	}
 	case_info.core_graph = hash_g;
 	if (case_info.use_PLL == 1) {
-		graph_hash_of_mixed_weighted_PLL_v1(hash_g, max_N_ID, 1, case_info.thread_num, case_info.two_hop_case_info);
+		PLL(hash_g, max_N_ID, 1, case_info.thread_num, case_info.two_hop_case_info);
 	}
 	else if (case_info.use_PLL == 0) {
-		graph_hash_of_mixed_weighted_PSL_v1(hash_g, max_N_ID, case_info.thread_num, case_info.two_hop_case_info);
+		PSL(hash_g, max_N_ID, case_info.thread_num, case_info.two_hop_case_info);
 	}
 	else if (case_info.use_PLL == -1) {
 		VCPLL(hash_g, max_N_ID, 1, case_info.thread_num, case_info.two_hop_case_info);

@@ -4,7 +4,7 @@
 #include <shared_mutex>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID.h>
-#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
+#include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_two_hop_labels.h>
 
 void update_2019R1_condition_PSL_enhancedoriginalR2(int v1, int ideal_graph_size, vector<int>* reduction_measures_2, vector<int>* f_2019R1) {
 	/*here, we assume v1 and v2 have the same number of adjs*/
@@ -343,8 +343,7 @@ void clean_L_element(int u) {
 
 }
 
-void graph_hash_of_mixed_weighted_PSL_v1
-(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info) {
+void PSL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1& case_info) {
 
 	//----------------------------------- step 1: initialization ------------------------------------------------------------------
 
