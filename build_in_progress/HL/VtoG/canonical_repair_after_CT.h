@@ -13,6 +13,22 @@ public:
 	double time_prepare = 0;
 	double time_repair = 0;
 
+	/*record_all_details*/
+	void record_all_details(string save_name) {
+
+		ofstream outputFile;
+		outputFile.precision(6);
+		outputFile.setf(ios::fixed);
+		outputFile.setf(ios::showpoint);
+		outputFile.open(save_name + ".txt");
+
+		outputFile << "label_size_before_canonical_repair=" << label_size_before_canonical_repair << endl;
+		outputFile << "label_size_after_canonical_repair=" << label_size_after_canonical_repair << endl;
+		outputFile << "canonical_repair_remove_label_ratio=" << canonical_repair_remove_label_ratio << endl;
+
+		outputFile << "time_prepare=" << time_prepare << endl;
+		outputFile << "time_repair=" << time_repair << endl;
+	}
 };
 
 

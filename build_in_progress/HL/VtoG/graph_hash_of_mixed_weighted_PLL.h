@@ -460,9 +460,6 @@ void PLL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, bool weighted,
 	auto end = std::chrono::high_resolution_clock::now();
 	case_info.time_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 
-	//---------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 	//----------------------------------------------- step 2: reduction ---------------------------------------------------------------
 	//cout << "step 2: reduction" << endl;
