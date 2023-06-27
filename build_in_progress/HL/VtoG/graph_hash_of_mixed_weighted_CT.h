@@ -795,8 +795,6 @@ void CT(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_of_m
 	//case_info.two_hop_case_info.print_L();
 	auto end5 = std::chrono::high_resolution_clock::now();
 	case_info.time5_core_indexs = std::chrono::duration_cast<std::chrono::nanoseconds>(end5 - begin5).count() / 1e9;
-	//--------------------------------------------------------------------------------------------------------------------
-
 
 
 
@@ -830,7 +828,6 @@ void CT(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_of_m
 
 	auto end6 = std::chrono::high_resolution_clock::now();
 	case_info.time6_post = std::chrono::duration_cast<std::chrono::nanoseconds>(end6 - begin6).count() / 1e9;
-	//---------------------------------------------------------------------------------------------------------------------------------
 
 	clear_gloval_values_CT();
 

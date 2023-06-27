@@ -118,7 +118,7 @@ void test_CT() {
 		case_info.two_hop_case_info.use_enhanced2019R2 = 0;
 		case_info.two_hop_case_info.use_non_adj_reduc_degree = 0;
 		case_info.two_hop_case_info.use_canonical_repair = 0;
-		case_info.d = 10;
+		case_info.d = 20;
 		case_info.use_PLL = 0;
 		case_info.thread_num = 5;
 		if (1) {	
