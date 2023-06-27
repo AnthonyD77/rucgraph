@@ -23,6 +23,7 @@ int main()
 
 */
 #include <build_in_progress/HL/VtoG/graph_hash_of_mixed_weighted_CT.h>
+#include <build_in_progress/HL/VtoG/canonical_repair_after_CT.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_read_graph_with_weight.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>
@@ -80,9 +81,8 @@ void test_CT() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e1, iteration_source_times = 100, iteration_terminal_times = 100;
-	int V = 100, E = 500, precision = 1;
+	int V = 1000, E = 10000, precision = 1;
 	double ec_min = 0.1, ec_max = 1; // since ec_min = 0.01, precision should be at least 2! Otherwise ec may be 0, and causes bugs in CT
-
 
 	double avg_CT_time = 0, avg_PLL_time = 0, avg_PSL_time = 0;
 	long long int avg_CT_index_bit_size = 0, avg_PLL_index_bit_size = 0, avg_PSL_index_bit_size = 0;
@@ -109,20 +109,21 @@ void test_CT() {
 			double lambda;
 			graph_hash_of_mixed_weighted_read_graph_with_weight("simple_iterative_tests.txt", instance_graph, lambda);
 		}
+		//graph_hash_of_mixed_weighted_print(instance_graph);
 
 		/*CT*/
 		graph_hash_of_mixed_weighted_CT_v2_case_info case_info;
-		case_info.two_hop_case_info.use_2019R1 = 1;
+		case_info.two_hop_case_info.use_2019R1 = 0;
 		case_info.two_hop_case_info.use_2019R2 = 1;
 		case_info.two_hop_case_info.use_enhanced2019R2 = 0;
 		case_info.two_hop_case_info.use_non_adj_reduc_degree = 0;
 		case_info.two_hop_case_info.use_canonical_repair = 0;
-		case_info.d = 0;
-		case_info.use_PLL = 1;
+		case_info.d = 10;
+		case_info.use_PLL = 0;
 		case_info.thread_num = 5;
 		if (1) {	
 			auto begin = std::chrono::high_resolution_clock::now();
-			CT(instance_graph, V + 1, case_info);
+			CT(instance_graph, V, case_info);
 			auto end = std::chrono::high_resolution_clock::now();
 			double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 			avg_CT_time = avg_CT_time + runningtime / iteration_graph_times;
@@ -138,6 +139,8 @@ void test_CT() {
 				cout << "case_info.time6_post = " << case_info.time6_post << "s" << endl;
 			}
 		}
+
+		canonical_repair_after_CT_info xxx = canonical_repair_after_CT(case_info);
 
 
 		/*debug*/

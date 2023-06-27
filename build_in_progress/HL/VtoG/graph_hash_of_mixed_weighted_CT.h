@@ -772,6 +772,7 @@ void CT(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph_hash_of_m
 	graph_hash_of_mixed_weighted hash_g;
 	int size = global_ideal_graph_CT.size();
 	for (int i = 0; i < size; i++) {
+		graph_hash_of_mixed_weighted_add_vertex(hash_g, i, 0);
 		int v_size = global_ideal_graph_CT[i].size();
 		for (int x = 0; x < v_size; x++) {
 			int j = global_ideal_graph_CT[i][x].first;
