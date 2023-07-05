@@ -56,7 +56,7 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 	*/
 
     boost::random::uniform_int_distribution<> vertex_range{static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors.size() - 1)};
-    int h = 999999;
+    int h = 99999;
 
     //graph_hash_of_mixed_weighted_print(instance_graph);
 
