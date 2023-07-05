@@ -402,17 +402,19 @@ void example_PLL_PSL() {
 	//graph_hash_of_mixed_weighted_add_edge(g, 5, 3, 10);
 	//graph_hash_of_mixed_weighted_add_edge(g, 6, 3, 10);
 	//graph_hash_of_mixed_weighted_add_edge(g, 6, 4, 10);
-
-	graph_hash_of_mixed_weighted_add_edge(g, 1, 2, 2);
-	graph_hash_of_mixed_weighted_add_edge(g, 1, 3, 3);
-	graph_hash_of_mixed_weighted_add_edge(g, 1, 0, 1);
-	graph_hash_of_mixed_weighted_add_edge(g, 2, 0, 1);
-	graph_hash_of_mixed_weighted_add_edge(g, 3, 0, 5);
-	graph_hash_of_mixed_weighted_add_edge(g, 4, 2, 20);
-	graph_hash_of_mixed_weighted_add_edge(g, 4, 0, 20);
-	graph_hash_of_mixed_weighted_add_edge(g, 5, 0, 20);
+	graph_hash_of_mixed_weighted_add_vertex(g, 0, 0);
+	graph_hash_of_mixed_weighted_add_edge(g, 2, 3, 2);
+	graph_hash_of_mixed_weighted_add_edge(g, 2, 4, 3);
+	graph_hash_of_mixed_weighted_add_edge(g, 2, 1, 1);
+	graph_hash_of_mixed_weighted_add_edge(g, 3, 1, 1);
+	graph_hash_of_mixed_weighted_add_edge(g, 4, 1, 5);
 	graph_hash_of_mixed_weighted_add_edge(g, 5, 3, 20);
-
+	graph_hash_of_mixed_weighted_add_edge(g, 5, 1, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 6, 2, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 6, 4, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 7, 1, 1);
+	graph_hash_of_mixed_weighted_add_edge(g, 7, 6, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 7, 5, 20);
 
 	//graph_hash_of_mixed_weighted_print(g);
 
@@ -426,9 +428,10 @@ void example_PLL_PSL() {
 	mm.max_labal_size = 6e9;
 	mm.max_run_time_seconds = 1e9;
 	mm.use_canonical_repair = true;
+	mm.use_2M_prune = true;
+	TwoM_value = 400;
 
 	PSL(g, 10, 1, mm);
 
-
-
+	//mm.print_L();
 }

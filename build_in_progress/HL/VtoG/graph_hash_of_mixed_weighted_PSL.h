@@ -180,6 +180,8 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_dij(int used_id, vector
 						xx.parent_vertex = v;
 						L_temp_595[u].push_back(xx);
 						if_continue_595 = true;
+
+						//cout << "add L[" << u << "] = (" << w << "," << dis << "," << v << ")" << endl;
 					}
 				}
 			}
@@ -222,7 +224,7 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_dij(int used_id, vector
 					L_temp_595[u].push_back(xx);
 					if_continue_595 = true;
 
-					//cout << "add (" << w << "," << dis << "," << v << ") to " << u << endl;
+					//cout << "add L[" << u << "] = (" << w << "," << dis << "," << v << ")" << endl;
 				}
 			}
 		}
@@ -387,6 +389,8 @@ void PSL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_thr
 	for (int i = 0; i < N; i++) {
 		vertexID_old_to_new[sorted_vertices[i].first] = i;
 		vertexID_new_to_old_595[i] = sorted_vertices[i].first;
+		//vertexID_old_to_new[i] = i;
+		//vertexID_new_to_old_595[i] = i;
 	}
 	vector<pair<int, int>>().swap(sorted_vertices);
 	ideal_graph_595 = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID(input_graph, vertexID_old_to_new);
@@ -403,8 +407,6 @@ void PSL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_thr
 
 	auto end = std::chrono::high_resolution_clock::now();
 	case_info.time_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-
-	//---------------------------------------------------------------------------------------------------------------------------------------
 
 	//graph_v_of_v_idealID_print(ideal_graph_595);
 
@@ -515,9 +517,6 @@ void PSL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_thr
 	end = std::chrono::high_resolution_clock::now();
 	case_info.time_2019R2_or_enhanced_pre = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 
-	//---------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -607,6 +606,16 @@ void PSL(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int num_of_thr
 			if_continue_595_false_time++; // if if_continue_595_false_time==2, then if_continue_595==false twice
 		}
 	}
+
+
+	//cout << "print_L before remove incorrect labels:" << endl;
+	//for (int i = 0; i < L_595.size(); i++) {
+	//	cout << "L[" << i << "]=";
+	//	for (int j = 0; j < L_595[i].size(); j++) {
+	//		cout << "{" << L_595[i][j].vertex << "," << L_595[i][j].distance << "," << L_595[i][j].parent_vertex << "}";
+	//	}
+	//	cout << endl;
+	//}
 
 	/* clean the labels in L_595 to L_temp_595*/
 	for (int u = 0; u < N; u++)
