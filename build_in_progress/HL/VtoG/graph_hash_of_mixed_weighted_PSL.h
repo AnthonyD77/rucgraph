@@ -9,6 +9,9 @@
 void update_2019R1_condition_PSL_enhancedoriginalR2(int v1, int ideal_graph_size, vector<int>* reduction_measures_2, vector<int>* f_2019R1) {
 	/*here, we assume v1 and v2 have the same number of adjs*/
 
+	if (ideal_graph_595[v1].size() == 0) {
+		return;
+	}
 
 	for (int v2 = v1 + 1; v2 < ideal_graph_size; v2++)
 	{

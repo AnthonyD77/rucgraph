@@ -144,8 +144,8 @@ void test_PLL_PSL() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e1, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 1000, E = 10000, precision = 1, thread_num = 5;
-	double ec_min = 2, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
+	int V = 100, E = 200, precision = 1, thread_num = 5;
+	double ec_min = 1, ec_max = 10;
 
 	bool use_PLL = 0; // 1: PLL 0: PSL
 
@@ -154,13 +154,10 @@ void test_PLL_PSL() {
 
 
 	bool weighted = true;
-	if (ec_min == 1 && ec_max == 1) {
-		weighted = false;
-	}
 
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-	mm.use_2019R1 = 0;
+	mm.use_2019R1 = 1;
 	mm.use_2019R2 = 1;
 	mm.use_enhanced2019R2 = 0;
 	mm.use_non_adj_reduc_degree = 0;
@@ -219,6 +216,10 @@ void test_PLL_PSL() {
 		avg_reduce_V_num_2019R1 = avg_reduce_V_num_2019R1 + (double)mm.reduce_V_num_2019R1 / iteration_graph_times;
 		avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
 		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
+
+
+		cout << "mm.reduce_V_num_2019R1: " << mm.reduce_V_num_2019R1 << endl;
+
 
 		/*debug*/
 		if (0) {
