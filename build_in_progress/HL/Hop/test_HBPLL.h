@@ -34,19 +34,21 @@ rm A
 
 */
 
-#include <build_in_progress/HL/Hop/graph_hash_of_mixed_weighted_PLL_v1.h>
-#include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
-#include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_read_graph_with_weight.h>
-#include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_save_graph_with_weight.h>
+#include "graph_v_of_v_idealID/graph_v_of_v_idealID.h"
+#include <build_in_progress/HL/Hop/graph_hash_of_mixed_weighted_HB_v1.h>
+#include <graph_v_of_v_idealID/random_graph/graph_v_of_v_idealID_generate_random_connected_graph.h>
+#include <graph_v_of_v_idealID/read_save/graph_v_of_v_idealID_read.h>
+#include <graph_v_of_v_idealID/read_save/graph_v_of_v_idealID_save.h>
+#include <graph_v_of_v_idealID/graph_v_of_v_idaelID_sort.h>
+#include <graph_v_of_v_idealID/common_algorithms/graph_v_of_v_idealID_shortest_paths.h>
+
 #include <graph_hash_of_mixed_weighted/common_algorithms/graph_hash_of_mixed_weighted_shortest_paths.h>
 
 #include <boost/random.hpp>
+#include <numeric>
 boost::random::mt19937 boost_random_time_seed{static_cast<std::uint32_t>(std::time(0))};
 
-void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mixed_weighted_two_hop_case_info_v1 &case_info,
-                                                               graph_hash_of_mixed_weighted &instance_graph,
-                                                               int iteration_source_times,
-                                                               int iteration_terminal_times)
+void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_weighted_two_hop_case_info_v1 &case_info, graph_v_of_v_idealID &instance_graph, int iteration_source_times, int iteration_terminal_times)
 {
 
     /*below is for checking whether the above labels are right (by randomly computing shortest paths)
@@ -55,31 +57,23 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 
 	*/
 
-    boost::random::uniform_int_distribution<> vertex_range{static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors.size() - 1)};
+    boost::random::uniform_int_distribution<> vertex_range{static_cast<int>(0), static_cast<int>(instance_graph.size() - 1)};
     int h = 99999;
-
-    //graph_hash_of_mixed_weighted_print(instance_graph);
 
     for (int yy = 0; yy < iteration_source_times; yy++)
     {
-
         int source = vertex_range(boost_random_time_seed);
-        std::unordered_map<int, double> distances;
-        std::unordered_map<int, int> predecessors;
+        std::vector<double> distances;
+        distances.resize(instance_graph.size());
+        std::vector<int> predecessors;
+        predecessors.resize(instance_graph.size());
 
-        //source = 0; cout << "source = " << source << endl;
-
-        graph_hash_of_mixed_weighted_shortest_paths_source_to_all(instance_graph, source, distances, predecessors);
-
+        graph_v_of_v_idealID_shortest_paths(instance_graph, source, distances, predecessors);
         for (int xx = 0; xx < iteration_terminal_times; xx++)
         {
-
             int terminal = vertex_range(boost_random_time_seed);
 
-            //terminal = 2; cout << "terminal = " << terminal << endl;
-
             double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(case_info.L, source, terminal, h);
-
             if (abs(dis - distances[terminal]) > 1e-4 && (dis < std::numeric_limits<double>::max() || distances[terminal] < std::numeric_limits<double>::max()))
             {
                 cout << "source = " << source << endl;
@@ -158,24 +152,23 @@ void graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(graph_hash_of_mix
 void test_HBPLL()
 {
     /*parameters*/
-    int iteration_graph_times = 1, iteration_source_times = 0, iteration_terminal_times = 0;
-    int V = 10000, E = 50000, precision = 1, thread_num = 5;
+    int iteration_graph_times = 1, iteration_source_times = 1000, iteration_terminal_times = 1000;
+    int V = 1e4, E = 5e4, precision = 1, thread_num = 10;
     double ec_min = 0.1, ec_max = 1;
     bool weighted = (ec_min == 1 && ec_max == 1) ? false : true;
     graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
     bool use_PLL = 1; // 1: PLL 0: PSL
 
     /*control varible*/
-    bool generate_new_graph = 0;
+    bool generate_new_graph = 1;
     bool print_time_details_in_every_loop = 1;
+    bool print_label_before_canonical_fix = 0;
     bool print_L = 0;
-    
-    /*result info*/
-    double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
-    double avg_canonical_repair_remove_label_ratio = 0;
 
     /*hop bounded upper limit*/
+    mm.use_hb = 0;
     mm.upper_k = 0; // 0 means there is no limit
+    mm.use_dij = 1;
 
     /*reduction method selection*/
     mm.use_2019R1 = 0;
@@ -185,7 +178,12 @@ void test_HBPLL()
     mm.max_degree_MG_enhanced2019R2 = 100;
     mm.max_labal_size = 6e9;
     mm.max_run_time_seconds = 1e9;
-    mm.use_canonical_repair = false;
+    mm.print_label_before_canonical_fix = print_label_before_canonical_fix;
+    mm.use_canonical_repair = true;
+
+    /*result info*/
+    double avg_index_time = 0, avg_index_size_per_v = 0, avg_reduce_V_num_2019R1 = 0, avg_MG_num = 0;
+    double avg_canonical_repair_remove_label_ratio = 0;
 
     /*iteration*/
     for (int i = 0; i < iteration_graph_times; i++)
@@ -195,27 +193,24 @@ void test_HBPLL()
         /*input and output; below is for generating random new graph, or read saved graph*/
 
         std::unordered_set<int> generated_group_vertices;
-        graph_hash_of_mixed_weighted instance_graph, generated_group_graph;
+        graph_v_of_v_idealID instance_graph;
         if (generate_new_graph == 1)
         {
-            instance_graph = graph_hash_of_mixed_weighted_generate_random_graph(V, E, 0, 0, ec_min, ec_max, precision, boost_random_time_seed);
-            graph_hash_of_mixed_weighted_save_graph_with_weight("simple_iterative_tests_HBPLL.txt", instance_graph, 0);
+            instance_graph = graph_v_of_v_idealID_generate_random_connected_graph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
+            // instance_graph = graph_v_of_v_idealID_sort(instance_graph);
+            graph_v_of_v_idealID_save("simple_iterative_tests_HBPLL.txt", instance_graph);
         }
         else
         {
-            double lambda;
-            graph_hash_of_mixed_weighted_read_graph_with_weight("simple_iterative_tests_HBPLL.txt", instance_graph, lambda);
+            graph_v_of_v_idealID_read("simple_iterative_tests_HBPLL.txt", instance_graph);
         }
-
-        /* 这里 instance_graph 是无序的 */
-        //graph_hash_of_mixed_weighted_print(instance_graph);
 
         auto begin = std::chrono::high_resolution_clock::now();
         try
         {
             if (use_PLL)
             {
-                graph_hash_of_mixed_weighted_HBPLL_v1(instance_graph, V, weighted, thread_num, mm);
+                graph_hash_of_mixed_weighted_HB_v1(instance_graph, V, weighted, thread_num, mm);
             }
             else
             {
@@ -253,7 +248,7 @@ void test_HBPLL()
         /*debug*/
         if (0)
         {
-            graph_hash_of_mixed_weighted_print(instance_graph);
+            // graph_hash_of_mixed_weighted_print(instance_graph);
             mm.print_L();
             mm.print_reduction_measures_2019R1();
             mm.print_reduction_measures_2019R2();
@@ -266,7 +261,7 @@ void test_HBPLL()
             auto mm2 = mm;
             if (!use_PLL)
             {                                                                                   // use different method here
-                graph_hash_of_mixed_weighted_HBPLL_v1(instance_graph, V + 1, weighted, 1, mm2); // single thread
+                // graph_hash_of_mixed_weighted_HB_v1(instance_graph, V + 1, weighted, 1, mm2); // single thread
             }
             else
             {
@@ -310,7 +305,7 @@ void test_HBPLL()
             }
         }
 
-        graph_hash_of_mixed_weighted_PLL_PSL_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);
+        graph_hash_of_mixed_weighted_HB_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);
 
         long long int index_size = 0;
         for (auto it = mm.L.begin(); it != mm.L.end(); it++)

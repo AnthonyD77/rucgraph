@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-std=c++17, -I/home/boost_1_75_0, -I/home/dengs/github_rucgraph_develop/rucgraph]
+  Add: [-std=c++17, -I/Users/dengshi/boost_1_75_0, -I/Users/dengshi/github-rucgraph/rucgraph]
