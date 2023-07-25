@@ -152,27 +152,27 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
 void test_HBPLL()
 {
     /*parameters*/
-    int iteration_graph_times = 1, iteration_source_times = 1000, iteration_terminal_times = 1000;
-    int V = 1e4, E = 5e4, precision = 1, thread_num = 10;
+    int iteration_graph_times = 1e0, iteration_source_times = 1000, iteration_terminal_times = 1000;
+    int V = 6, E = 1e1, precision = 1, thread_num = 10;
     double ec_min = 0.1, ec_max = 1;
     bool weighted = (ec_min == 1 && ec_max == 1) ? false : true;
     graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
     bool use_PLL = 1; // 1: PLL 0: PSL
 
     /*control varible*/
-    bool generate_new_graph = 1;
-    bool print_time_details_in_every_loop = 1;
+    bool generate_new_graph = 0;
+    bool print_time_details_in_every_loop = 0;
     bool print_label_before_canonical_fix = 0;
-    bool print_L = 0;
+    bool print_L = 1;
+    bool check_correctness = 0;
 
     /*hop bounded upper limit*/
-    mm.use_hb = 0;
     mm.upper_k = 0; // 0 means there is no limit
+    mm.use_hb = 0;
     mm.use_dij = 1;
 
     /*reduction method selection*/
-    mm.use_2019R1 = 0;
-    mm.use_2019R2 = 0;
+    mm.use_2019R2 = 1;
     mm.use_enhanced2019R2 = 0;
     mm.use_non_adj_reduc_degree = 0;
     mm.max_degree_MG_enhanced2019R2 = 100;
@@ -197,7 +197,7 @@ void test_HBPLL()
         if (generate_new_graph == 1)
         {
             instance_graph = graph_v_of_v_idealID_generate_random_connected_graph(V, E, ec_min, ec_max, precision, boost_random_time_seed);
-            // instance_graph = graph_v_of_v_idealID_sort(instance_graph);
+            instance_graph = graph_v_of_v_idealID_sort(instance_graph);
             graph_v_of_v_idealID_save("simple_iterative_tests_HBPLL.txt", instance_graph);
         }
         else
@@ -305,7 +305,8 @@ void test_HBPLL()
             }
         }
 
-        graph_hash_of_mixed_weighted_HB_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);
+        if (check_correctness)
+            graph_hash_of_mixed_weighted_HB_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);
 
         long long int index_size = 0;
         for (auto it = mm.L.begin(); it != mm.L.end(); it++)

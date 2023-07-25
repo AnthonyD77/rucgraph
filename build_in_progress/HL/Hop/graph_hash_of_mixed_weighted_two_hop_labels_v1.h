@@ -2,6 +2,7 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
+#include <map>
 #include <tool_functions/ThreadPool.h>
 #include <shared_mutex>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
@@ -31,6 +32,7 @@ double max_run_time_nanoseconds_599;
 bool this_parallel_PLL_PSL_is_running_599 = false;
 bool if_continue_599;
 graph_v_of_v_idealID ideal_graph_599;
+map<pair<int, int>, int> new_edges_with_middle_v;
 vector<vector<two_hop_label_v1>> L_599;
 vector<vector<two_hop_label_v1>> L_temp_599;
 std::shared_mutex mtx_599_1, mtx_599_2;
@@ -56,7 +58,6 @@ vector<pair<int, double>> min_adjs_new_IDs;
 
 void graph_hash_of_mixed_weighted_two_hop_clear_global_values()
 {
-
     this_parallel_PLL_PSL_is_running_599 = false;
     graph_v_of_v_idealID().swap(ideal_graph_599);
     vector<vector<two_hop_label_v1>>().swap(L_599);
@@ -76,6 +77,7 @@ void graph_hash_of_mixed_weighted_two_hop_clear_global_values()
     vector<vector<two_hop_label_v1>>().swap(incremental_label_vectors);
     vector<vector<pair<int, double>>>().swap(adjs_new_IDs);
     vector<pair<int, double>>().swap(min_adjs_new_IDs);
+    map<pair<int, int>, int>().swap(new_edges_with_middle_v);
 }
 
 /*
