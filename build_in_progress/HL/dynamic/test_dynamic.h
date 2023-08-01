@@ -34,11 +34,11 @@ rm A
 
 */
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
+#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
+#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
 #include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance.h>
 #include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance.h>
 #include <build_in_progress/HL/dynamic/WeightDecreasePLLHL.h>
-//#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
-//#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>

@@ -2,7 +2,6 @@
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
-
 weightTYPE PrefixalQuery(int s, int t, vector<vector<two_hop_label_v1>>* L, int k) {
 	weightTYPE min_ans = MAX_VALUE;
 	for (int i = 0; i <= k;i++) {
@@ -15,6 +14,7 @@ weightTYPE PrefixalQuery(int s, int t, vector<vector<two_hop_label_v1>>* L, int 
 	}
 	return min_ans;
 }
+
 void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, int vk, int u, weightTYPE delta) {
 	std::queue<affected_label> Q;
 	affected_label x;
