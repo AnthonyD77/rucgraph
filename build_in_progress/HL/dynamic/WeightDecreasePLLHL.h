@@ -4,7 +4,6 @@
 
 
 weightTYPE PrefixalQuery(int s, int t, vector<vector<two_hop_label_v1>>* L, int k) {
-	/*cout << "enter preQ" << endl;*/
 	weightTYPE min_ans = MAX_VALUE;
 	for (int i = 0; i <= k;i++) {
 		auto search_result_s = search_sorted_two_hop_label2((*L)[s], i);
@@ -18,17 +17,12 @@ weightTYPE PrefixalQuery(int s, int t, vector<vector<two_hop_label_v1>>* L, int 
 }
 void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, int vk, int u, weightTYPE delta) {
 	std::queue<affected_label> Q;
-
 	affected_label x;
 	x.first = u;
 	x.dis = delta;
-
 	Q.push(x);
 
 	while (Q.size()) {
-
-		/*cout << "Q.size(): "<<Q.size() << endl;*/
-
 		affected_label now;
 		now = Q.front();
 		Q.pop();
@@ -41,7 +35,6 @@ void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_
 
 		if (PrefixalQueryAns <= now_delta)
 		{
-			/*std::cout << "enter continue" << endl;*/
 			continue;
 		}
 			
@@ -57,7 +50,6 @@ void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_
 				affected_label now_nei;
 				now_nei.first = vnei;
 				now_nei.dis = now_delta + nei.second;
-
 				Q.push(now_nei);
 			}
 		}
@@ -67,9 +59,6 @@ void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_
 
 void WeightDecreasePLLHL(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new) {
 
-	/*std::cout << "v1: " << v1 << endl;
-	std::cout << "v2: " << v2 << endl;
-	std::cout << "w: " << w_new << endl;*/
 	auto& L = mm.L;
 
 	for (int sl = 0; sl < 2; sl++) {
@@ -79,8 +68,6 @@ void WeightDecreasePLLHL(graph_hash_of_mixed_weighted& instance_graph, graph_has
 		for (auto it : L[v1]) {
 			int v = it.vertex;
 			weightTYPE dis = it.distance + w_new;
-
-			/*cout << "v: " << v << "  " << "v2: " << v2 << " " << "dis: " << dis << endl;*/
 
 			ResumePBFS(&instance_graph, &mm.L, v, v2, dis);
 		}
