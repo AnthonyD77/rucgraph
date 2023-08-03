@@ -34,8 +34,12 @@ rm A
 
 */
 
+#include "build_in_progress/HL/Hop/graph_hash_of_mixed_weighted_two_hop_labels_v1.h"
 #include "graph_v_of_v_idealID/graph_v_of_v_idealID.h"
 #include <build_in_progress/HL/Hop/graph_hash_of_mixed_weighted_HB_v1.h>
+#include <build_in_progress/HL/Hop/graph_hash_of_mixed_weighted_HB_shortest_path.h>
+#include <cstdio>
+#include <cstdlib>
 #include <graph_v_of_v_idealID/random_graph/graph_v_of_v_idealID_generate_random_connected_graph.h>
 #include <graph_v_of_v_idealID/read_save/graph_v_of_v_idealID_read.h>
 #include <graph_v_of_v_idealID/read_save/graph_v_of_v_idealID_save.h>
@@ -46,9 +50,15 @@ rm A
 
 #include <boost/random.hpp>
 #include <numeric>
+#include <ostream>
 boost::random::mt19937 boost_random_time_seed{static_cast<std::uint32_t>(std::time(0))};
 
-void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_weighted_two_hop_case_info_v1 &case_info, graph_v_of_v_idealID &instance_graph, int iteration_source_times, int iteration_terminal_times)
+bool debug = 0;
+int source_debug = 0;
+int terminal_debug = 0; 
+bool check_path = 0;
+
+void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_weighted_two_hop_case_info_v1 &case_info, graph_v_of_v_idealID &instance_graph, int iteration_source_times, int iteration_terminal_times, int hop_cst)
 {
 
     /*below is for checking whether the above labels are right (by randomly computing shortest paths)
@@ -58,7 +68,6 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
 	*/
 
     boost::random::uniform_int_distribution<> vertex_range{static_cast<int>(0), static_cast<int>(instance_graph.size() - 1)};
-    int h = 99999;
 
     for (int yy = 0; yy < iteration_source_times; yy++)
     {
@@ -68,12 +77,25 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
         std::vector<int> predecessors;
         predecessors.resize(instance_graph.size());
 
-        graph_v_of_v_idealID_shortest_paths(instance_graph, source, distances, predecessors);
+        if (debug)
+            source = source_debug;
+
+        graph_hash_of_mixed_weighted_HB_shortest_distance(instance_graph, source, hop_cst, distances);
+        // graph_v_of_v_idealID_shortest_paths(instance_graph, source, distances, predecessors);
+
         for (int xx = 0; xx < iteration_terminal_times; xx++)
         {
             int terminal = vertex_range(boost_random_time_seed);
 
-            double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(case_info.L, source, terminal, h);
+            if(debug)
+                terminal = terminal_debug;
+            
+            double dis;
+            if (case_info.use_2019R2 || case_info.use_enhanced2019R2 || case_info.use_non_adj_reduc_degree)
+                dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1(case_info.L, case_info.reduction_measures_2019R2, source, terminal, hop_cst);
+            else
+                dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(case_info.L, source, terminal, hop_cst);
+
             if (abs(dis - distances[terminal]) > 1e-4 && (dis < std::numeric_limits<double>::max() || distances[terminal] < std::numeric_limits<double>::max()))
             {
                 cout << "source = " << source << endl;
@@ -81,13 +103,13 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
                 cout << "source vector:" << endl;
                 for (auto it = case_info.L[source].begin(); it != case_info.L[source].end(); it++)
                 {
-                    cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+                    cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << "," << it->hop << ">";
                 }
                 cout << endl;
                 cout << "terminal vector:" << endl;
                 for (auto it = case_info.L[terminal].begin(); it != case_info.L[terminal].end(); it++)
                 {
-                    cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+                    cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << "," << it->hop << ">";
                 }
                 cout << endl;
 
@@ -97,54 +119,54 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
                 getchar();
             }
 
-            // if (0)
-            // {
-            //     vector<pair<int, int>> path = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path(case_info.L, case_info.reduction_measures_2019R2, case_info.reduction_measures_2019R1, case_info.f_2019R1, instance_graph, source, terminal);
+            if (check_path)
+            {
+                vector<pair<int, int>> path = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(case_info.L, case_info.reduction_measures_2019R2, source, terminal, hop_cst);
 
-            //     double path_dis = 0;
-            //     if (path.size() == 0)
-            //     {
-            //         if (source != terminal)
-            //         { // disconnected
-            //             path_dis = std::numeric_limits<double>::max();
-            //         }
-            //     }
-            //     else
-            //     {
-            //         for (auto it = path.begin(); it != path.end(); it++)
-            //         {
-            //             path_dis = path_dis + graph_hash_of_mixed_weighted_edge_weight(instance_graph, it->first, it->second);
-            //             if (path_dis > std::numeric_limits<double>::max())
-            //             {
-            //                 path_dis = std::numeric_limits<double>::max();
-            //             }
-            //         }
-            //     }
-            //     if (abs(dis - path_dis) > 1e-4 && (dis < std::numeric_limits<double>::max() || distances[terminal] < std::numeric_limits<double>::max()))
-            //     {
-            //         cout << "source = " << source << endl;
-            //         cout << "terminal = " << terminal << endl;
+                double path_dis = 0;
+                if (path.size() == 0)
+                {
+                    if (source != terminal)
+                    {
+                        path_dis = std::numeric_limits<double>::max();
+                    }
+                }
+                else
+                {
+                    for (auto it = path.begin(); it != path.end(); it++)
+                    {
+                        path_dis = path_dis + graph_v_of_v_idealID_edge_weight(instance_graph, it->first, it->second);
+                        if (path_dis > std::numeric_limits<double>::max())
+                        {
+                            path_dis = std::numeric_limits<double>::max();
+                        }
+                    }
+                }
+                if (abs(dis - path_dis) > 1e-4 && (dis < std::numeric_limits<double>::max() || distances[terminal] < std::numeric_limits<double>::max()))
+                {
+                    cout << "source = " << source << endl;
+                    cout << "terminal = " << terminal << endl;
 
-            //         cout << "source vector:" << endl;
-            //         for (auto it = case_info.L[source].begin(); it != case_info.L[source].end(); it++)
-            //         {
-            //             cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
-            //         }
-            //         cout << endl;
-            //         cout << "terminal vector:" << endl;
-            //         for (auto it = case_info.L[terminal].begin(); it != case_info.L[terminal].end(); it++)
-            //         {
-            //             cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
-            //         }
-            //         cout << endl;
+                    cout << "source vector:" << endl;
+                    for (auto it = case_info.L[source].begin(); it != case_info.L[source].end(); it++)
+                    {
+                        cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+                    }
+                    cout << endl;
+                    cout << "terminal vector:" << endl;
+                    for (auto it = case_info.L[terminal].begin(); it != case_info.L[terminal].end(); it++)
+                    {
+                        cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+                    }
+                    cout << endl;
 
-            //         print_vector_pair_int(path);
-            //         cout << "dis = " << dis << endl;
-            //         cout << "path_dis = " << path_dis << endl;
-            //         cout << "abs(dis - path_dis) > 1e-5!" << endl;
-            //         getchar();
-            //     }
-            // }
+                    print_vector_pair_int(path);
+                    cout << "dis = " << dis << endl;
+                    cout << "path_dis = " << path_dis << endl;
+                    cout << "abs(dis - path_dis) > 1e-5!" << endl;
+                    getchar();
+                }
+            }
         }
     }
 }
@@ -152,27 +174,41 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
 void test_HBPLL()
 {
     /*parameters*/
-    int iteration_graph_times = 1e0, iteration_source_times = 1000, iteration_terminal_times = 1000;
-    int V = 6, E = 1e1, precision = 1, thread_num = 10;
+    int iteration_graph_times = 1e2, iteration_source_times = 1000, iteration_terminal_times = 1000;
+    int V = 1e2, E = 5e2, precision = 1, thread_num = 10;
     double ec_min = 0.1, ec_max = 1;
     bool weighted = (ec_min == 1 && ec_max == 1) ? false : true;
     graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
     bool use_PLL = 1; // 1: PLL 0: PSL
+    int query_hop_cst = 2;
 
     /*control varible*/
-    bool generate_new_graph = 0;
+    bool generate_new_graph = 1;
     bool print_time_details_in_every_loop = 0;
     bool print_label_before_canonical_fix = 0;
-    bool print_L = 1;
-    bool check_correctness = 0;
+    bool print_L = 0;
+    bool check_correctness = 1;
+    check_path = 1;
+
+    debug = 0;
+    if (debug)
+    {
+        source_debug = 1;
+        terminal_debug = 0;
+        iteration_graph_times = 1;
+        generate_new_graph = 0;
+        iteration_source_times = 1;
+        iteration_terminal_times = 1;
+        print_L = 1;
+    } 
 
     /*hop bounded upper limit*/
-    mm.upper_k = 0; // 0 means there is no limit
-    mm.use_hb = 0;
-    mm.use_dij = 1;
+    mm.upper_k = 10; // 0 means there is no limit
+    mm.use_hbdij = 1;
 
     /*reduction method selection*/
-    mm.use_2019R2 = 1;
+        /* use_hb 目前不支持 R2 */
+    mm.use_2019R2 = 0;
     mm.use_enhanced2019R2 = 0;
     mm.use_non_adj_reduc_degree = 0;
     mm.max_degree_MG_enhanced2019R2 = 100;
@@ -306,7 +342,7 @@ void test_HBPLL()
         }
 
         if (check_correctness)
-            graph_hash_of_mixed_weighted_HB_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times);
+            graph_hash_of_mixed_weighted_HB_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times, query_hop_cst);
 
         long long int index_size = 0;
         for (auto it = mm.L.begin(); it != mm.L.end(); it++)
@@ -314,7 +350,8 @@ void test_HBPLL()
             index_size = index_size + (*it).size();
         }
         avg_index_size_per_v = avg_index_size_per_v + (double)index_size / V / iteration_graph_times;
-
+        
+        graph_hash_of_mixed_weighted_two_hop_clear_global_values2();
         mm.clear_labels();
     }
 

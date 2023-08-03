@@ -1,4 +1,5 @@
 #pragma once
+#include "build_in_progress/HL/Hop/graph_hash_of_mixed_weighted_HB_shortest_path.h"
 #include "graph_v_of_v_idealID/graph_v_of_v_idealID.h"
 #include <iostream>
 #include <limits>
@@ -12,6 +13,8 @@
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID.h>
 #include <build_in_progress/HL/Hop/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted_update_vertexIDs.h>
+#include <unordered_map>
+#include <vector>
 
 using namespace std;
 
@@ -168,38 +171,55 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBBFS(int v_k, int N,
     }
 }
 
-void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N, int upper_k, bool use_hb)
+void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N, int upper_k)
 {
+    bool print = false;
+
 	mtx_599[max_N_ID_for_mtx_599 - 1].lock();
 	int used_id = Qid_599.front();
 	Qid_599.pop();
 	mtx_599[max_N_ID_for_mtx_599 - 1].unlock();
 
 	queue<int> P_changed_vertices, T_changed_vertices;
-	vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp> Q_handles(N);
 
-	HBPLL_v1_node node;
-	boost::heap::fibonacci_heap<HBPLL_v1_node> Q;
-	two_hop_label_v1 xx;
-
+    HBPLL_v1_node node;
 	node.vertex = v_k;
 	node.parent_vertex = v_k;
     node.hop = 0;
 	node.priority_value = 0;
+
+    /* use unordered_map to avoid the influence of upper_k */
+    boost::heap::fibonacci_heap<HBPLL_v1_node> Q;
+	two_hop_label_v1 xx;
+	// unordered_map<int, unordered_map<int, graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>> Q_handles;
+    vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp> Q_handles;
+    Q_handles.resize(N);
 	Q_handles[v_k] = Q.push(node);
-	P_dij_599[used_id][v_k] = 0;
+
+    /* 
+        P_dij_599 stores the shortest distance from vk to any other vertices with its hop_cst,
+        note that the hop_cst is determined by the shortest distance
+     */
+	P_dij_599[used_id][v_k] = {0, 0};
 	P_changed_vertices.push(v_k);
 
+    /* T_dij_599 stores the label (dist and hop) of vertex v_k */
 	mtx_599[v_k].lock();
 	int L_v_k_size = L_temp_599[v_k].size();
 	for (int i = 0; i < L_v_k_size; i++) {
 		int L_v_k_i_vertex = L_temp_599[v_k][i].vertex;
-		T_dij_599[used_id][L_v_k_i_vertex] = L_temp_599[v_k][i].distance;
+		T_dij_599[used_id][L_v_k_i_vertex].first = L_temp_599[v_k][i].distance;
+        T_dij_599[used_id][L_v_k_i_vertex].second =  L_temp_599[v_k][i].hop;
 		T_changed_vertices.push(L_v_k_i_vertex);
 	}
 	mtx_599[v_k].unlock();
 
 	long long int new_label_num = 0;
+
+    if (v_k == -1)
+        print = 1;
+    if (print)
+        cout << "-----begin from " << v_k << "-----" << endl;
 
 	while (Q.size() > 0) {
 
@@ -207,13 +227,16 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
 		Q.pop();
 		int u = node.vertex;
 
-		if (v_k <= u) {
+        if (print)
+            cout << "\t visit " << u << " with hop " << node.hop << "  and dist  " << node.priority_value << endl;
+
+		if (v_k <= u) {     // rank pruning, r(v_k) > r(u)
 			int u_parent = node.parent_vertex;
             int u_hop = node.hop;
 			double P_u = node.priority_value;
 			double P_u_with_error = P_u + 1e-5;
 			double query_v_k_u = std::numeric_limits<double>::max();
-
+    
     #ifdef _WIN32
 			mtx_599[u].lock();
 			auto L_u_size = L_temp_599[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
@@ -226,66 +249,136 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
 			} //求query的值		
     #else
 			mtx_599[u].lock();
-			auto L_u_size1 = L_temp_599[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
+			auto L_u_size1 = L_temp_599[u].size();
 			for (int i = 0; i < L_u_size1; i++) {
-				if (L_temp_599[u][i].hop + T_dij_599[used_id][L_temp_599[u][i].vertex] <= u_hop || !use_hb)
+				if (L_temp_599[u][i].hop + T_dij_599[used_id][L_temp_599[u][i].vertex].second <= u_hop)
                 {
-                    double dis = L_temp_599[u][i].distance + T_dij_599[used_id][L_temp_599[u][i].vertex];   // dont know why this code does not work under Windows
+                    double dis = L_temp_599[u][i].distance + T_dij_599[used_id][L_temp_599[u][i].vertex].first;   // dont know why this code does not work under Windows
 				    if (query_v_k_u > dis) { query_v_k_u = dis; }
-                }      
+                }
 			}
+            if (print)
+                cout << "\t query " << v_k << " and " << u << " = " << query_v_k_u << endl;
 			mtx_599[u].unlock();
     #endif
 
-			if (P_u_with_error < query_v_k_u) { // this is pruning
+            if (print)
+            {
+                cout <<  "\t P_u_with_error: " << P_u_with_error << " || query_v_k_u: " << query_v_k_u << endl;
+            }
+
+			if (P_u_with_error < query_v_k_u) { //pruning
 				xx.vertex = v_k;
 				xx.distance = P_u;
 				xx.parent_vertex = u_parent;
                 xx.hop = u_hop;
 
 				mtx_599[u].lock();
-				L_temp_599[u].push_back(xx); //新增标签，并行时L_temp_599[u]里面的标签不一定是按照vertex ID排好序的，但是因为什么query时用了T_bfs_599的trick，没必要让L_temp_599[u]里面的标签排好序
+				L_temp_599[u].push_back(xx);
+                if (print)
+                    cout << "\t\t add " << v_k << " into " << u << endl;
 				mtx_599[u].unlock();
 				new_label_num++;
 
-				/*下面是dij更新邻接点的过程，同时更新优先队列和距离*/
+				/* update adj */
+                if (print)
+                    cout << "\t update adj" << endl;
 				int u_adj_size = ideal_graph_599[u].size();
 				for (int i = 0; i < u_adj_size; i++) {
-					int adj_v = ideal_graph_599[u][i].first; // this needs to be locked
+					int adj_v = ideal_graph_599[u][i].first;
 					double ec = ideal_graph_599[u][i].second;
-					if (P_dij_599[used_id][adj_v] == std::numeric_limits<double>::max()) { //尚未到达的点
-						node.vertex = adj_v;
-						node.parent_vertex = u;
-						node.priority_value = P_u + ec;
-                        node.hop = u_hop + 1;
-                        /* R2添加的边: hop+1 */
-                        if (new_edges_with_middle_v.find({u,adj_v}) != new_edges_with_middle_v.end() || new_edges_with_middle_v.find({adj_v, u}) != new_edges_with_middle_v.end())
-                            node.hop ++;
+
+                    /* update node info */
+                    node.vertex = adj_v;
+                    node.parent_vertex = u;
+                    node.priority_value = P_u + ec;
+                    node.hop = u_hop + 1;
+
+                    if (print)
+                        cout << "\t neighber: " << adj_v << ",, dist: " << node.priority_value << ",, hop: " << node.hop << endl;
+                        // << "P_dij_599[used_id][adj_v].first: " << P_dij_599[used_id][adj_v].first << endl
+                        // << "P_dij_599[used_id][adj_v].second: " << P_dij_599[used_id][adj_v].second << endl; 
+                    
+                    /* check if the edge is generated by R2: hop+1 */
+                    double new_dist = node.priority_value;
+                    if (new_edges_with_origin_ec.find({u,adj_v}) != new_edges_with_origin_ec.end() && adj_v != u_parent && adj_v != v_k) /* imp check to prevent infinite loop  */
+                    {
+                        // cout << "enter 111" << endl;
+                        if (new_edges_with_origin_ec[{u, adj_v}] != std::numeric_limits<double>::max())
+                        {
+                            // cout << "enter 222" << endl;
+                            if (ec < new_edges_with_origin_ec[{u, adj_v}])
+                            {
+                                /* add 1-edge (origin) info, here do not need to modify parent */
+                                node.priority_value = new_edges_with_origin_ec[{u,adj_v}] + P_u;
+                                Q_handles[adj_v] = Q.push(node);
+                                if (print)
+                                    cout << "\t push " << node.vertex << "," << node.priority_value << "," << node.hop << " into Q" << endl;
+                            }
+                        }
+                        /* update node info of 2-edge */
+                        node.hop++;
+                        node.priority_value = new_dist;
+                    }
+                    /* beyond upper_k, then stop expansion */
+                    if (node.hop  > upper_k)
+                    {
+                        if (print)
+                            cout << "\t beyond upper_k" << endl;
+                        break;
+                    }
+                
+                    /* 
+                        vertices not reached yet:
+                        just add the distance and hop info
+                    */
+					if (P_dij_599[used_id][adj_v].first == std::numeric_limits<double>::max()) {
                         Q_handles[adj_v] = Q.push(node);
-						P_dij_599[used_id][adj_v] = node.priority_value;
+						P_dij_599[used_id][adj_v].first = node.priority_value;
+                        P_dij_599[used_id][adj_v].second = node.hop;
 						P_changed_vertices.push(adj_v);
+                        if (print)
+                            cout << "\t 1 add new " << adj_v << " with " << node.priority_value << endl;
 					}
+                    // if (P_dij_599[used_id][adj_v].find(node.hop) == P_dij_599[used_id][adj_v].end())
+                    // {
+                    //     Q_handles[node.hop][adj_v] = Q.push(node);
+					// 	P_dij_599[used_id][adj_v][node.hop] = node.priority_value;
+					// 	P_changed_vertices.push(adj_v);
+                    // }
+                    /*
+                        vertices already reached:
+                        1. smaller distance, then update info
+                        2. greater distance but smaller hop, add new info, do not update P_dij_599
+                    */
 					else {
-						if (P_dij_599[used_id][adj_v] > P_u + ec) {
-							node.vertex = adj_v;
-							node.parent_vertex = u;
-							node.priority_value = P_u + ec;
-                            node.hop = u_hop + 1;
-							Q.update(Q_handles[adj_v], node);
-							P_dij_599[used_id][adj_v] = node.priority_value;
-						}
+                        if (node.priority_value < P_dij_599[used_id][adj_v].first ) {
+                            Q_handles[adj_v] = Q.push(node);
+                            // Q.update(Q_handles[node.hop][adj_v], node);
+                            P_dij_599[used_id][adj_v].first = node.priority_value;
+                            P_dij_599[used_id][adj_v].second = node.hop;
+                            if (print)
+                                cout << "\t 2 add neighbor " << adj_v << " with " << node.priority_value << endl;
+                        }
+                        else if (node.hop < P_dij_599[used_id][adj_v].second) {
+                            Q_handles[adj_v] = Q.push(node);
+                            if (print)
+                                cout << "\t 3 add neighbor " << adj_v << " with " << node.priority_value << endl;
+                        }
 					}
 				}
-			}	
+                /* stop update adj */
+            }
 		}
 	}
 
 	while (P_changed_vertices.size() > 0) {
-		P_dij_599[used_id][P_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate P values
+        // P_dij_599[used_id][P_changed_vertices.front()].clear();
+		P_dij_599[used_id][P_changed_vertices.front()].first = std::numeric_limits<double>::max();
 		P_changed_vertices.pop();
 	}
 	while (T_changed_vertices.size() > 0) {
-		T_dij_599[used_id][T_changed_vertices.front()] = std::numeric_limits<double>::max(); // reverse-allocate T values
+		T_dij_599[used_id][T_changed_vertices.front()].first = std::numeric_limits<double>::max(); // reverse-allocate T values
 		T_changed_vertices.pop();
 	}
 
@@ -335,8 +428,6 @@ vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HB_v1_sort_labels(
     return output_L;
 }
 
-/*the following parallel PLL_with_non_adj_reduction code cannot be run parallelly, due to the above globel values*/
-
 void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int max_N_ID, bool weighted, int num_of_threads, graph_hash_of_mixed_weighted_two_hop_case_info_v1 &case_info)
 {
     //----------------------------------- step 1: initialization -----------------------------------
@@ -348,8 +439,6 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     max_run_time_nanoseconds_599 = case_info.max_run_time_seconds * 1e9;
     labal_size_599 = 0;
     max_labal_size_599 = case_info.max_labal_size;
-
-    full_two_hop_labels = !case_info.use_dummy_dij_search_in_PLL;
 
     if (max_N_ID > max_N_ID_for_mtx_599)
     {
@@ -369,31 +458,7 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     L_temp_599.resize(max_N_ID);
     int N = input_graph.size();
 
-    /*sorting vertices*/
-    // vector<vector<pair<int, double>>>().swap(adjs);
-    // adjs.resize(max_N_ID);
-    // vector<pair<int, double>>().swap(min_adjs);
-    // min_adjs.resize(max_N_ID);
-    // vector<pair<int, int>> sorted_vertices;
-    // for (auto it = input_graph.hash_of_vectors.begin(); it != input_graph.hash_of_vectors.end(); it++)
-    // {
-    //     sorted_vertices.push_back({it->first, input_graph.degree(it->first)});
-    //     adjs[it->first] = input_graph.adj_v_and_ec(it->first);
-    //     min_adjs[it->first] = input_graph.min_adj(it->first);
-    // }
-    // sort(sorted_vertices.begin(), sorted_vertices.end(), compare_pair_second_large_to_small);
-    // unordered_map<int, int> vertexID_old_to_new;
-    // vertexID_new_to_old_599.resize(N);
-    // for (int i = 0; i < N; i++)
-    // {
-    //     vertexID_old_to_new[sorted_vertices[i].first] = i;
-    //     vertexID_new_to_old_599[i] = sorted_vertices[i].first;
-    // }
-    // vector<pair<int, int>>().swap(sorted_vertices);
-    // ideal_graph_599 = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID(input_graph, vertexID_old_to_new);
-    
     ideal_graph_599 = input_graph;
-    
 
     auto end = std::chrono::high_resolution_clock::now();
     case_info.time_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
@@ -405,7 +470,7 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
 
     /*redcution: add and remove certain edges*/
     case_info.reduction_measures_2019R2.clear(); // for using this function multiple times
-    case_info.reduction_measures_2019R2.resize(max_N_ID);
+    case_info.reduction_measures_2019R2.resize(max_N_ID, 0);
 
     /*reduction 2; 用了2019 R2 enhance之后的图就是weighted，不能使用Unweighted bfs了！*/
     if (weighted == 0 && case_info.use_2019R2 + case_info.use_enhanced2019R2 > 0)
@@ -424,6 +489,7 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                 if (x > ideal_graph_599[x][ideal_graph_599[x].size() - 1].first)
                 {
                     case_info.reduction_measures_2019R2[x] = 2;
+                    R2_reduced_vertices[x] = *new vector<pair<int, double>>(ideal_graph_599[x]);
                     cout << "reduce " << x << endl;
                 }
             }
@@ -441,10 +507,18 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                         double s_vPLUSv_t = (it1 + m)->second + (it1 + n)->second;
                         int e1 = (it1 + m)->first;
                         int e2 = (it1 + n)->first;
-                        if (s_vPLUSv_t < graph_v_of_v_idealID_edge_weight(ideal_graph_599, e1, e2))
-                        { // (s,v)+(v,t) is the shorter path or there is no edge between s and t
+                        double origin_ec = graph_v_of_v_idealID_edge_weight(ideal_graph_599, e1, e2);
+                        if (s_vPLUSv_t < origin_ec)
+                        { 
+                            /* (s,v)+(v,t) is the shorter path or there is no edge between s and t */
                             graph_v_of_v_idealID_add_edge(ideal_graph_599, e1, e2, s_vPLUSv_t);
-                            new_edges_with_middle_v[{e1, e2}] = x;
+                            new_edges_with_middle_v.push_back({{e1,e2},x});
+                            /* only record the origin edge, in case of the edge is updated many times */
+                            if (new_edges_with_origin_ec.find({e1, e2}) == new_edges_with_origin_ec.end())
+                            {
+                                new_edges_with_origin_ec[{e1, e2}] = origin_ec;
+                                new_edges_with_origin_ec[{e2, e1}] = origin_ec;
+                            }
                         }
                     }
                 }
@@ -460,19 +534,19 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
         for (int x = 0; x < N; x++)
         {
             if (ideal_graph_599[x].size() > 0)
-            { // Prevent memory overflow
+            {
                 if (x > ideal_graph_599[x][ideal_graph_599[x].size() - 1].first)
-                { // Here, only one comparison is needed. A little trick.
+                {
                     case_info.reduction_measures_2019R2[x] = 2;
+                    R2_reduced_vertices[x] = *new vector<pair<int, double>>(ideal_graph_599[x]);
                     // cout << "reduce " << x << endl;
                 }
             }
         }
         int bound = case_info.max_degree_MG_enhanced2019R2;
         for (int x = N - 1; x >= 0; x--)
-        { // from low ranking to high ranking
-            if (case_info.reduction_measures_2019R2[x] == 0 &&
-                ideal_graph_599[x].size() <= bound)
+        {
+            if (case_info.reduction_measures_2019R2[x] == 0 && ideal_graph_599[x].size() <= bound)
             { // bound is the max degree for reduction
                 bool no_adj_MG_vertices = true;
                 for (auto it = ideal_graph_599[x].begin(); it != ideal_graph_599[x].end(); it++)
@@ -486,6 +560,7 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                 if (no_adj_MG_vertices)
                 {
                     case_info.reduction_measures_2019R2[x] = 2; // new reduction
+                    R2_reduced_vertices[x] = *new vector<pair<int, double>>(ideal_graph_599[x]);
                     // cout << "new reduce " << x << endl;
                 }
             }
@@ -503,11 +578,17 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                         double s_vPLUSv_t = (it1 + m)->second + (it1 + n)->second;
                         int e1 = (it1 + m)->first;
                         int e2 = (it1 + n)->first;
-                        if (s_vPLUSv_t < graph_v_of_v_idealID_edge_weight(ideal_graph_599, e1, e2))
+                        double origin_ec = graph_v_of_v_idealID_edge_weight(ideal_graph_599, e1, e2);
+                        if (s_vPLUSv_t < origin_ec)
                         {
-                            // (s,v)+(v,t) is the shorter path or there is no edge between s and t
                             graph_v_of_v_idealID_add_edge(ideal_graph_599, e1, e2, s_vPLUSv_t);
-                            new_edges_with_middle_v[{e1, e2}] = x;
+                            new_edges_with_middle_v.push_back({{e1,e2},x});
+                            /* only record the origin edge, in case of the edge is updated many times */
+                            if (new_edges_with_origin_ec.find({e1, e2}) == new_edges_with_origin_ec.end())
+                            {
+                                new_edges_with_origin_ec[{e1, e2}] = origin_ec;
+                                new_edges_with_origin_ec[{e2, e1}] = origin_ec;
+                            }
                         }
                     }
                 }
@@ -522,14 +603,13 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
         case_info.MG_num = 0;
         int bound = case_info.max_degree_MG_enhanced2019R2;
         for (int x = N - 1; x >= 0; x--)
-        { // from low ranking to high ranking
-            if (case_info.reduction_measures_2019R2[vertexID_new_to_old_599[x]] == 0 &&
-                ideal_graph_599[x].size() <= bound)
-            { // bound is the max degree for reduction
+        {
+            if (case_info.reduction_measures_2019R2[x] == 0 && ideal_graph_599[x].size() <= bound)
+            {
                 bool no_adj_MG_vertices = true;
                 for (auto it = ideal_graph_599[x].begin(); it != ideal_graph_599[x].end(); it++)
                 {
-                    if (case_info.reduction_measures_2019R2[vertexID_new_to_old_599[it->first]] == 2)
+                    if (case_info.reduction_measures_2019R2[it->first] == 2)
                     {
                         no_adj_MG_vertices = false;
                         break;
@@ -537,14 +617,15 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                 }
                 if (no_adj_MG_vertices)
                 {
-                    case_info.reduction_measures_2019R2[vertexID_new_to_old_599[x]] = 2; // new reduction
-                    // cout << "new reduce " << vertexID_new_to_old_599[x] << endl;
+                    case_info.reduction_measures_2019R2[x] = 2;
+                    R2_reduced_vertices[x] = *new vector<pair<int, double>>(ideal_graph_599[x]);
+                    // cout << "new reduce " << x << endl;
                 }
             }
         }
         for (int x = N - 1; x >= 0; x--)
         {
-            if (case_info.reduction_measures_2019R2[vertexID_new_to_old_599[x]] == 2)
+            if (case_info.reduction_measures_2019R2[x] == 2)
             {
                 /*add edge*/
                 auto it1 = ideal_graph_599[x].begin();
@@ -555,11 +636,17 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                         double s_vPLUSv_t = (it1 + m)->second + (it1 + n)->second;
                         int e1 = (it1 + m)->first;
                         int e2 = (it1 + n)->first;
-                        if (s_vPLUSv_t < graph_v_of_v_idealID_edge_weight(ideal_graph_599, e1, e2))
+                        double origin_ec = graph_v_of_v_idealID_edge_weight(ideal_graph_599, e1, e2);
+                        if (s_vPLUSv_t < origin_ec)
                         {
-                            // (s,v)+(v,t) is the shorter path or there is no edge between s and t
                             graph_v_of_v_idealID_add_edge(ideal_graph_599, e1, e2, s_vPLUSv_t);
-                            new_edges_with_middle_v[{e1, e2}] = x;
+                            new_edges_with_middle_v.push_back({{e1,e2},x});
+                            /* only record the origin edge, in case of the edge is updated many times */
+                            if (new_edges_with_origin_ec.find({e1, e2}) == new_edges_with_origin_ec.end())
+                            {
+                                new_edges_with_origin_ec[{e1, e2}] = origin_ec;
+                                new_edges_with_origin_ec[{e2, e1}] = origin_ec;
+                            }
                         }
                     }
                 }
@@ -579,13 +666,12 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     begin = std::chrono::high_resolution_clock::now();
 
     /*seaching shortest paths*/
-    bool use_dij = case_info.use_dij;
-    bool use_hb = case_info.use_hb;
-    int upper_k = use_hb ? case_info.upper_k : 0;
+    bool use_hbdij = case_info.use_hbdij;
+    int upper_k = case_info.upper_k == 0 ? std::numeric_limits<int>::max() : case_info.upper_k;
     ThreadPool pool(num_of_threads);
     std::vector<std::future<int>> results;              
     int num_of_threads_per_push = num_of_threads * 100;
-    if (!use_dij)
+    if (!use_hbdij)
     {
         T_bfs_599.resize(num_of_threads);
         for (int i = 0; i < num_of_threads; i++)
@@ -629,8 +715,8 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
 			T_dij_599[i].resize(N);
 			for (int j = 0; j < N; j++)
 			{
-				P_dij_599[i][j] = std::numeric_limits<double>::max();
-				T_dij_599[i][j] = std::numeric_limits<double>::max();
+                P_dij_599[i][j] = {std::numeric_limits<double>::max(), 0};
+				T_dij_599[i][j] = {std::numeric_limits<double>::max(), 0};
 			}
 			Qid_599.push(i);
 		}
@@ -638,8 +724,8 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
 		for (int v_k = 0; v_k < N; v_k++) {
 			if (ideal_graph_599[v_k].size() > 0) {  // not from isolated vertices
                 results.emplace_back(
-                    pool.enqueue([v_k, N, upper_k, use_hb] { // pass const type value j to thread; [] can be empty
-                        graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(v_k, N, upper_k, use_hb);
+                    pool.enqueue([v_k, N, upper_k] { // pass const type value j to thread; [] can be empty
+                        graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(v_k, N, upper_k);
                         return 1; // return to results; the return type must be the same with results
                         })
                 );
@@ -696,13 +782,9 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     //----------------------------------------------- step 4: canonical_repair---------------------------------------------------------------
     cout << "step 4: canonical_repair" << endl;
 
-    /*canonical_repair based on the sorted new ID order, not the original ID order!*/
     if (case_info.use_canonical_repair)
     {
         begin = std::chrono::high_resolution_clock::now();
-        // reduction_measures_2019R1_new_ID.resize(max_N_ID, 0);
-        // reduction_measures_2019R2_new_ID.resize(max_N_ID, 0);
-        f_2019R1_new_ID.resize(max_N_ID, 0);
         for (int i = 0; i < max_N_ID; i++)
         {
             sort(L_temp_599[i].begin(), L_temp_599[i].end(), compare_two_hop_label_small_to_large); // sort is necessary
@@ -710,6 +792,7 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
         end = std::chrono::high_resolution_clock::now();
         case_info.time_canonical_repair1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 
+        /* print label before canonical repair if necessary */
         if (case_info.print_label_before_canonical_fix)
         {
             cout << "label_before_canonical_fix:" << endl;
@@ -741,8 +824,6 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     
     /* sort lables */
     case_info.L = graph_hash_of_mixed_weighted_HB_v1_sort_labels(N, max_N_ID, num_of_threads);
-    /* restore input_graph */
-    ideal_graph_599 = input_graph;
 
     end = std::chrono::high_resolution_clock::now();
     case_info.time_update_old_IDs_in_labels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
