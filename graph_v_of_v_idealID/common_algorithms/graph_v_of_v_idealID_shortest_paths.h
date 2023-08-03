@@ -7,6 +7,8 @@
 #include <boost/heap/fibonacci_heap.hpp> 
 #include <graph_v_of_v_idealID/graph_v_of_v_idealID.h>
 
+using namespace std;
+
 
 struct graph_v_of_v_idealID_node_for_sp {
 	int index;
@@ -21,7 +23,7 @@ typedef typename boost::heap::fibonacci_heap<graph_v_of_v_idealID_node_for_sp>::
 template<typename T> // T is float or double
 void graph_v_of_v_idealID_shortest_paths(graph_v_of_v_idealID& input_graph, int source, std::vector<T>& distances, std::vector<int>& predecessors) {
 
-	/*Dijkstra¡¯s shortest path algorithm: https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/
+	/*Dijkstraï¿½ï¿½s shortest path algorithm: https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/
 	time complexity: O(|E|+|V|log|V|);
 	the output distances and predecessors only contain vertices connected to source*/
 
