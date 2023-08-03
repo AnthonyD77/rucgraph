@@ -69,7 +69,7 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 			auto& DIS = Dis[current_tid];
 			auto& Q_HANDLES = Q_handles[current_tid];
 			auto& Q_VALUE = Q_value[current_tid];
-			DIS[u] = pair(du, v); // <distance, hub responsible for this distance>
+			DIS[u] = { du, v }; // <distance, hub responsible for this distance>
 			Dis_changed.push_back(u);
 
 			boost::heap::fibonacci_heap<node_for_DIFFUSE> Q;
@@ -100,7 +100,7 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 							Dis_changed.push_back(xnei);
 						}
 						if (DIS[xnei].first > d_new - 1e-5) {
-							DIS[xnei] = pair(d_new, v);
+							DIS[xnei] = { d_new, v };
 							if (Q_VALUE[xnei] == MAX_VALUE) {
 								Q_HANDLES[xnei] = Q.push(node_for_DIFFUSE(xnei, d_new));
 							}

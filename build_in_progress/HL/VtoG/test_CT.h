@@ -81,7 +81,7 @@ void test_CT() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e1, iteration_source_times = 100, iteration_terminal_times = 100;
-	int V = 1000, E = 10000, precision = 1;
+	int V = 100, E = 100, precision = 1;
 	double ec_min = 0.1, ec_max = 1; // since ec_min = 0.01, precision should be at least 2! Otherwise ec may be 0, and causes bugs in CT
 
 	double avg_CT_time = 0, avg_PLL_time = 0, avg_PSL_time = 0;
@@ -113,7 +113,7 @@ void test_CT() {
 
 		/*CT*/
 		graph_hash_of_mixed_weighted_CT_v2_case_info case_info;
-		case_info.two_hop_case_info.use_2019R1 = 0;
+		case_info.two_hop_case_info.use_2019R1 = 1;
 		case_info.two_hop_case_info.use_2019R2 = 1;
 		case_info.two_hop_case_info.use_enhanced2019R2 = 0;
 		case_info.two_hop_case_info.use_non_adj_reduc_degree = 0;
@@ -154,6 +154,9 @@ void test_CT() {
 			case_info.print_root();
 			case_info.print_isIntree();
 		}
+
+		//graph_hash_of_mixed_weighted_print(case_info.core_graph);
+		cout << "mm.reduce_V_num_2019R1: " << case_info.two_hop_case_info.reduce_V_num_2019R1 << endl;
 
 
 
