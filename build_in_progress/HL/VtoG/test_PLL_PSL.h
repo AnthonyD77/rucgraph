@@ -144,8 +144,8 @@ void test_PLL_PSL() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e1, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 1000, E = 10000, precision = 1, thread_num = 5;
-	double ec_min = 2, ec_max = 10; // set ec_min=ec_max=1 for testing unweighted PLL_with_non_adj_reduction
+	int V = 100, E = 200, precision = 1, thread_num = 5;
+	double ec_min = 1, ec_max = 10;
 
 	bool use_PLL = 0; // 1: PLL 0: PSL
 
@@ -154,13 +154,10 @@ void test_PLL_PSL() {
 
 
 	bool weighted = true;
-	if (ec_min == 1 && ec_max == 1) {
-		weighted = false;
-	}
 
 	/*reduction method selection*/
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-	mm.use_2019R1 = 0;
+	mm.use_2019R1 = 1;
 	mm.use_2019R2 = 1;
 	mm.use_enhanced2019R2 = 0;
 	mm.use_non_adj_reduc_degree = 0;
@@ -219,6 +216,10 @@ void test_PLL_PSL() {
 		avg_reduce_V_num_2019R1 = avg_reduce_V_num_2019R1 + (double)mm.reduce_V_num_2019R1 / iteration_graph_times;
 		avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
 		avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
+
+
+		cout << "mm.reduce_V_num_2019R1: " << mm.reduce_V_num_2019R1 << endl;
+
 
 		/*debug*/
 		if (0) {
@@ -402,17 +403,19 @@ void example_PLL_PSL() {
 	//graph_hash_of_mixed_weighted_add_edge(g, 5, 3, 10);
 	//graph_hash_of_mixed_weighted_add_edge(g, 6, 3, 10);
 	//graph_hash_of_mixed_weighted_add_edge(g, 6, 4, 10);
-
-	graph_hash_of_mixed_weighted_add_edge(g, 1, 2, 2);
-	graph_hash_of_mixed_weighted_add_edge(g, 1, 3, 3);
-	graph_hash_of_mixed_weighted_add_edge(g, 1, 0, 1);
-	graph_hash_of_mixed_weighted_add_edge(g, 2, 0, 1);
-	graph_hash_of_mixed_weighted_add_edge(g, 3, 0, 5);
-	graph_hash_of_mixed_weighted_add_edge(g, 4, 2, 20);
-	graph_hash_of_mixed_weighted_add_edge(g, 4, 0, 20);
-	graph_hash_of_mixed_weighted_add_edge(g, 5, 0, 20);
+	graph_hash_of_mixed_weighted_add_vertex(g, 0, 0);
+	graph_hash_of_mixed_weighted_add_edge(g, 2, 3, 2);
+	graph_hash_of_mixed_weighted_add_edge(g, 2, 4, 3);
+	graph_hash_of_mixed_weighted_add_edge(g, 2, 1, 1);
+	graph_hash_of_mixed_weighted_add_edge(g, 3, 1, 1);
+	graph_hash_of_mixed_weighted_add_edge(g, 4, 1, 5);
 	graph_hash_of_mixed_weighted_add_edge(g, 5, 3, 20);
-
+	graph_hash_of_mixed_weighted_add_edge(g, 5, 1, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 6, 2, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 6, 4, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 7, 1, 1);
+	graph_hash_of_mixed_weighted_add_edge(g, 7, 6, 20);
+	graph_hash_of_mixed_weighted_add_edge(g, 7, 5, 20);
 
 	//graph_hash_of_mixed_weighted_print(g);
 
@@ -426,9 +429,10 @@ void example_PLL_PSL() {
 	mm.max_labal_size = 6e9;
 	mm.max_run_time_seconds = 1e9;
 	mm.use_canonical_repair = true;
+	mm.use_2M_prune = true;
+	TwoM_value = 400;
 
 	PSL(g, 10, 1, mm);
 
-
-
+	//mm.print_L();
 }
