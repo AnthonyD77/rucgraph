@@ -236,6 +236,10 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
 			double P_u = node.priority_value;
 			double P_u_with_error = P_u + 1e-5;
 			double query_v_k_u = std::numeric_limits<double>::max();
+
+            /* there are two upper_k judge in total */
+            if (u_hop > upper_k)
+                break;
     
     #ifdef _WIN32
 			mtx_599[u].lock();
@@ -303,15 +307,15 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
                     double new_dist = node.priority_value;
                     if (new_edges_with_origin_ec.find({u,adj_v}) != new_edges_with_origin_ec.end() && adj_v != u_parent && adj_v != v_k) /* imp check to prevent infinite loop  */
                     {
-                        // cout << "enter 111" << endl;
                         if (new_edges_with_origin_ec[{u, adj_v}] != std::numeric_limits<double>::max())
                         {
-                            // cout << "enter 222" << endl;
                             if (ec < new_edges_with_origin_ec[{u, adj_v}])
                             {
                                 /* add 1-edge (origin) info, here do not need to modify parent */
                                 node.priority_value = new_edges_with_origin_ec[{u,adj_v}] + P_u;
+                                node.parent_vertex = -u;
                                 Q_handles[adj_v] = Q.push(node);
+                                node.parent_vertex = u;
                                 if (print)
                                     cout << "\t push " << node.vertex << "," << node.priority_value << "," << node.hop << " into Q" << endl;
                             }
@@ -490,7 +494,7 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                 {
                     case_info.reduction_measures_2019R2[x] = 2;
                     R2_reduced_vertices[x] = *new vector<pair<int, double>>(ideal_graph_599[x]);
-                    cout << "reduce " << x << endl;
+                    // cout << "reduce " << x << endl;
                 }
             }
         }
@@ -512,7 +516,9 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                         { 
                             /* (s,v)+(v,t) is the shorter path or there is no edge between s and t */
                             graph_v_of_v_idealID_add_edge(ideal_graph_599, e1, e2, s_vPLUSv_t);
-                            new_edges_with_middle_v.push_back({{e1,e2},x});
+                            new_edges_with_middle_v[{e1,e2}] = x;
+                            new_edges_with_middle_v[{e2,e1}] = x;
+                            // cout << "push " << e1 << "," << e2 << ": " << x << endl;
                             /* only record the origin edge, in case of the edge is updated many times */
                             if (new_edges_with_origin_ec.find({e1, e2}) == new_edges_with_origin_ec.end())
                             {
@@ -582,7 +588,8 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                         if (s_vPLUSv_t < origin_ec)
                         {
                             graph_v_of_v_idealID_add_edge(ideal_graph_599, e1, e2, s_vPLUSv_t);
-                            new_edges_with_middle_v.push_back({{e1,e2},x});
+                            new_edges_with_middle_v[{e1,e2}] = x;
+                            new_edges_with_middle_v[{e2,e1}] = x;
                             /* only record the origin edge, in case of the edge is updated many times */
                             if (new_edges_with_origin_ec.find({e1, e2}) == new_edges_with_origin_ec.end())
                             {
@@ -640,7 +647,8 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
                         if (s_vPLUSv_t < origin_ec)
                         {
                             graph_v_of_v_idealID_add_edge(ideal_graph_599, e1, e2, s_vPLUSv_t);
-                            new_edges_with_middle_v.push_back({{e1,e2},x});
+                            new_edges_with_middle_v[{e1,e2}] = x;
+                            new_edges_with_middle_v[{e2,e1}] = x;
                             /* only record the origin edge, in case of the edge is updated many times */
                             if (new_edges_with_origin_ec.find({e1, e2}) == new_edges_with_origin_ec.end())
                             {
@@ -757,24 +765,42 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
         int e1 = it->first.first;
         int e2 = it->first.second;
         int middle_k = it->second;
-        /*
-            why just change the labels of e1 and e2 ?
-            because 'parent_vertex' stands for 'next vertex on the shortest path', so it can only be shown in e1 and e2's labels
-        */
+        int ttt = 0;
+        if(e1 == 3 && e2 == 1 && middle_k == 4)
+        {
+            ttt = 0;
+            cout << "here" << endl;
+        }
         for (int j = L_temp_599[e1].size() - 1; j >= 0; j--)
         {
-            if (L_temp_599[e1][j].parent_vertex == e2)
+            if (L_temp_599[e1][j].parent_vertex < 0)
             {
+                if (ttt)
+                    cout << "!!!!-1" << endl;
+                L_temp_599[e1][j].parent_vertex *= (-1);
+                continue;
+            }
+            else if (L_temp_599[e1][j].parent_vertex == e2)
+            {
+                if (ttt)
+                    cout << "!!!!-2" << endl;
                 L_temp_599[e1][j].parent_vertex = middle_k;
             }
         }
-        for (int j = L_temp_599[e2].size() - 1; j >= 0; j--)
-        {
-            if (L_temp_599[e2][j].parent_vertex == e1)
-            {
-                L_temp_599[e2][j].parent_vertex = middle_k;
-            }
-        }
+        // for (int j = L_temp_599[e2].size() - 1; j >= 0; j--)
+        // {
+        //     if (L_temp_599[e1][j].parent_vertex < 0)
+        //     {
+        //         L_temp_599[e1][j].parent_vertex *= (-1);
+        //         continue;
+        //     }
+        //     else if (L_temp_599[e2][j].parent_vertex == e1)
+        //     {
+        //         if (ttt)
+        //             cout << "!!!!" << endl;
+        //         L_temp_599[e2][j].parent_vertex = middle_k;
+        //     }
+        // }
     }
     end = std::chrono::high_resolution_clock::now();
     case_info.time_2019R2_or_enhanced_fixlabels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin) .count() / 1e9; // s

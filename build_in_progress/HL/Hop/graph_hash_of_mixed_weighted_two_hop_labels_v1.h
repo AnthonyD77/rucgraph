@@ -33,7 +33,7 @@ double max_run_time_nanoseconds_599;
 bool this_parallel_PLL_PSL_is_running_599 = false;
 bool if_continue_599;
 graph_v_of_v_idealID ideal_graph_599;
-vector<pair<pair<int, int>, int>> new_edges_with_middle_v;
+map<pair<int, int>, int> new_edges_with_middle_v;
 map<pair<int, int>, double> new_edges_with_origin_ec;
 vector<vector<two_hop_label_v1>> L_599;
 vector<vector<two_hop_label_v1>> L_temp_599;
@@ -75,7 +75,7 @@ void graph_hash_of_mixed_weighted_two_hop_clear_global_values()
     vector<int>().swap(f_2019R1_new_ID);
     vector<vector<two_hop_label_v1>>().swap(incremental_label_vectors);
     vector<pair<int, double>>().swap(min_adjs_new_IDs);
-    vector<pair<pair<int, int>, int>>().swap(new_edges_with_middle_v);
+    map<pair<int, int>, int>().swap(new_edges_with_middle_v);
     map<pair<int, int>, double>().swap(new_edges_with_origin_ec);
 }
 
@@ -524,9 +524,11 @@ vector<pair<int, int>> graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_
 		/*"Only source reduced"*/
 		else
 		{
+            // cout << "????????????????" << endl;
 			for (auto it1 = s_adj_begin; it1 != s_adj_end; it1++)
 			{
                 double x = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L, it1->first, terminal, hop_cst - 1) + double(it1->second);
+                // cout << "neighber " << it1->first << ", dist = " << x << endl;
                 if (min_dis > x)
                 {
                     min_dis = x;
@@ -537,6 +539,7 @@ vector<pair<int, int>> graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_
 			{
 				return paths;
 			}
+            // cout << "push edge " << partial_edges[0].first << "," << partial_edges[0].second << endl;
 			paths.push_back(partial_edges[0]);
 
             /* turn to case 4 */
@@ -641,6 +644,10 @@ vector<pair<int, int>> graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_
                 vector1_check_pointer++;
             }
 
+            // cout << "dis = " << distance << endl;
+            // cout << "vector1_capped_v_parent: " << vector1_capped_v_parent << endl;
+            // cout << "vector2_capped_v_parent: " << vector2_capped_v_parent << endl;
+
 			if (connected)
 			{
 				if (source != vector1_capped_v_parent)
@@ -662,6 +669,7 @@ vector<pair<int, int>> graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_
 			}
 
             /* find new */
+            // cout << "turn to " << source << "-" << terminal << endl;
 			vector<pair<int, int>> new_edges = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(L, reduction_measures_2019R2, source, terminal, hop_cst);
 
 			if (new_edges.size() > 0)

@@ -180,7 +180,7 @@ void test_HBPLL()
     bool weighted = (ec_min == 1 && ec_max == 1) ? false : true;
     graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
     bool use_PLL = 1; // 1: PLL 0: PSL
-    int query_hop_cst = 2;
+    int query_hop_cst = 10;
 
     /*control varible*/
     bool generate_new_graph = 1;
@@ -193,8 +193,8 @@ void test_HBPLL()
     debug = 0;
     if (debug)
     {
-        source_debug = 1;
-        terminal_debug = 0;
+        source_debug = 3;
+        terminal_debug = 1;
         iteration_graph_times = 1;
         generate_new_graph = 0;
         iteration_source_times = 1;
@@ -208,7 +208,7 @@ void test_HBPLL()
 
     /*reduction method selection*/
         /* use_hb 目前不支持 R2 */
-    mm.use_2019R2 = 0;
+    mm.use_2019R2 = 1;
     mm.use_enhanced2019R2 = 0;
     mm.use_non_adj_reduc_degree = 0;
     mm.max_degree_MG_enhanced2019R2 = 100;
