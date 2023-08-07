@@ -54,7 +54,7 @@ weightTYPE PrefixalQuery2(vector<vector<two_hop_label_v1>>& L, int source, int t
 
 }
 
-void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>& L, int vk, int u, weightTYPE delta) {
+void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop_label_v1>>& L, int vk, int u, weightTYPE delta) {
 	std::queue<affected_label> Q;
 	affected_label x;
 	x.first = u;
@@ -68,8 +68,19 @@ void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_
 
 		auto v = now.first;
 		weightTYPE now_delta = now.dis;
-
+		//if (vk == v) {
+		//	mtx_595[v].lock();
+		//}
+		//else {
+		//	mtx_595[vk].lock(), mtx_595[v].lock();  // 这里有锁的互斥的难题（2个线程加锁是交叉的）
+		//}
 		weightTYPE PrefixalQueryAns = PrefixalQuery2(L, vk, v, vk);
+		//if (vk == v) {
+		//	mtx_595[v].unlock();
+		//}
+		//else {
+		//	mtx_595[vk].unlock(), mtx_595[v].unlock();
+		//}
 		/*cout << "PreQ: " << PrefixalQueryAns << " " << "delta: " << now_delta <<" "<<"vk: "<<vk<< endl;*/
 
 		if (PrefixalQueryAns <= now_delta)
@@ -77,26 +88,26 @@ void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_
 			continue;
 		}
 			
-		if (v >= vk)
-		{
-			/*std::cout << "insert: " << vk <<" "<< now_delta << endl;*/
-			insert_sorted_two_hop_label(L[v], vk, now_delta);
+		/*std::cout << "insert: " << vk <<" "<< now_delta << endl;*/
+		//mtx_595[v].lock();
+		insert_sorted_two_hop_label(L[v], vk, now_delta);
+		//mtx_595[v].unlock();
 
-			auto neis = instance_graph->adj_v_and_ec(v);
+		auto neis = instance_graph.adj_v_and_ec(v);
 
-			for (auto nei : neis) {
-				auto vnei = nei.first;
-				affected_label now_nei;
-				now_nei.first = vnei;
-				now_nei.dis = now_delta + nei.second;
-				Q.push(now_nei);
-			}
+		for (auto nei : neis) {
+			auto vnei = nei.first;
+			affected_label now_nei;
+			now_nei.first = vnei;
+			now_nei.dis = now_delta + nei.second;
+			Q.push(now_nei);
 		}
 		
 	}
 }
 
-void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new) {
+void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
+	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	auto& L = mm.L;
 
@@ -108,7 +119,17 @@ void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 			int v = it.vertex;
 			weightTYPE dis = it.distance + w_new;
 
-			ResumePBFS(&instance_graph, mm.L, v, v2, dis);
+			/*the following code cause errors even when there is only 1 thread, why?*/
+			//results_dynamic.emplace_back(pool_dynamic.enqueue([&instance_graph, &L, v, v2, dis] {
+			//	ResumePBFS(instance_graph, L, v, v2, dis);
+			//	return 1; }));
+
+			ResumePBFS(instance_graph, L, v, v2, dis);
 		}
 	}
+
+	for (auto&& result : results_dynamic) {
+		result.get();
+	}
+	results_dynamic.clear();
 }

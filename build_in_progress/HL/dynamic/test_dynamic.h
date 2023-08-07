@@ -252,7 +252,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			/*maintain labels*/
 			//WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 			//WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
-			WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
+			WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
 			//mm.print_L();
