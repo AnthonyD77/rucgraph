@@ -184,13 +184,16 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			//	selected_edge.first = 0, selected_edge.second = 2;
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
-			if (weightIncrease_time == 0) {
-				selected_edge.first = 2, selected_edge.second = 0;
-				selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+			//if (weightIncrease_time == 0) {
+			//	selected_edge.first = 2, selected_edge.second = 0;
+			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+			//}
+
+			double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+			if (new_ec > 1e6) {
+				weightIncrease_time++;
+				continue;
 			}
-
-
-			double new_ec = min(selected_edge_weight * (1 + weightChange_ratio), 1e6);
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 
 			/*maintain labels*/
@@ -246,13 +249,17 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			//	selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 			//}
 
-			double new_ec = max( selected_edge_weight * (1 - weightChange_ratio), 1e-2);
+			double new_ec = selected_edge_weight * (1 - weightChange_ratio);
+			if (new_ec < 1e-2) {
+				weightDecrease_time++;
+				continue;
+			}
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 
 			/*maintain labels*/
 			//WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
-			//WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
-			WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+			WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+			//WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
 			//mm.print_L();
@@ -265,10 +272,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 150, precision = 1, thread_num = 5;
+	int V = 1000, E = 1500, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 0, weightDecrease_time = 30;
+	int weightIncrease_time = 30, weightDecrease_time = 30;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0;

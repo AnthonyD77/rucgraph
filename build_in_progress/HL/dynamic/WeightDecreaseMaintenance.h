@@ -2,38 +2,38 @@
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
-void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop_label_v1>>& L, PPR_type& PPR,
-	std::vector<affected_label>& CL_curr, std::vector<affected_label>& CL_next) {
-
-	for (auto it : CL_curr) {
-		int v = it.first, u = it.second;
-		auto neis = instance_graph.adj_v_and_ec(v);
-		for (auto nei : neis) {
-			int vnei = nei.first;
-			weightTYPE dnew = it.dis + nei.second;
-			if (u < vnei) {
-				auto query_result = Query2(vnei, u); // query_result is {distance, common hub}
-				if (query_result.first > dnew) {
-					insert_sorted_two_hop_label(L[vnei], u, dnew);
-					CL_next.push_back(affected_label(vnei, u, dnew));
-				}
-				else {
-					auto search_result = search_sorted_two_hop_label2(L[vnei], u);
-					if (search_result.first != MAX_VALUE && search_result.first > dnew) {
-						L[vnei][search_result.second].distance = dnew;
-						CL_next.push_back(affected_label(vnei, u, dnew));
-					}
-					if (query_result.second != u) {
-						PPR_insert(PPR, vnei, query_result.second, u);
-					}
-					if (query_result.second != vnei) {
-						PPR_insert(PPR, u, query_result.second, vnei);
-					}
-				}
-			}
-		}
-	}
-}
+//void ProDecrease(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop_label_v1>>& L, PPR_type& PPR,
+//	std::vector<affected_label>& CL_curr, std::vector<affected_label>& CL_next) {
+//
+//	for (auto it : CL_curr) {
+//		int v = it.first, u = it.second;
+//		auto neis = instance_graph.adj_v_and_ec(v);
+//		for (auto nei : neis) {
+//			int vnei = nei.first;
+//			weightTYPE dnew = it.dis + nei.second;
+//			if (u < vnei) {
+//				auto query_result = Query2(vnei, u); // query_result is {distance, common hub}
+//				if (query_result.first > dnew) {
+//					insert_sorted_two_hop_label(L[vnei], u, dnew);
+//					CL_next.push_back(affected_label(vnei, u, dnew));
+//				}
+//				else {
+//					auto search_result = search_sorted_two_hop_label2(L[vnei], u);
+//					if (search_result.first != MAX_VALUE && search_result.first > dnew) {
+//						L[vnei][search_result.second].distance = dnew;
+//						CL_next.push_back(affected_label(vnei, u, dnew));
+//					}
+//					if (query_result.second != u) {
+//						PPR_insert(PPR, vnei, query_result.second, u);
+//					}
+//					if (query_result.second != vnei) {
+//						PPR_insert(PPR, u, query_result.second, vnei);
+//					}
+//				}
+//			}
+//		}
+//	}
+//}
 
 void ProDecreasep(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
 	std::vector<affected_label>& CL_curr, std::vector<affected_label>* CL_next, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
