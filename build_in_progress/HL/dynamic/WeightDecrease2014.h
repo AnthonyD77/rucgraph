@@ -2,20 +2,59 @@
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
-weightTYPE PrefixalQuery(int s, int t, vector<vector<two_hop_label_v1>>* L, int k) {
-	weightTYPE min_ans = MAX_VALUE;
-	for (int i = 0; i <= k;i++) {
-		auto search_result_s = search_sorted_two_hop_label2((*L)[s], i);
-		auto search_result_t = search_sorted_two_hop_label2((*L)[t], i);
-		/*cout << "search_result_s: " << search_result_s.first << " " <<"search_result_t: " << search_result_t.first << endl;*/
-		if (search_result_s.first + search_result_t.first < min_ans) {
-			min_ans = search_result_s.first + search_result_t.first;
+//weightTYPE PrefixalQuery(int s, int t, vector<vector<two_hop_label_v1>>& L, int k) {
+//	weightTYPE min_ans = MAX_VALUE;
+//	for (int i = 0; i <= k;i++) {
+//		auto search_result_s = search_sorted_two_hop_label2(L[s], i);
+//		auto search_result_t = search_sorted_two_hop_label2(L[t], i);
+//		/*cout << "search_result_s: " << search_result_s.first << " " <<"search_result_t: " << search_result_t.first << endl;*/
+//		if (search_result_s.first + search_result_t.first < min_ans) {
+//			min_ans = search_result_s.first + search_result_t.first;
+//		}
+//	}
+//	return min_ans;
+//}
+
+weightTYPE PrefixalQuery2(vector<vector<two_hop_label_v1>>& L, int source, int terminal, int k) {
+
+	/*return std::numeric_limits<double>::max() is not connected*/
+
+	if (source == terminal) {
+		return 0;
+	}
+
+	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
+
+	auto vector1_check_pointer = L[source].begin();
+	auto vector2_check_pointer = L[terminal].begin();
+	auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
+	while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end) {
+		if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
+			weightTYPE dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
+			if (distance > dis) {
+				distance = dis;
+			}
+			vector1_check_pointer++;
+		}
+		else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex) {
+			vector2_check_pointer++;
+			if (vector2_check_pointer->vertex > k) {
+				vector2_check_pointer = pointer_L_t_end;
+			}
+		}
+		else {
+			vector1_check_pointer++;
+			if (vector1_check_pointer->vertex > k) {
+				vector1_check_pointer = pointer_L_s_end;
+			}
 		}
 	}
-	return min_ans;
+
+	return distance;
+
 }
 
-void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, int vk, int u, weightTYPE delta) {
+void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>& L, int vk, int u, weightTYPE delta) {
 	std::queue<affected_label> Q;
 	affected_label x;
 	x.first = u;
@@ -30,7 +69,7 @@ void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_
 		auto v = now.first;
 		weightTYPE now_delta = now.dis;
 
-		weightTYPE PrefixalQueryAns = PrefixalQuery(vk, v, L, vk);
+		weightTYPE PrefixalQueryAns = PrefixalQuery2(L, vk, v, vk);
 		/*cout << "PreQ: " << PrefixalQueryAns << " " << "delta: " << now_delta <<" "<<"vk: "<<vk<< endl;*/
 
 		if (PrefixalQueryAns <= now_delta)
@@ -41,7 +80,7 @@ void ResumePBFS(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_
 		if (v >= vk)
 		{
 			/*std::cout << "insert: " << vk <<" "<< now_delta << endl;*/
-			insert_sorted_two_hop_label((*L)[v], vk, now_delta);
+			insert_sorted_two_hop_label(L[v], vk, now_delta);
 
 			auto neis = instance_graph->adj_v_and_ec(v);
 
@@ -69,7 +108,7 @@ void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 			int v = it.vertex;
 			weightTYPE dis = it.distance + w_new;
 
-			ResumePBFS(&instance_graph, &mm.L, v, v2, dis);
+			ResumePBFS(&instance_graph, mm.L, v, v2, dis);
 		}
 	}
 }
