@@ -94,7 +94,7 @@ void ProDecreasep(graph_hash_of_mixed_weighted* instance_graph, vector<vector<tw
 }
 
 
-void WeightDecreaseMaintenance(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
+void WeightDecrease2021(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	std::vector<affected_label> CL_curr, CL_next;

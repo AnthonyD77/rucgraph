@@ -36,8 +36,8 @@ rm A
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 #include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
 #include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
-#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance.h>
-#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance.h>
+#include <build_in_progress/HL/dynamic/WeightIncrease2021.h>
+#include <build_in_progress/HL/dynamic/WeightDecrease2021.h>
 #include <build_in_progress/HL/dynamic/WeightDecrease2014.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
@@ -197,7 +197,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 
 			/*maintain labels*/
-			WeightIncreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+			WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
 			//WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
 
 			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 + weightChange_ratio) << endl;
@@ -258,7 +258,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 
 			/*maintain labels*/
 			//WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
-			WeightDecreaseMaintenance(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+			WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 			//WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
@@ -428,7 +428,7 @@ void compare_speed() {
 					double new_ec = min(old_ec * (1 + weightChange_ratio), 1e6);
 					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightIncreaseMaintenance(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec, pool_dynamic, results_dynamic);
+					WeightIncrease2021(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec, pool_dynamic, results_dynamic);
 					auto end = std::chrono::high_resolution_clock::now();
 					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 					avg_time_WeightIncreaseMaintenance += runningtime / iteration_graph_times / weightChange_time;
@@ -472,7 +472,7 @@ void compare_speed() {
 					double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
 					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightDecreaseMaintenance(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, pool_dynamic, results_dynamic);
+					WeightDecrease2021(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, pool_dynamic, results_dynamic);
 					auto end = std::chrono::high_resolution_clock::now();
 					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 					avg_time_WeightDecreaseMaintenance += runningtime / iteration_graph_times / weightChange_time;
