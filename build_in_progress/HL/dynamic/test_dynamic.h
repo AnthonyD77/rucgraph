@@ -358,7 +358,7 @@ void compare_speed() {
 	double ec_min = 1, ec_max = 10;
 	
 	bool use_WeightIncreaseMaintenance = 0, use_WeightIncreaseMaintenance_improv = 0, 
-		use_WeightDecreaseMaintenance = 0, use_WeightDecreaseMaintenance_improv = 0;
+		use_WeightDecrease2014 = 1, use_WeightDecreaseMaintenance = 1, use_WeightDecreaseMaintenance_improv = 1;
 	
 	/*iteration*/
 	cout << "V = " << V << "	E =" << E << endl;
@@ -377,7 +377,7 @@ void compare_speed() {
 			cout << "thread_num = " << t_num << endl;
 
 			double avg_time_WeightIncreaseMaintenance = 0, avg_time_WeightIncreaseMaintenance_improv = 0,
-				avg_time_WeightDecreaseMaintenance = 0, avg_time_WeightDecreaseMaintenance_improv = 0;
+				avg_time_WeightDecrease2014 = 0, avg_time_WeightDecreaseMaintenance = 0, avg_time_WeightDecreaseMaintenance_improv = 0;
 
 			initialize_global_values_dynamic(V, t_num);
 			ThreadPool pool_dynamic(t_num);
@@ -428,20 +428,35 @@ void compare_speed() {
 				}
 			}
 
-			//if (use_WeightIncreaseMaintenance_improv) {
-			//	auto g = instance_graph;
-			//	auto mm2 = mm;
-			//	for (int j = 0; j < weightChange_time; j++) {
-			//		double old_ec = graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second);
-			//		double new_ec = min(old_ec * (1 + weightChange_ratio), 1e6);
-			//		graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
-			//		auto begin = std::chrono::high_resolution_clock::now();
-			//		WeightIncreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec, pool_dynamic, results_dynamic);
-			//		auto end = std::chrono::high_resolution_clock::now();
-			//		double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-			//		avg_time_WeightIncreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;
-			//	}
-			//}
+			if (use_WeightIncreaseMaintenance_improv) {
+				auto g = instance_graph;
+				auto mm2 = mm;
+				for (int j = 0; j < weightChange_time; j++) {
+					double old_ec = graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second);
+					double new_ec = min(old_ec * (1 + weightChange_ratio), 1e6);
+					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
+					auto begin = std::chrono::high_resolution_clock::now();
+					WeightIncreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec, pool_dynamic, results_dynamic);
+					auto end = std::chrono::high_resolution_clock::now();
+					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+					avg_time_WeightIncreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;
+				}
+			}
+
+			if (use_WeightDecrease2014) {
+				auto g = instance_graph;
+				auto mm2 = mm;
+				for (int j = 0; j < weightChange_time; j++) {
+					double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
+					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
+					auto begin = std::chrono::high_resolution_clock::now();
+					WeightDecrease2014(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, pool_dynamic, results_dynamic);
+					auto end = std::chrono::high_resolution_clock::now();
+					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+					avg_time_WeightDecrease2014 += runningtime / iteration_graph_times / weightChange_time;
+					//cout << "WeightDecreaseMaintenance " << runningtime << "s" << endl;
+				}
+			}
 
 			if (use_WeightDecreaseMaintenance) {
 				auto g = instance_graph;
@@ -458,23 +473,26 @@ void compare_speed() {
 				}
 			}
 
-			//if (use_WeightDecreaseMaintenance_improv) {
-			//	auto g = instance_graph;
-			//	auto mm2 = mm;
-			//	for (int j = 0; j < weightChange_time; j++) {
-			//		double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
-			//		graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
-			//		auto begin = std::chrono::high_resolution_clock::now();
-			//		WeightDecreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, pool_dynamic, results_dynamic);
-			//		auto end = std::chrono::high_resolution_clock::now();
-			//		double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-			//		avg_time_WeightDecreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;
-			//		//cout << "WeightDecreaseMaintenance_improv " << runningtime << "s" << endl;
-			//	}
-			//}
+			if (use_WeightDecreaseMaintenance_improv) {
+				auto g = instance_graph;
+				auto mm2 = mm;
+				for (int j = 0; j < weightChange_time; j++) {
+					double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
+					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
+					auto begin = std::chrono::high_resolution_clock::now();
+					WeightDecreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, pool_dynamic, results_dynamic);
+					auto end = std::chrono::high_resolution_clock::now();
+					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
+					avg_time_WeightDecreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;
+					//cout << "WeightDecreaseMaintenance_improv " << runningtime << "s" << endl;
+				}
+			}
+
+
 
 			cout << "avg_time_WeightIncreaseMaintenance = " << avg_time_WeightIncreaseMaintenance << "s" << endl
 				<< "avg_time_WeightIncreaseMaintenance_improv = " << avg_time_WeightIncreaseMaintenance_improv << "s" << endl
+				<< "avg_time_WeightDecrease2014 = " << avg_time_WeightDecrease2014 << "s" << endl
 				<< "avg_time_WeightDecreaseMaintenance = " << avg_time_WeightDecreaseMaintenance << "s" << endl
 				<< "avg_time_WeightDecreaseMaintenance_improv = " << avg_time_WeightDecreaseMaintenance_improv << "s" << endl;
 			cout << "avg_time_WeightIncreaseMaintenance / avg_time_WeightIncreaseMaintenance_improv = " << avg_time_WeightIncreaseMaintenance / avg_time_WeightIncreaseMaintenance_improv << endl
