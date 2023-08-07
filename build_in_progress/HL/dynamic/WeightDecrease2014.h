@@ -15,19 +15,15 @@
 //	return min_ans;
 //}
 
-weightTYPE PrefixalQuery2(vector<vector<two_hop_label_v1>>& L, int source, int terminal, int k) {
+weightTYPE PrefixalQuery2(vector<two_hop_label_v1>& Ls, vector<two_hop_label_v1>& Lt, int k) {
 
 	/*return std::numeric_limits<double>::max() is not connected*/
 
-	if (source == terminal) {
-		return 0;
-	}
-
 	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
 
-	auto vector1_check_pointer = L[source].begin();
-	auto vector2_check_pointer = L[terminal].begin();
-	auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
+	auto vector1_check_pointer = Ls.begin();
+	auto vector2_check_pointer = Lt.begin();
+	auto pointer_L_s_end = Ls.end(), pointer_L_t_end = Lt.end();
 	while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end) {
 		if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
 			weightTYPE dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
@@ -61,6 +57,10 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 	x.dis = delta;
 	Q.push(x);
 
+	mtx_595[vk].lock();
+	vector<two_hop_label_v1> L_vk = L[vk]; // 解决下面PrefixalQuery2锁的互斥的难题（2个线程加锁是交叉的）
+	mtx_595[vk].unlock();
+
 	while (Q.size()) {
 		affected_label now;
 		now = Q.front();
@@ -68,19 +68,10 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 
 		auto v = now.first;
 		weightTYPE now_delta = now.dis;
-		//if (vk == v) {
-		//	mtx_595[v].lock();
-		//}
-		//else {
-		//	mtx_595[vk].lock(), mtx_595[v].lock();  // 这里有锁的互斥的难题（2个线程加锁是交叉的）
-		//}
-		weightTYPE PrefixalQueryAns = PrefixalQuery2(L, vk, v, vk);
-		//if (vk == v) {
-		//	mtx_595[v].unlock();
-		//}
-		//else {
-		//	mtx_595[vk].unlock(), mtx_595[v].unlock();
-		//}
+
+		mtx_595[v].lock();
+		weightTYPE PrefixalQueryAns = PrefixalQuery2(L_vk, L[v], vk);
+		mtx_595[v].unlock();
 		/*cout << "PreQ: " << PrefixalQueryAns << " " << "delta: " << now_delta <<" "<<"vk: "<<vk<< endl;*/
 
 		if (PrefixalQueryAns <= now_delta)
@@ -89,9 +80,13 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 		}
 			
 		/*std::cout << "insert: " << vk <<" "<< now_delta << endl;*/
-		//mtx_595[v].lock();
+		mtx_595[v].lock();
 		insert_sorted_two_hop_label(L[v], vk, now_delta);
-		//mtx_595[v].unlock();
+		mtx_595[v].unlock();
+
+		if (v == vk) {
+			insert_sorted_two_hop_label(L_vk, vk, now_delta);
+		}
 
 		auto neis = instance_graph.adj_v_and_ec(v);
 
@@ -119,17 +114,17 @@ void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 			int v = it.vertex;
 			weightTYPE dis = it.distance + w_new;
 
-			/*the following code cause errors even when there is only 1 thread, why?*/
-			//results_dynamic.emplace_back(pool_dynamic.enqueue([&instance_graph, &L, v, v2, dis] {
-			//	ResumePBFS(instance_graph, L, v, v2, dis);
-			//	return 1; }));
+			results_dynamic.emplace_back(pool_dynamic.enqueue([&instance_graph, &L, v, v2, dis] {
+				ResumePBFS(instance_graph, L, v, v2, dis);
+				return 1; }));
 
-			ResumePBFS(instance_graph, L, v, v2, dis);
+			//ResumePBFS(instance_graph, L, v, v2, dis);
 		}
-	}
 
-	for (auto&& result : results_dynamic) {
-		result.get();
+		/*put the following gets out of the for loop causes errors or incorrect query results, why?*/
+		for (auto&& result : results_dynamic) {
+			result.get();
+		}
+		results_dynamic.clear();
 	}
-	results_dynamic.clear();
 }
