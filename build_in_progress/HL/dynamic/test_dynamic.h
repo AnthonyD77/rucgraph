@@ -364,7 +364,7 @@ void compare_speed() {
 	int V = 5000, E = 20000, precision = 1;
 	double ec_min = 1, ec_max = 10;
 	
-	bool use_WeightIncreaseMaintenance = 0, use_WeightIncreaseMaintenance_improv = 0, 
+	bool use_WeightIncreaseMaintenance = 1, use_WeightIncreaseMaintenance_improv = 1, 
 		use_WeightDecrease2014 = 1, use_WeightDecreaseMaintenance = 1, use_WeightDecreaseMaintenance_improv = 1;
 	
 	/*iteration*/
