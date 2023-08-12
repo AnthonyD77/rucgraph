@@ -314,10 +314,14 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
                                 /* add 1-edge (origin) info, here do not need to modify parent */
                                 node.priority_value = new_edges_with_origin_ec[{u,adj_v}] + P_u;
                                 node.parent_vertex = -u;
+                                if (u==0)
+                                    node.parent_vertex = std::numeric_limits<int>::max();
                                 Q_handles[adj_v] = Q.push(node);
+                                
+                                // if (u==0 && adj_v==6)
+                                //     cout << "\t push " << node.vertex << "," << node.priority_value << "," << node.parent_vertex << "," << node.hop << " into Q" << endl;
+                            
                                 node.parent_vertex = u;
-                                if (print)
-                                    cout << "\t push " << node.vertex << "," << node.priority_value << "," << node.hop << " into Q" << endl;
                             }
                         }
                         /* update node info of 2-edge */
@@ -405,14 +409,22 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
 }
 
 
-void graph_hash_of_mixed_weighted_HB_v1_sort_labels_thread(vector<vector<two_hop_label_v1>> *output_L, int v_k)
+void graph_hash_of_mixed_weighted_HB_v1_sort_labels_thread(vector<vector<two_hop_label_v1>> *output_L, int v_k, double value_M)
 {
     sort(L_temp_599[v_k].begin(), L_temp_599[v_k].end(), compare_two_hop_label_small_to_large);
+    if (value_M != 0)
+    {
+        int size_vk = L_temp_599[v_k].size();
+        for (int i = 0; i < size_vk; i++)
+        {
+            L_temp_599[v_k][i].distance += L_temp_599[v_k][i].hop * value_M;
+        }
+    }
     (*output_L)[v_k] = L_temp_599[v_k];
     vector<two_hop_label_v1>().swap(L_temp_599[v_k]); // clear new labels for RAM efficiency
 }
 
-vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HB_v1_sort_labels(int N, int max_N_ID, int num_of_threads)
+vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HB_v1_sort_labels(int N, int max_N_ID, int num_of_threads, double value_M = 0)
 {
     vector<vector<two_hop_label_v1>> output_L(max_N_ID);
     vector<vector<two_hop_label_v1>> *p = &output_L;
@@ -421,8 +433,8 @@ vector<vector<two_hop_label_v1>> graph_hash_of_mixed_weighted_HB_v1_sort_labels(
     std::vector<std::future<int>> results;
     for (int v_k = 0; v_k < N; v_k++)
     {
-        results.emplace_back(pool.enqueue([p, v_k] {
-            graph_hash_of_mixed_weighted_HB_v1_sort_labels_thread(p, v_k);
+        results.emplace_back(pool.enqueue([p, v_k, value_M] {
+            graph_hash_of_mixed_weighted_HB_v1_sort_labels_thread(p, v_k, value_M);
             return 1;
         }));
     }
@@ -462,7 +474,40 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     L_temp_599.resize(max_N_ID);
     int N = input_graph.size();
 
+    /* thread info */
+    ThreadPool pool(num_of_threads);
+    std::vector<std::future<int>> results;              
+    int num_of_threads_per_push = num_of_threads * 100;
+
     ideal_graph_599 = input_graph;
+    
+    if(0)
+    {
+        int push_num = 0;
+        double M = case_info.value_M;
+
+        for (int i = 0; i < N; i++)
+        {
+            if (ideal_graph_599[i].size() > 0)
+            {
+                results.emplace_back(pool.enqueue([i, M] { // pass const type value j to thread; [] can be empty
+                    int size_i = ideal_graph_599[i].size();
+                    for (int j = 0; j < size_i; j++)
+                    {
+                        ideal_graph_599[i][j].second += M;
+                    }
+                    return 1;
+                }));
+                push_num++;
+            }
+            if (push_num % num_of_threads_per_push == 0)
+            {
+                for (auto &&result : results)
+                    result.get(); // all threads finish here
+                results.clear();
+            }
+        }
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     case_info.time_initialization = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
@@ -676,9 +721,7 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     /*seaching shortest paths*/
     bool use_hbdij = case_info.use_hbdij;
     int upper_k = case_info.upper_k == 0 ? std::numeric_limits<int>::max() : case_info.upper_k;
-    ThreadPool pool(num_of_threads);
-    std::vector<std::future<int>> results;              
-    int num_of_threads_per_push = num_of_threads * 100;
+    
     if (!use_hbdij)
     {
         T_bfs_599.resize(num_of_threads);
@@ -765,42 +808,36 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
         int e1 = it->first.first;
         int e2 = it->first.second;
         int middle_k = it->second;
-        int ttt = 0;
-        if(e1 == 3 && e2 == 1 && middle_k == 4)
+        // cout << e1 << ", " << e2 << ", " << middle_k << endl;
+        for (int j = L_temp_599[e1].size() - 1; j >= 0; j--)
         {
-            ttt = 0;
-            cout << "here" << endl;
+            if (L_temp_599[e1][j].parent_vertex == e2)
+            {
+                // cout << "change L[" << e1 << "]." << L_temp_599[e1][j].vertex << " hop: " << L_temp_599[e1][j].hop << " p: " << L_temp_599[e1][j].parent_vertex << " into " << middle_k << endl; 
+                L_temp_599[e1][j].parent_vertex = middle_k;
+            }
         }
+    }
+    for (auto it = new_edges_with_middle_v.begin() ; it != new_edges_with_middle_v.end() ; it++)
+    {
+        int e1 = it->first.first;
+        int e2 = it->first.second;
+        int middle_k = it->second;
         for (int j = L_temp_599[e1].size() - 1; j >= 0; j--)
         {
             if (L_temp_599[e1][j].parent_vertex < 0)
             {
-                if (ttt)
-                    cout << "!!!!-1" << endl;
                 L_temp_599[e1][j].parent_vertex *= (-1);
+                // cout << "change L[" << e1 << "]." << L_temp_599[e1][j].vertex << " hop: " << L_temp_599[e1][j].hop << " p: " << L_temp_599[e1][j].parent_vertex << " into " << -1 << endl; 
                 continue;
             }
-            else if (L_temp_599[e1][j].parent_vertex == e2)
+            if (L_temp_599[e1][j].parent_vertex == std::numeric_limits<int>::max())
             {
-                if (ttt)
-                    cout << "!!!!-2" << endl;
-                L_temp_599[e1][j].parent_vertex = middle_k;
+                L_temp_599[e1][j].parent_vertex  = 0;
+                // cout << "change L[" << e1 << "]." << L_temp_599[e1][j].vertex << " hop: " << L_temp_599[e1][j].hop << " p: " << L_temp_599[e1][j].parent_vertex << " into " << -1 << endl; 
+                continue;
             }
         }
-        // for (int j = L_temp_599[e2].size() - 1; j >= 0; j--)
-        // {
-        //     if (L_temp_599[e1][j].parent_vertex < 0)
-        //     {
-        //         L_temp_599[e1][j].parent_vertex *= (-1);
-        //         continue;
-        //     }
-        //     else if (L_temp_599[e2][j].parent_vertex == e1)
-        //     {
-        //         if (ttt)
-        //             cout << "!!!!" << endl;
-        //         L_temp_599[e2][j].parent_vertex = middle_k;
-        //     }
-        // }
     }
     end = std::chrono::high_resolution_clock::now();
     case_info.time_2019R2_or_enhanced_fixlabels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin) .count() / 1e9; // s
@@ -835,9 +872,15 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
         }
 
         begin = std::chrono::high_resolution_clock::now();
+        // if (case_info.use_M)
+        //     canonical_repair_multi_threads_with_value_M(case_info.label_size_before_canonical_repair,
+        //                                case_info.label_size_after_canonical_repair,
+        //                                case_info.canonical_repair_remove_label_ratio, num_of_threads,
+        //                                case_info.value_M);
+        // else
         canonical_repair_multi_threads(case_info.label_size_before_canonical_repair,
-                                       case_info.label_size_after_canonical_repair,
-                                       case_info.canonical_repair_remove_label_ratio, num_of_threads);
+                                    case_info.label_size_after_canonical_repair,
+                                    case_info.canonical_repair_remove_label_ratio, num_of_threads);
         end = std::chrono::high_resolution_clock::now();
         case_info.time_canonical_repair2 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
     }
@@ -849,7 +892,10 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
     begin = std::chrono::high_resolution_clock::now();
     
     /* sort lables */
-    case_info.L = graph_hash_of_mixed_weighted_HB_v1_sort_labels(N, max_N_ID, num_of_threads);
+    if (case_info.use_M)
+        case_info.L = graph_hash_of_mixed_weighted_HB_v1_sort_labels(N, max_N_ID, num_of_threads, case_info.value_M);
+    else
+        case_info.L = graph_hash_of_mixed_weighted_HB_v1_sort_labels(N, max_N_ID, num_of_threads);
 
     end = std::chrono::high_resolution_clock::now();
     case_info.time_update_old_IDs_in_labels = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s

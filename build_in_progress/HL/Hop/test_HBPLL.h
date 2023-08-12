@@ -92,9 +92,9 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
             
             double dis;
             if (case_info.use_2019R2 || case_info.use_enhanced2019R2 || case_info.use_non_adj_reduc_degree)
-                dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1(case_info.L, case_info.reduction_measures_2019R2, source, terminal, hop_cst);
+                dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_st_no_R1(case_info.L, case_info.reduction_measures_2019R2, source, terminal, hop_cst, case_info.value_M);
             else
-                dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(case_info.L, source, terminal, hop_cst);
+                dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(case_info.L, source, terminal, hop_cst, case_info.value_M);
 
             if (abs(dis - distances[terminal]) > 1e-4 && (dis < std::numeric_limits<double>::max() || distances[terminal] < std::numeric_limits<double>::max()))
             {
@@ -121,7 +121,7 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
 
             if (check_path)
             {
-                vector<pair<int, int>> path = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(case_info.L, case_info.reduction_measures_2019R2, source, terminal, hop_cst);
+                vector<pair<int, int>> path = graph_hash_of_mixed_weighted_two_hop_v1_extract_shortest_path_st_no_R1(case_info.L, case_info.reduction_measures_2019R2, source, terminal, hop_cst, case_info.value_M);
 
                 double path_dis = 0;
                 if (path.size() == 0)
@@ -150,13 +150,13 @@ void graph_hash_of_mixed_weighted_HB_v1_check_correctness(graph_hash_of_mixed_we
                     cout << "source vector:" << endl;
                     for (auto it = case_info.L[source].begin(); it != case_info.L[source].end(); it++)
                     {
-                        cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+                        cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << "," << it->hop << ">";
                     }
                     cout << endl;
                     cout << "terminal vector:" << endl;
                     for (auto it = case_info.L[terminal].begin(); it != case_info.L[terminal].end(); it++)
                     {
-                        cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << ">";
+                        cout << "<" << it->vertex << "," << it->distance << "," << it->parent_vertex << "," << it->hop << ">";
                     }
                     cout << endl;
 
@@ -175,12 +175,11 @@ void test_HBPLL()
 {
     /*parameters*/
     int iteration_graph_times = 1e2, iteration_source_times = 1000, iteration_terminal_times = 1000;
-    int V = 1e2, E = 5e2, precision = 1, thread_num = 10;
+    int V = 20, E = 50, precision = 1, thread_num = 10;
     double ec_min = 0.1, ec_max = 1;
     bool weighted = (ec_min == 1 && ec_max == 1) ? false : true;
     graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
     bool use_PLL = 1; // 1: PLL 0: PSL
-    int query_hop_cst = 10;
 
     /*control varible*/
     bool generate_new_graph = 1;
@@ -193,18 +192,21 @@ void test_HBPLL()
     debug = 0;
     if (debug)
     {
-        source_debug = 3;
-        terminal_debug = 1;
+        source_debug = 6;
+        terminal_debug = 14;
         iteration_graph_times = 1;
         generate_new_graph = 0;
         iteration_source_times = 1;
         iteration_terminal_times = 1;
         print_L = 1;
-    } 
+    }
 
-    /*hop bounded upper limit*/
+    /*hop bounded info*/
+    int query_hop_cst = 2;
+    mm.use_M = 0;
     mm.upper_k = 10; // 0 means there is no limit
     mm.use_hbdij = 1;
+    mm.value_M = mm.use_M ? ec_max * E : 0;
 
     /*reduction method selection*/
         /* use_hb 目前不支持 R2 */
@@ -317,7 +319,6 @@ void test_HBPLL()
                     else
                     {
                         L1_is_l2 == false;
-                        cout << "here" << endl;
                         mm.print_L();
                         mm2.print_L();
                         getchar();
@@ -331,7 +332,6 @@ void test_HBPLL()
                         if (L1[xx][yy].vertex != L2[xx][yy].vertex)
                         {
                             L1_is_l2 == false;
-                            cout << "here" << endl;
                             mm.print_L();
                             mm2.print_L();
                             getchar();
