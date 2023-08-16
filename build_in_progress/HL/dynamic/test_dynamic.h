@@ -39,7 +39,7 @@ rm A
 #include <build_in_progress/HL/dynamic/WeightIncrease2021.h>
 #include <build_in_progress/HL/dynamic/WeightDecrease2021.h>
 #include <build_in_progress/HL/dynamic/WeightDecrease2014.h>
-#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_DecPLL.h>
+#include <build_in_progress/HL/dynamic/WeightIncrease2019.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
@@ -200,7 +200,7 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			/*maintain labels*/
 			//WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
 			//WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
-			WeightIncreaseMaintenance_DecPLL(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
+			WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 + weightChange_ratio) << endl;
 			//mm.print_L();
 			//mm.print_PPR();
@@ -273,10 +273,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e5, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 1000, E = 1500, precision = 1, thread_num = 5;
+	int V = 100, E = 150, precision = 1, thread_num = 5;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 30, weightDecrease_time = 30;
+	int weightIncrease_time = 30, weightDecrease_time = 0;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0;
