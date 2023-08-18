@@ -201,8 +201,8 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 
 			/*maintain labels*/
 			//WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
-			//WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
-			WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+			WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+			//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
 			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 + weightChange_ratio) << endl;
 			//mm.print_L();
 			//mm.print_PPR();
@@ -265,9 +265,9 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			auto begin = std::chrono::high_resolution_clock::now();
 
 			/*maintain labels*/
-			//WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+			WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 			//WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
-			WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+			//WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
 			//mm.print_L();
 			//mm.print_PPR();
@@ -281,11 +281,11 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 void test_dynamic() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e1, iteration_source_times = 10, iteration_terminal_times = 10;
+	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
 	int V = 100, E = 500, precision = 1, thread_num = 1;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 30, weightDecrease_time = 0;
+	int weightIncrease_time = 30, weightDecrease_time = 30;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_maintain_time = 0;
@@ -293,7 +293,7 @@ void test_dynamic() {
 	/*iteration*/
 	for (int i = 0; i < iteration_graph_times; i++) {
 		cout << "iteration " << i << endl;
-
+		//getchar();
 		/*reduction method selection*/
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 		mm.max_labal_size = 6e8;
@@ -321,6 +321,14 @@ void test_dynamic() {
 				mm.print_L();
 				mm.print_PPR();
 			}
+
+			//mm.print_PPR();
+			//binary_save_PPR("PPR.bin", mm.PPR);
+			//binary_read_PPR("PPR.bin", mm.PPR);
+			//PPR_type x(V + 1);
+			//PPR_type(x).swap(mm.PPR);
+			//mm.print_PPR();
+
 		}
 		catch (string s) {
 			cout << s << endl;
