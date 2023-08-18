@@ -61,58 +61,86 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 }
 
 void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
-	vector<bool>& ax, vector<bool>& ay) {
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y, vector<bool>& ax, vector<bool>& ay,
+	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	for (auto v : AFF_x) {
-		for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
-			if (ay[it->vertex]) {
-				it = mm.L[v].erase(it);
+		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ay] {
+			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
+				if (ay[it->vertex]) {
+					it = mm.L[v].erase(it);
+				}
+				else {
+					it++;
+				}
 			}
-			else {
-				it++;
-			}
-		}
+			return 1; }));
 	}
+	for (auto&& result : results_dynamic) {
+		result.get();
+	}
+	results_dynamic.clear();
 	for (auto v : AFF_y) {
-		for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
-			if (ax[it->vertex]) {
-				it = mm.L[v].erase(it);
+		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ax] {
+			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
+				if (ax[it->vertex]) {
+					it = mm.L[v].erase(it);
+				}
+				else {
+					it++;
+				}
 			}
-			else {
-				it++;
-			}
-		}
+			return 1; }));
 	}
+	for (auto&& result : results_dynamic) {
+		result.get();
+	}
+	results_dynamic.clear();
 }
 
 void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
-	vector<bool>& ax, vector<bool>& ay) {
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
+	vector<bool>& ax, vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	int n = instance_graph.hash_of_vectors.size();
 	vector<int>& SA = AFF_x;
-	vector<int>& LA = AFF_y;
 	for (auto a : SA) {
-		vector<weightTYPE> dist(n, MAX_VALUE);
-		priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
-		dist[a] = 0;
-		Q.push(pair<weightTYPE, int>(0, a));
-		while (!Q.empty()) {
-			int v = Q.top().second;
-			Q.pop();
-			if (ay[v]) {
-				weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
-				if (dist[v] - 1e-5 < qdist) {
-					if (v < a) insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
-					else insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+		//results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, &a, &mm, &ay] {
+
+			vector<weightTYPE> dist(n, MAX_VALUE);
+			priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
+			dist[a] = 0;
+			Q.push(pair<weightTYPE, int>(0, a));
+			while (!Q.empty()) {
+				int v = Q.top().second;
+				Q.pop();
+				if (ay[v]) { // 并行这一部分导致互锁
+
+					//mtx_595[a].lock(), mtx_595[v].lock();
+					//weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
+					//if (dist[v] - 1e-5 < qdist) {
+					//	if (v < a) insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
+					//	else insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+					//}
+					//mtx_595[a].unlock(), mtx_595[v].unlock();
+
+					weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
+					if (dist[v] - 1e-5 < qdist) {
+						if (v < a) insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
+						else insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+					}
+				}
+				for (auto u : instance_graph.adj_v_and_ec(v)) {
+					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
+					dist[u.first] = dist[v] + u.second;
+					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
 			}
-			for (auto u : instance_graph.adj_v_and_ec(v)) {
-				if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
-				dist[u.first] = dist[v] + u.second;
-				Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
-			}
-		}
+
+			//return 1; }));		
 	}
+	//for (auto&& result : results_dynamic) {
+	//	result.get();
+	//}
+	//results_dynamic.clear();
 }
 
 void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
@@ -146,7 +174,8 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 	}
 }
 
-void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old) {
+void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old,
+	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	vector<int> AFF_x, AFF_y;
 	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
@@ -166,16 +195,16 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 		ay[AFF_y[i]] = true;
 	}
 
-	RemoveAffectedHub(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+	RemoveAffectedHub(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
 
 	double small_size = min(AFF_x.size(), AFF_y.size());
 	double n = instance_graph.hash_of_vectors.size();
 
 	if (small_size > n / log(n)) {
 		if (AFF_x.size() < AFF_y.size())
-			GreedyRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+			GreedyRestore(instance_graph, mm, AFF_x, ax, ay, pool_dynamic, results_dynamic);
 		else
-			GreedyRestore(instance_graph, mm, AFF_y, AFF_x, ay, ax);
+			GreedyRestore(instance_graph, mm, AFF_y, ay, ax, pool_dynamic, results_dynamic);
 	}
 	else {
 		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
