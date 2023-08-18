@@ -321,14 +321,12 @@ void test_dynamic() {
 				mm.print_L();
 				mm.print_PPR();
 			}
-
 			//mm.print_PPR();
 			//binary_save_PPR("PPR.bin", mm.PPR);
 			//binary_read_PPR("PPR.bin", mm.PPR);
 			//PPR_type x(V + 1);
 			//PPR_type(x).swap(mm.PPR);
 			//mm.print_PPR();
-
 		}
 		catch (string s) {
 			cout << s << endl;
