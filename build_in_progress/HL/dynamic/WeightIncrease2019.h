@@ -146,8 +146,7 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 	}
 }
 
-void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old) {
+void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old) {
 
 	vector<int> AFF_x, AFF_y;
 	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
