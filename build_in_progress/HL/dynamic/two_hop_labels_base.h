@@ -314,3 +314,33 @@ pair<weightTYPE, int> graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_n
 
 }
 
+
+weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc3(vector<two_hop_label_v1>& L_s, vector<two_hop_label_v1>& L_t) {
+
+	/*return std::numeric_limits<double>::max() is not connected*/
+
+	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
+
+	auto vector1_check_pointer = L_s.begin();
+	auto vector2_check_pointer = L_t.begin();
+	auto pointer_L_s_end = L_s.end(), pointer_L_t_end = L_t.end();
+	while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end) {
+		if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
+			weightTYPE dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
+			if (distance > dis) {
+				distance = dis;
+			}
+			vector1_check_pointer++;
+		}
+		else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex) {
+			vector2_check_pointer++;
+		}
+		else {
+			vector1_check_pointer++;
+		}
+	}
+
+	return distance;
+
+}
+

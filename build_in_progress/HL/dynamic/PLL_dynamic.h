@@ -125,15 +125,15 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 							Q.update(Q_handles[adj_v], node);
 							P_dij_595[used_id][adj_v] = node.priority_value;
 						}
-						else {
-							/* add v_k into PPR(u,common_hub_for_query_v_k_u), and add u into PPR(v_k,common_hub_for_query_v_k_u)*/
-							mtx_595[u].lock();
-							PPR_insert(PPR_595, u, v_k, v_k);
-							mtx_595[u].unlock();
-							mtx_595[v_k].lock();
-							PPR_insert(PPR_595, v_k, v_k, u);
-							mtx_595[v_k].unlock();
-						}
+						//else {
+						//	///* add v_k into PPR(u,common_hub_for_query_v_k_u), and add u into PPR(v_k,common_hub_for_query_v_k_u)*/
+						//	//mtx_595[adj_v].lock();
+						//	//PPR_insert(PPR_595, adj_v, v_k, v_k);
+						//	//mtx_595[adj_v].unlock();
+						//	//mtx_595[v_k].lock();
+						//	//PPR_insert(PPR_595, v_k, v_k, adj_v);
+						//	//mtx_595[v_k].unlock();
+						//}
 					}
 				}
 			}	
