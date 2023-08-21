@@ -72,69 +72,6 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 	graph_hash_of_mixed_weighted instance_graph;
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 
-	/*record edge changes: IN and DE mixed*/
-	vector<pair<int, int>> selected_edges;
-	int left_change_times = change_times;
-	while (left_change_times) {
-		/*randomly select an edge*/
-		pair<int, int> selected_edge;
-		double selected_edge_weight;
-		while (1) {
-			boost::random::uniform_int_distribution<> dist_v1{ static_cast<int>(0), static_cast<int>(V - 1) };
-			int v1 = dist_v1(boost_random_time_seed);
-			if (instance_graph.degree(v1) > 0) {
-				if (instance_graph.hash_of_vectors[v1].adj_vertices.size() > 0) {
-					boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors[v1].adj_vertices.size() - 1) };
-					int v2 = instance_graph.hash_of_vectors[v1].adj_vertices[dist_v2(boost_random_time_seed)].first;
-					selected_edge = { v1,v2 };
-					selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
-				}
-				else {
-					boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_hashs[v1].size() - 1) };
-					int r = dist_v2(boost_random_time_seed);
-					auto it = instance_graph.hash_of_hashs[v1].begin();
-					int id = 0;
-					while (1) {
-						if (id == r) {
-							int v2 = it->first;
-							selected_edge = { v1,v2 };
-							selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
-							break;
-						}
-						else {
-							it++, id++;
-						}
-					}
-				}
-				break;
-			}
-		}
-
-		if (left_change_times % 2 == 0) { // first increase
-			double new_ec = selected_edge_weight * (1 + weightChange_ratio);
-			if (new_ec > 1e6) {
-				continue;
-			}
-			else {
-				left_change_times--;
-				graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-				selected_edges.push_back(selected_edge);
-			}
-		}
-		else { // then decrease
-			double new_ec = selected_edge_weight * (1 - weightChange_ratio);
-			if (new_ec < 1e-2) {
-				continue;
-			}
-			else {
-				left_change_times--;
-				graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-				selected_edges.push_back(selected_edge);
-			}
-
-		}
-	}
-
 	for (int i = 0; i < 4; i++) {
 
 		string save_name, weight_type = "Jacard";
@@ -145,7 +82,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 		if (i < 2) {
 			weight_type = "random";
 		}
-		save_name = "exp_" + data_name + "_t_" + to_string(thread_num) + "_changeRatio_" + to_string(weightChange_ratio * 100) + "_" + weight_type + ".csv";
+		save_name = "exp_" + data_name + "_t_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv";
 		ThreadPool pool_dynamic(thread_num);
 		std::vector<std::future<int>> results_dynamic;
 		outputFile.open(save_name);
@@ -153,10 +90,77 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			"2021DE_avg_time,2021IN_avg_time,L_bit_size_2021,PPR_bit_size_2021,"
 			"newDE_avg_time,newIN_avg_time,L_bit_size_new,PPR_bit_size_new,clean_time,L_bit_size_new_clean,PPR_bit_size_new_clean" << endl;
 
+		/*record edge changes: IN and DE mixed*/
+		vector<pair<int, int>> selected_edges;
+		if (i % 2 == 0) {
+			instance_graph = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
+			int V = instance_graph.hash_of_vectors.size();
+			vector<pair<int, int>>().swap(selected_edges);
+			int left_change_times = change_times;
+			while (left_change_times) {
+				/*randomly select an edge*/
+				pair<int, int> selected_edge;
+				double selected_edge_weight;
+				while (1) {
+					boost::random::uniform_int_distribution<> dist_v1{ static_cast<int>(0), static_cast<int>(V - 1) };
+					int v1 = dist_v1(boost_random_time_seed);
+					if (instance_graph.degree(v1) > 0) {
+						if (instance_graph.hash_of_vectors[v1].adj_vertices.size() > 0) {
+							boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors[v1].adj_vertices.size() - 1) };
+							int v2 = instance_graph.hash_of_vectors[v1].adj_vertices[dist_v2(boost_random_time_seed)].first;
+							selected_edge = { v1,v2 };
+							selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
+						}
+						else {
+							boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_hashs[v1].size() - 1) };
+							int r = dist_v2(boost_random_time_seed);
+							auto it = instance_graph.hash_of_hashs[v1].begin();
+							int id = 0;
+							while (1) {
+								if (id == r) {
+									int v2 = it->first;
+									selected_edge = { v1,v2 };
+									selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
+									break;
+								}
+								else {
+									it++, id++;
+								}
+							}
+						}
+						break;
+					}
+				}
+
+				if (left_change_times % 2 == 0) { // first increase
+					double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+					if (new_ec > 1e6) {
+						continue;
+					}
+					else {
+						left_change_times--;
+						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+						selected_edges.push_back(selected_edge);
+					}
+				}
+				else { // then decrease
+					double new_ec = selected_edge_weight * (1 - weightChange_ratio);
+					if (new_ec < 1e-2) {
+						continue;
+					}
+					else {
+						left_change_times--;
+						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+						selected_edges.push_back(selected_edge);
+					}
+
+				}
+			}
+		}
+
 		for (int j = 0; j < 3; j++) {
 
 			instance_graph = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
-			int V = instance_graph.hash_of_vectors.size();
 			binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
 			binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
 
@@ -169,7 +173,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			for (int k = 0; k < change_times; k++) {
 				pair<int, int> selected_edge = selected_edges[k];
 				double selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
-				if (left_change_times % 2 == 0) { // increase
+				if (k % 2 == 0) { // increase
 					double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 					auto begin = std::chrono::high_resolution_clock::now();
