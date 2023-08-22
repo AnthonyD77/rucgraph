@@ -62,7 +62,6 @@ void generate_L_PPR() {
 
 void exp_element(string data_name, double weightChange_ratio, int change_times, int multi_thread_num) {
 
-	string save_file_name;
 	ofstream outputFile;
 	outputFile.precision(6);
 	outputFile.setf(ios::fixed);
@@ -75,7 +74,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 
 	for (int i = 0; i < 4; i++) {
 
-		string save_name, weight_type = "Jacard";
+		string weight_type = "Jacard";
 		int thread_num = 1;
 		if (i % 2 == 1) {
 			thread_num = multi_thread_num;
@@ -83,17 +82,20 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 		if (i > 1) {
 			weight_type = "random";
 		}
-		save_name = "exp_" + data_name + "_t_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv";
 		ThreadPool pool_dynamic(thread_num);
 		std::vector<std::future<int>> results_dynamic;
-		outputFile.open(save_name);
+		graph_hash_of_mixed_weighted instance_graph_initial = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
+		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
+		outputFile.open("exp_" + data_name + "_t_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv");
 		outputFile << "2014DE_avg_time,2019IN_avg_time,L_bit_size_initial,PPR_bit_size_initial,L_bit_size_2014+2019," <<
 			"2021DE_avg_time,2021IN_avg_time,L_bit_size_2021,PPR_bit_size_2021,"
 			"newDE_avg_time,newIN_avg_time,L_bit_size_new,PPR_bit_size_new,clean_time,L_bit_size_new_clean,PPR_bit_size_new_clean" << endl;
 
 		/*record edge changes: IN and DE mixed*/
 		if (i % 2 == 0) {
-			instance_graph = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
+			instance_graph = instance_graph_initial;
 			int V = instance_graph.hash_of_vectors.size();
 			vector<pair<int, int>>().swap(selected_edges);
 			int left_change_times = change_times;
@@ -160,9 +162,8 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 
 		for (int j = 0; j < 3; j++) {
 
-			instance_graph = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
-			binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-			binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+			instance_graph = instance_graph_initial;
+			mm = mm_initial;
 			int V = instance_graph.hash_of_vectors.size();
 			initialize_global_values_dynamic(V, thread_num);
 
@@ -226,19 +227,19 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 
 			if (j == 0) {
 				outputFile << (double)time_DE / new_change_times * 2 << "," << (double)time_IN / new_change_times * 2 << "," << L_bit_size_1
-					<< "," << PPR_bit_size_1 << "," << L_bit_size_2 << flush;
+					<< "," << PPR_bit_size_1 << "," << L_bit_size_2 << "," << flush;
 			}
 			else if (j == 1) {
 				outputFile << (double)time_DE / new_change_times * 2 << "," << (double)time_IN / new_change_times * 2 << "," << L_bit_size_2
-					<< "," << PPR_bit_size_2 << flush;
+					<< "," << PPR_bit_size_2 << "," << flush;
 			}
 			else {
 				outputFile << (double)time_DE / new_change_times * 2 << "," << (double)time_IN / new_change_times * 2 << "," << L_bit_size_2
 					<< "," << PPR_bit_size_2 << "," << time_clean << "," << L_bit_size_3 << "," << PPR_bit_size_3 << endl;
 			}
-
 		}
 
+		outputFile.close(); // without this, multiple files cannot be successfully created
 	}
 }
 
