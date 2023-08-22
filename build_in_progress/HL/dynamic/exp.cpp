@@ -25,7 +25,7 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 
 void generate_L_PPR() {
 
-	vector<string> data_names = { "google" };
+	vector<string> data_names = { "astro", "condmat", "github", "youtube", "skitter" };
 	string path = "dynamicHL//";
 	int thread_num = 50;
 	graph_hash_of_mixed_weighted g;
@@ -245,7 +245,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 
 void exp() {
 
-	vector<string> data_names = { "google" };
+	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
 	int change_times = 100;
 	int multi_thread_num = 50;
 
