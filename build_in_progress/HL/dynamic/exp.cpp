@@ -172,7 +172,11 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			L_bit_size_1 = mm.compute_L_bit_size();
 			PPR_bit_size_1 = mm.compute_PPR_bit_size();
 
-			for (int k = 0; k < change_times; k++) {
+			int new_change_times = change_times;
+			if (j == 0) {
+				new_change_times = 2;
+			}
+			for (int k = 0; k < new_change_times; k++) {
 				pair<int, int> selected_edge = selected_edges[k];
 				double selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 				if (k % 2 == 0) { // increase
@@ -210,24 +214,26 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			L_bit_size_2 = mm.compute_L_bit_size();
 			PPR_bit_size_2 = mm.compute_PPR_bit_size();
 
-			if (j == 2) {
+			if (j == 2 && thread_num == multi_thread_num) {
+				ThreadPool pool_dynamic2(80);
+				std::vector<std::future<int>> results_dynamic2;
 				auto begin = std::chrono::high_resolution_clock::now();
-				clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
+				clean_L_dynamic(mm.L, mm.PPR, pool_dynamic2, results_dynamic2);
 				time_clean = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				L_bit_size_3 = mm.compute_L_bit_size();
 				PPR_bit_size_3 = mm.compute_PPR_bit_size();
 			}
 
 			if (j == 0) {
-				outputFile << (double)time_DE / change_times * 2 << "," << (double)time_IN / change_times * 2 << "," << L_bit_size_1
+				outputFile << (double)time_DE / new_change_times * 2 << "," << (double)time_IN / new_change_times * 2 << "," << L_bit_size_1
 					<< "," << PPR_bit_size_1 << "," << L_bit_size_2 << flush;
 			}
 			else if (j == 1) {
-				outputFile << (double)time_DE / change_times * 2 << "," << (double)time_IN / change_times * 2 << "," << L_bit_size_2
+				outputFile << (double)time_DE / new_change_times * 2 << "," << (double)time_IN / new_change_times * 2 << "," << L_bit_size_2
 					<< "," << PPR_bit_size_2 << flush;
 			}
 			else {
-				outputFile << (double)time_DE / change_times * 2 << "," << (double)time_IN / change_times * 2 << "," << L_bit_size_2
+				outputFile << (double)time_DE / new_change_times * 2 << "," << (double)time_IN / new_change_times * 2 << "," << L_bit_size_2
 					<< "," << PPR_bit_size_2 << "," << time_clean << "," << L_bit_size_3 << "," << PPR_bit_size_3 << endl;
 			}
 
@@ -239,7 +245,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 void exp() {
 
 	vector<string> data_names = { "google" };
-	int change_times = 2;
+	int change_times = 100;
 	int multi_thread_num = 50;
 
 	/*weightChange_ratio 1*/
