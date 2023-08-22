@@ -71,6 +71,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 	string path = "dynamicHL//";
 	graph_hash_of_mixed_weighted instance_graph;
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+	vector<pair<int, int>> selected_edges;
 
 	for (int i = 0; i < 4; i++) {
 
@@ -79,7 +80,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 		if (i % 2 == 1) {
 			thread_num = multi_thread_num;
 		}
-		if (i < 2) {
+		if (i > 1) {
 			weight_type = "random";
 		}
 		save_name = "exp_" + data_name + "_t_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv";
@@ -91,7 +92,6 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			"newDE_avg_time,newIN_avg_time,L_bit_size_new,PPR_bit_size_new,clean_time,L_bit_size_new_clean,PPR_bit_size_new_clean" << endl;
 
 		/*record edge changes: IN and DE mixed*/
-		vector<pair<int, int>> selected_edges;
 		if (i % 2 == 0) {
 			instance_graph = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 			int V = instance_graph.hash_of_vectors.size();
@@ -163,6 +163,8 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			instance_graph = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 			binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
 			binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+			int V = instance_graph.hash_of_vectors.size();
+			initialize_global_values_dynamic(V, thread_num);
 
 			double time_IN = 0, time_DE = 0, time_clean = 0;
 			long long int L_bit_size_1 = 0, L_bit_size_2 = 0, L_bit_size_3 = 0, PPR_bit_size_1 = 0, PPR_bit_size_2 = 0, PPR_bit_size_3 = 0;
@@ -216,10 +218,6 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				PPR_bit_size_3 = mm.compute_PPR_bit_size();
 			}
 
-			outputFile << "2014DE_avg_time,2019IN_avg_time,L_bit_size_initial,PPR_bit_size_initial,L_bit_size_2014+2019," <<
-				"2021DE_avg_time,2021IN_avg_time,L_bit_size_2021,PPR_bit_size_2021,"
-				"newDE_avg_time,newIN_avg_time,L_bit_size_new,PPR_bit_size_new,clean_time,L_bit_size_new_clean,PPR_bit_size_new_clean" << endl;
-
 			if (j == 0) {
 				outputFile << (double)time_DE / change_times * 2 << "," << (double)time_IN / change_times * 2 << "," << L_bit_size_1
 					<< "," << PPR_bit_size_1 << "," << L_bit_size_2 << flush;
@@ -241,7 +239,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 void exp() {
 
 	vector<string> data_names = { "google" };
-	int change_times = 1e4;
+	int change_times = 2;
 	int multi_thread_num = 50;
 
 	/*weightChange_ratio 1*/
