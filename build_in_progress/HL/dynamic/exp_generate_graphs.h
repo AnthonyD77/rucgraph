@@ -59,7 +59,7 @@ using namespace std;
 #include <text_mining/parse_string.h>
 #include <graph_hash_of_mixed_weighted/read_save/graph_hash_of_mixed_weighted_binary_save_read.h>
 
-int max_ec = 100;
+int max_ec = 100, unique_ec = 100;
 std::shared_mutex glock;
 
 void update_Jacard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
@@ -138,7 +138,6 @@ graph_hash_of_mixed_weighted update_Jacard_ec(graph_hash_of_mixed_weighted graph
 
 	return graph;
 }
-
 
 void save_data(graph_hash_of_mixed_weighted& graph_random, graph_hash_of_mixed_weighted& graph_Jacard, string save_name) {
 
@@ -481,10 +480,11 @@ void generate_skitter() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_unique, p.first, p.second, unique_ec);
 	}
 
 	cout << data_name << ":" << endl;
@@ -495,6 +495,7 @@ void generate_skitter() {
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
 	save_data(new_id_graph_random, new_id_graph_Jacard, data_name);
 }
 

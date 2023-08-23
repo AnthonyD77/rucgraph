@@ -276,7 +276,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_on_value = 1e3;
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 
-	exp();
+	generate_L_PPR();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
