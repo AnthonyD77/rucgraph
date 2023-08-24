@@ -25,7 +25,7 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 
 void generate_L_PPR() {
 
-	vector<string> data_names = { "astro", "condmat", "github", "youtube", "skitter" };
+	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
 	string path = "dynamicHL//";
 	int thread_num = 50;
 	graph_hash_of_mixed_weighted g;
@@ -49,12 +49,12 @@ void generate_L_PPR() {
 		outputFile << "time_generate_labels=" << mm.time_generate_labels << "s" << endl;
 		outputFile.close();
 
-		g = graph_hash_of_mixed_weighted_binary_read(path + s + "_Jacard.bin");
+		g = graph_hash_of_mixed_weighted_binary_read(path + s + "_unique.bin");
 		PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
 		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
-		binary_save_PPR(path + s + "_PPR_Jacard.bin", mm.PPR);
-		binary_save_vector_of_vectors(path + s + "_L_Jacard.bin", mm.L);
-		outputFile.open(path + s + "_L_Jacard_generation.txt");
+		binary_save_PPR(path + s + "_PPR_unique.bin", mm.PPR);
+		binary_save_vector_of_vectors(path + s + "_L_unique.bin", mm.L);
+		outputFile.open(path + s + "_L_unique_generation.txt");
 		outputFile << "time_generate_labels=" << mm.time_generate_labels << "s" << endl;
 		outputFile.close();
 	}
@@ -74,7 +74,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 
 	for (int i = 0; i < 4; i++) {
 
-		string weight_type = "Jacard";
+		string weight_type = "unique";
 		int thread_num = 1;
 		if (i % 2 == 1) {
 			thread_num = multi_thread_num;
@@ -277,6 +277,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 
 	generate_L_PPR();
+	exp();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
