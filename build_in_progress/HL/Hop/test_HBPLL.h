@@ -203,16 +203,16 @@ void test_HBPLL()
 
     /*hop bounded info*/
     int query_hop_cst = 2;
-    mm.use_M = 0;
+    mm.use_M = 1;
     mm.upper_k = 10; // 0 means there is no limit
     mm.use_hbdij = 1;
     mm.value_M = mm.use_M ? ec_max * E : 0;
 
     /*reduction method selection*/
         /* use_hb 目前不支持 R2 */
-    mm.use_2019R2 = 1;
+    mm.use_2019R2 = 0;
     mm.use_enhanced2019R2 = 0;
-    mm.use_non_adj_reduc_degree = 0;
+    mm.use_non_adj_reduc_degree = 1;
     mm.max_degree_MG_enhanced2019R2 = 100;
     mm.max_labal_size = 6e9;
     mm.max_run_time_seconds = 1e9;

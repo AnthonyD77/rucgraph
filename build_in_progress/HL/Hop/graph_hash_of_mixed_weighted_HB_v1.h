@@ -191,10 +191,7 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
     /* use unordered_map to avoid the influence of upper_k */
     boost::heap::fibonacci_heap<HBPLL_v1_node> Q;
 	two_hop_label_v1 xx;
-	// unordered_map<int, unordered_map<int, graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>> Q_handles;
-    vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp> Q_handles;
-    Q_handles.resize(N);
-	Q_handles[v_k] = Q.push(node);
+	Q.push(node);
 
     /* 
         P_dij_599 stores the shortest distance from vk to any other vertices with its hop_cst,
@@ -316,7 +313,7 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
                                 node.parent_vertex = -u;
                                 if (u==0)
                                     node.parent_vertex = std::numeric_limits<int>::max();
-                                Q_handles[adj_v] = Q.push(node);
+                                Q.push(node);
                                 
                                 // if (u==0 && adj_v==6)
                                 //     cout << "\t push " << node.vertex << "," << node.priority_value << "," << node.parent_vertex << "," << node.hop << " into Q" << endl;
@@ -341,7 +338,7 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
                         just add the distance and hop info
                     */
 					if (P_dij_599[used_id][adj_v].first == std::numeric_limits<double>::max()) {
-                        Q_handles[adj_v] = Q.push(node);
+                        Q.push(node);
 						P_dij_599[used_id][adj_v].first = node.priority_value;
                         P_dij_599[used_id][adj_v].second = node.hop;
 						P_changed_vertices.push(adj_v);
@@ -361,7 +358,7 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
                     */
 					else {
                         if (node.priority_value < P_dij_599[used_id][adj_v].first ) {
-                            Q_handles[adj_v] = Q.push(node);
+                            Q.push(node);
                             // Q.update(Q_handles[node.hop][adj_v], node);
                             P_dij_599[used_id][adj_v].first = node.priority_value;
                             P_dij_599[used_id][adj_v].second = node.hop;
@@ -369,7 +366,7 @@ void graph_hash_of_mixed_weighted_HL_HB_v1_thread_function_HBDIJ(int v_k, int N,
                                 cout << "\t 2 add neighbor " << adj_v << " with " << node.priority_value << endl;
                         }
                         else if (node.hop < P_dij_599[used_id][adj_v].second) {
-                            Q_handles[adj_v] = Q.push(node);
+                            Q.push(node);
                             if (print)
                                 cout << "\t 3 add neighbor " << adj_v << " with " << node.priority_value << endl;
                         }
@@ -872,12 +869,6 @@ void graph_hash_of_mixed_weighted_HB_v1(graph_v_of_v_idealID &input_graph, int m
         }
 
         begin = std::chrono::high_resolution_clock::now();
-        // if (case_info.use_M)
-        //     canonical_repair_multi_threads_with_value_M(case_info.label_size_before_canonical_repair,
-        //                                case_info.label_size_after_canonical_repair,
-        //                                case_info.canonical_repair_remove_label_ratio, num_of_threads,
-        //                                case_info.value_M);
-        // else
         canonical_repair_multi_threads(case_info.label_size_before_canonical_repair,
                                     case_info.label_size_after_canonical_repair,
                                     case_info.canonical_repair_remove_label_ratio, num_of_threads);

@@ -345,7 +345,6 @@ void canonical_repair_element1(int u)
         
         /* query in the canonical repair has nothing to do with reduction */
         double query_dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(u, v, it->hop);
-        // cout << "check " << v << " in L[" << u << "],  dist = " << it->distance << ",  query = " << query_dis << endl;
         if (query_dis + 1e-5 >= it->distance)
         {                                                  
             incremental_label_vectors[u].push_back(*it);
@@ -447,7 +446,6 @@ void canonical_repair_multi_threads(long long int &label_size_before_canonical_r
         label_size_after_canonical_repair = label_size_after_canonical_repair + new_size;
         if (new_size < old_size)
         {
-            // canonical_repair_element2(target_v);
             results.emplace_back(
                 pool.enqueue([target_v] {
                     canonical_repair_element2(target_v);
