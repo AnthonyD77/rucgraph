@@ -35,18 +35,26 @@ pair<weightTYPE, int> clean_L_extract_distance(vector<two_hop_label_v1>& L_s, ve
 	return { distance , common_hub };
 }
 
-void clean_L_element(int v, vector<two_hop_label_v1>& L_final, vector<vector<two_hop_label_v1>>& L, PPR_type& PPR) {
+void clean_L_element(int v, vector<vector<two_hop_label_v1>>& L, PPR_type& PPR) {
 
-	int size = L[v].size();
+	vector<two_hop_label_v1> Lv_final;
+	mtx_595[v].lock();
+	vector<two_hop_label_v1> Lv = L[v];
+	mtx_595[v].unlock();
+
+	int size = Lv.size();
 	for (int i = 0; i < size; i++) {
-		int u = L[v][i].vertex;
+		int u = Lv[i].vertex;
 		if (v == u) {
-			L_final.push_back(L[v][i]);
+			Lv_final.push_back(Lv[i]);
 			continue;
 		}
-		pair<weightTYPE, int> query = clean_L_extract_distance(L_final, L[u]);
-		if (query.first > L[v][i].distance + 1e-5) {
-			L_final.push_back(L[v][i]);
+		mtx_595[u].lock();
+		vector<two_hop_label_v1> Lu = L[u];
+		mtx_595[u].unlock();
+		pair<weightTYPE, int> query = clean_L_extract_distance(Lv_final, Lu);
+		if (query.first > Lv[i].distance + 1e-5) {
+			Lv_final.push_back(Lv[i]);
 		}
 		else {
 			if (query.second != u) {
@@ -61,24 +69,24 @@ void clean_L_element(int v, vector<two_hop_label_v1>& L_final, vector<vector<two
 			}
 		}
 	}
+	mtx_595[v].lock();
+	vector<two_hop_label_v1>(Lv_final).swap(L[v]);
+	mtx_595[v].unlock();
 }
 
 void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	int N = L.size();
-	vector<vector<two_hop_label_v1>> L_final(N);
 
 	for (int target_v = 0; target_v < N; target_v++) {
 		results_dynamic.emplace_back(
-			pool_dynamic.enqueue([target_v, &L_final, &L, &PPR] { // pass const type value j to thread; [] can be empty
-				clean_L_element(target_v, L_final[target_v], L, PPR);
+			pool_dynamic.enqueue([target_v, &L, &PPR] { // pass const type value j to thread; [] can be empty
+				clean_L_element(target_v, L, PPR);
 				return 1; // return to results; the return type must be the same with results
 				}));
 	}
 	for (auto&& result : results_dynamic)
 		result.get(); // all threads finish here
 	results_dynamic.clear();
-
-	L = L_final;
 }
 

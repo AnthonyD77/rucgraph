@@ -67,6 +67,24 @@ public:
 		PPR_type().swap(PPR);
 	}
 
+	long long int compute_L_bit_size() {
+		long long int size = 0;
+		for (auto it = L.begin(); it != L.end(); it++) {
+			size = size + (*it).size() * sizeof(two_hop_label_v1); // 12 bit per two_hop_label_v1
+		}
+		return size;
+	}
+
+	long long int compute_PPR_bit_size() {
+		long long int size = 0;
+		for (auto& item1 : PPR) {
+			for (auto& item2 : item1) {
+				size = size + (item2.second.size() + 1) * sizeof(int);
+			}
+		}
+		return size;
+	}
+
 	/*printing*/
 	void print_L() {
 		cout << "print_L:" << endl;
