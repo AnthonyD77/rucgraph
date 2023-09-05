@@ -256,7 +256,7 @@ void exp() {
 
 	/*weightChange_ratio 1*/
 	if (1) {
-		double weightChange_ratio = 0.1;
+		double weightChange_ratio = 0.5;
 		for (auto data_name : data_names) {
 			exp_element(data_name, weightChange_ratio, change_times, multi_thread_num);
 		}
