@@ -103,7 +103,7 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 	int n = instance_graph.hash_of_vectors.size();
 	vector<int>& SA = AFF_x;
 	for (auto a : SA) {
-		//results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, &a, &mm, &ay] {
+		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ay] {
 
 			vector<weightTYPE> dist(n, MAX_VALUE);
 			priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
@@ -112,34 +112,32 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 			while (!Q.empty()) {
 				int v = Q.top().second;
 				Q.pop();
-				//cout << "here" << endl;
-				if (ay[v]) { // 并行这一部分导致while停不下来
-
-					//mtx_595[a].lock();
-					//auto L_a = mm.L[a];
-					//mtx_595[a].unlock();
-					//mtx_595[v].lock();
-					//auto L_v = mm.L[v];
-					//mtx_595[v].unlock();
-					//weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc3(L_v, L_a);
-					//if (dist[v] - 1e-5 < qdist) {
-					//	if (v < a) {
-					//		mtx_595[a].lock();
-					//		insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
-					//		mtx_595[a].unlock();
-					//	}
-					//	else {
-					//		mtx_595[v].lock();
-					//		insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
-					//		mtx_595[v].unlock();
-					//	}
-					//}
-
-					weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
+				if (ay[v]) {
+					mtx_595[a].lock();
+					auto L_a = mm.L[a];
+					mtx_595[a].unlock();
+					mtx_595[v].lock();
+					auto L_v = mm.L[v];
+					mtx_595[v].unlock();
+					weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc3(L_v, L_a);
 					if (dist[v] - 1e-5 < qdist) {
-						if (v < a) insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
-						else insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+						if (v < a) {
+							mtx_595[a].lock();
+							insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
+							mtx_595[a].unlock();
+						}
+						else {
+							mtx_595[v].lock();
+							insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+							mtx_595[v].unlock();
+						}
 					}
+
+					// weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
+					// if (dist[v] - 1e-5 < qdist) {
+					// 	if (v < a) insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
+					// 	else insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+					// }
 				}
 				for (auto u : instance_graph.adj_v_and_ec(v)) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
@@ -148,12 +146,12 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 				}
 			}
 
-			//return 1; }));		
+			return 1; }));		
 	}
-	//for (auto&& result : results_dynamic) {
-	//	result.get();
-	//}
-	//results_dynamic.clear();
+	for (auto&& result : results_dynamic) {
+		result.get();
+	}
+	results_dynamic.clear();
 }
 
 void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
@@ -164,36 +162,35 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 	FA.insert(FA.end(), AFF_y.begin(), AFF_y.end());
 	sort(FA.begin(), FA.end());
 	for (auto a : FA) {
-		//results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, &a, &mm, &ax, &ay] {
+		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ax, &ay] {
 
 			vector<weightTYPE> dist(n, MAX_VALUE);
 			priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
 			dist[a] = 0;
 			Q.push(pair<weightTYPE, int>(0, a));
 			while (!Q.empty()) {
-				//cout << "here" << endl;
 				int v = Q.top().second;
 				Q.pop();
 				if (v < a) continue;
-				if ((ay[v] && ax[a]) || (ay[a] && ax[v])) { // 并行这一部分导致while停不下来
+				if ((ay[v] && ax[a]) || (ay[a] && ax[v])) {
 
-					//mtx_595[a].lock();
-					//auto L_a = mm.L[a];
-					//mtx_595[a].unlock();
-					//mtx_595[v].lock();
-					//auto L_v = mm.L[v];
-					//mtx_595[v].unlock();
-					//weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc3(L_v, L_a);
-					//if (dist[v] - 1e-5 < qdist) {
-					//	mtx_595[v].lock();
-					//	insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
-					//	mtx_595[v].unlock();
-					//}
-
-					weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
+					mtx_595[a].lock();
+					auto L_a = mm.L[a];
+					mtx_595[a].unlock();
+					mtx_595[v].lock();
+					auto L_v = mm.L[v];
+					mtx_595[v].unlock();
+					weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc3(L_v, L_a);
 					if (dist[v] - 1e-5 < qdist) {
+						mtx_595[v].lock();
 						insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+						mtx_595[v].unlock();
 					}
+
+					// weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
+					// if (dist[v] - 1e-5 < qdist) {
+					// 	insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
+					// }
 				}
 				for (auto u : instance_graph.adj_v_and_ec(v)) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
@@ -202,12 +199,12 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 				}
 			}
 		
-		//return 1; }));
+		return 1; }));
 	}
-	//for (auto&& result : results_dynamic) {
-	//	result.get();
-	//}
-	//results_dynamic.clear();
+	for (auto&& result : results_dynamic) {
+		result.get();
+	}
+	results_dynamic.clear();
 }
 
 void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old,
