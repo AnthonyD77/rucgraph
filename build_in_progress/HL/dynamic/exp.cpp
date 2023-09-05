@@ -176,7 +176,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			int new_change_times = change_times;
 			if (j == 0) { // 2014+2019
 				if (data_name == "astro" || data_name == "condmat" || data_name == "github") {
-
+					new_change_times = 10;
 				}
 				else {
 					new_change_times = 2;
