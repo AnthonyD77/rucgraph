@@ -6,6 +6,10 @@ using namespace std;
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
+auto begin_time=std::chrono::high_resolution_clock::now();
+double max_run_time_nanosec;
+string reach_limit_time_string_2019 = "reach limit time in WeightIncrease2019";
+
 void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vector<weightTYPE>& d) {
 	int n = instance_graph.hash_of_vectors.size();
 	vector<bool> mark(n, false);
@@ -22,6 +26,9 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 				d[nei.first] = d[v] + nei.second;
 				Q.push(pair<weightTYPE, int>(d[nei.first], nei.first));
 			}
+		}
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string_2019;
 		}
 	}
 }
@@ -57,12 +64,15 @@ graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE 
 				}
 			}
 		}
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string_2019;
+		}
 	}
 }
 
 void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,vector<int>& AFF_x,vector<int>& AFF_y,
-vector<bool>&ax,vector<bool>&ay){
+vector<bool>&ax, vector<bool>&ay){
 	for(auto v:AFF_x){
 		for(auto it=mm.L[v].begin();it!=mm.L[v].end();){
 			if(ay[it->vertex]){
@@ -112,6 +122,9 @@ vector<bool>&ax,vector<bool>&ay){
 				Q.push(pair<weightTYPE,int>(dist[u.first],u.first));
 			}
 		}
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string_2019;
+		}
 	}
 }
 
@@ -143,11 +156,19 @@ vector<bool>&ax,vector<bool>&ay){
 				Q.push(pair<weightTYPE,int>(dist[u.first],u.first));
 			}
 		}
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string_2019;
+		}
 	}
 }
 
 void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, 
 graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old) {
+
+	begin_time=std::chrono::high_resolution_clock::now();
+	double max_run_time=1;
+	max_run_time_nanosec=max_run_time*1e9;
+
 
 	vector<int> AFF_x,AFF_y;
 	vector<bool> ax(instance_graph.hash_of_vectors.size(),false);
@@ -168,7 +189,6 @@ graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE 
 	}
 
 	RemoveAffectedHub(instance_graph,mm,AFF_x,AFF_y,ax,ay);
-
 	double small_size=min(AFF_x.size(),AFF_y.size());
 	double n=instance_graph.hash_of_vectors.size();
 
