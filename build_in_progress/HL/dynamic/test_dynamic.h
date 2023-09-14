@@ -532,4 +532,36 @@ void compare_speed() {
 
 
 
+/*
+example
+*/
+void PLL_PPR_example() {
+
+	graph_hash_of_mixed_weighted instance_graph;
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 1, 4);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 3, 5);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 4, 2);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 5, 9);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 1, 2, 6);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 1, 4, 7);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 1, 6, 5);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 2, 3, 1);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 2, 6, 4);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 3, 5, 15);
+	graph_hash_of_mixed_weighted_add_edge(instance_graph, 4, 5, 3);
+
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+	PLL_dynamic(instance_graph, 7, 1, mm);
+
+	mm.print_L();
+	mm.print_PPR();
+}
+
+
+
+
+
+
+
+
 
