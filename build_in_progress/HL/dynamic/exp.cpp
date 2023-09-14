@@ -174,8 +174,13 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			PPR_bit_size_1 = mm.compute_PPR_bit_size();
 
 			int new_change_times = change_times;
-			if (j == 0) {
-				new_change_times = 2;
+			if (j == 0) { // 2014+2019
+				if (data_name == "astro" || data_name == "condmat" || data_name == "github") {
+					new_change_times = 10;
+				}
+				else {
+					new_change_times = 2;
+				}
 			}
 			for (int k = 0; k < new_change_times; k++) {
 				pair<int, int> selected_edge = selected_edges[k];
@@ -251,7 +256,7 @@ void exp() {
 
 	/*weightChange_ratio 1*/
 	if (1) {
-		double weightChange_ratio = 0.1;
+		double weightChange_ratio = 0.5;
 		for (auto data_name : data_names) {
 			exp_element(data_name, weightChange_ratio, change_times, multi_thread_num);
 		}
@@ -276,7 +281,6 @@ int main()
 	graph_hash_of_mixed_weighted_turn_on_value = 1e3;
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 
-	generate_L_PPR();
 	exp();
 
 	auto end = std::chrono::high_resolution_clock::now();
