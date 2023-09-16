@@ -190,13 +190,13 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 					auto begin = std::chrono::high_resolution_clock::now();
 					if (j == 0) {
-						WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					}
 					else if (j == 1) {
-						WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					}
 					else {
-						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					}
 					time_IN += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
@@ -205,13 +205,13 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 					auto begin = std::chrono::high_resolution_clock::now();
 					if (j == 0) {
-						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
 					}
 					else if (j == 1) {
-						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
 					}
 					else {
-						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
 					}
 					time_DE += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
