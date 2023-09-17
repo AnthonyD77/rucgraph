@@ -264,7 +264,11 @@ void initialize_global_values_dynamic(int N, int thread_num) {
 
 /*codes for querying distances*/
 
+double global_query_times = 0;
+
 weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vector<vector<two_hop_label_v1>>& L, int source, int terminal) {
+
+	global_query_times++;
 
 	/*return std::numeric_limits<double>::max() is not connected*/
 
@@ -299,6 +303,8 @@ weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(vec
 
 pair<weightTYPE, int> graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(vector<vector<two_hop_label_v1>>& L, int source, int terminal) {
 
+	global_query_times++;
+
 	/*return std::numeric_limits<double>::max() is not connected*/
 
 	if (source == terminal) {
@@ -332,8 +338,9 @@ pair<weightTYPE, int> graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_n
 
 }
 
-
 weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc3(vector<two_hop_label_v1>& L_s, vector<two_hop_label_v1>& L_t) {
+
+	global_query_times++;
 
 	/*return std::numeric_limits<double>::max() is not connected*/
 
