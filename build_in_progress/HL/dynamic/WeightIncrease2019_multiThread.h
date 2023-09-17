@@ -151,6 +151,10 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 					dist[u.first] = dist[v] + u.second;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					return 1;
+				}
 			}
 
 			return 1; }));		
@@ -204,6 +208,10 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 					dist[u.first] = dist[v] + u.second;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					return 1;
+				}
 			}
 		
 		return 1; }));
@@ -255,6 +263,10 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 	}
 	else {
 		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
+	}
+
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+		throw reach_limit_time_string_2019;
 	}
 
 }

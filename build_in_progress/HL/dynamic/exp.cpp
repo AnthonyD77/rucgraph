@@ -490,7 +490,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 void exp() {
 
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
-	int change_times = 100;
+	int change_times = 10;
 	double max_Maintain_time = 600;
 
 	/*weightChange_ratio 1*/
