@@ -34,7 +34,7 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 }
 
 void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A) {
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A,vector<bool>& a) {
 
 	int n = instance_graph.hash_of_vectors.size();
 	vector<bool> mark(n, false);
@@ -47,6 +47,7 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 		int v = Q.front();
 		Q.pop();
 		A.push_back(v);
+		a[v]=true;
 		for (auto u : instance_graph.adj_v(v)) {
 			if (mark[u]) continue;
 			weightTYPE dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, u, y);
@@ -58,7 +59,7 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 			}
 			else {
 				int h = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y).second;
-				if (find(A.begin(), A.end(), h) != A.end() || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
+				if (a[h] || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
 					mark[u] = true;
 					Q.push(u);
 				}
@@ -173,19 +174,19 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph,
 	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
 	vector<bool> ay(instance_graph.hash_of_vectors.size(), false);
 
-	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x);
-	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y);
+	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x,ax);
+	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y,ay);
 	sort(AFF_x.begin(), AFF_x.end());
 	AFF_x.erase(unique(AFF_x.begin(), AFF_x.end()), AFF_x.end());
 	sort(AFF_y.begin(), AFF_y.end());
 	AFF_y.erase(unique(AFF_y.begin(), AFF_y.end()), AFF_y.end());
 
-	for (int i = 0; i < AFF_x.size(); i++) {
-		ax[AFF_x[i]] = true;
-	}
-	for (int i = 0; i < AFF_y.size(); i++) {
-		ay[AFF_y[i]] = true;
-	}
+	// for (int i = 0; i < AFF_x.size(); i++) {
+	// 	ax[AFF_x[i]] = true;
+	// }
+	// for (int i = 0; i < AFF_y.size(); i++) {
+	// 	ay[AFF_y[i]] = true;
+	// }
 
 	RemoveAffectedHub(instance_graph, mm, AFF_x, AFF_y, ax, ay);
 	double small_size = min(AFF_x.size(), AFF_y.size());
