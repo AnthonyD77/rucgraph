@@ -396,7 +396,6 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			if (1) {
 				if (_2019IN_time == INT_MAX) {
 					_20142019_time = INT_MAX;
-					break;
 				}
 
 				instance_graph = instance_graph_initial;
@@ -410,9 +409,16 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					if (k % 2 == 0) { // increase
 						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
-						_20142019_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						try {
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
+							_20142019_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						}
+						catch (string s) {
+							_2019IN_time = INT_MAX;
+							_20142019_time = INT_MAX;
+							break;
+						}
 					}
 					else {
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
@@ -479,12 +485,12 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 void exp() {
 
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
-	int change_times = 10;
-	double max_Maintain_time = 30;
+	int change_times = 1e3;
+	double max_Maintain_time = 3600;
 
 	/*weightChange_ratio 1*/
 	if (1) {
-		double weightChange_ratio = 0.5;
+		double weightChange_ratio = 0.8;
 		for (auto data_name : data_names) {
 			exp_element(data_name, weightChange_ratio, change_times, max_Maintain_time);
 		}
