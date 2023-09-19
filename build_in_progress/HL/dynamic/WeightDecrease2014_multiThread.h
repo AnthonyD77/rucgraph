@@ -57,7 +57,9 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 	x.dis = delta;
 	Q.push(x);
 
-	vector<two_hop_label_v1> L_vk = L[vk]; 
+	mtx_595[vk].lock();
+	vector<two_hop_label_v1> L_vk = L[vk]; // 解决下面PrefixalQuery2锁的互斥的难题（2个线程加锁是交叉的）
+	mtx_595[vk].unlock();
 
 	while (Q.size()) {
 		affected_label now;
@@ -67,14 +69,20 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 		auto v = now.first;
 		weightTYPE now_delta = now.dis;
 
+		mtx_595[v].lock();
 		weightTYPE PrefixalQueryAns = PrefixalQuery2(L_vk, L[v], vk);
+		mtx_595[v].unlock();
+		/*cout << "PreQ: " << PrefixalQueryAns << " " << "delta: " << now_delta <<" "<<"vk: "<<vk<< endl;*/
 
 		if (PrefixalQueryAns <= now_delta)
 		{
 			continue;
 		}
 			
+		/*std::cout << "insert: " << vk <<" "<< now_delta << endl;*/
+		mtx_595[v].lock();
 		insert_sorted_two_hop_label(L[v], vk, now_delta);
+		mtx_595[v].unlock();
 
 		if (v == vk) {
 			insert_sorted_two_hop_label(L_vk, vk, now_delta);
@@ -93,7 +101,8 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 	}
 }
 
-void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new) {
+void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
+	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	auto& L = mm.L;
 
@@ -104,7 +113,18 @@ void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 		for (auto it : L[v1]) {
 			int v = it.vertex;
 			weightTYPE dis = it.distance + w_new;
-			ResumePBFS(instance_graph, L, v, v2, dis);
+
+			results_dynamic.emplace_back(pool_dynamic.enqueue([&instance_graph, &L, v, v2, dis] {
+				ResumePBFS(instance_graph, L, v, v2, dis);
+				return 1; }));
+
+			//ResumePBFS(instance_graph, L, v, v2, dis);
 		}
+
+		/*put the following gets out of the for loop causes errors or incorrect query results, why?*/
+		for (auto&& result : results_dynamic) {
+			result.get();
+		}
+		results_dynamic.clear();
 	}
 }
