@@ -556,6 +556,15 @@ void PLL_PPR_example() {
 
 	mm.print_L();
 	mm.print_PPR();
+
+	/*IN*/
+	if (1) {
+		graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 4, 4); // increase weight
+		WeightIncreaseMaintenance_improv(instance_graph, mm, 0, 4, 2);
+		mm.print_L();
+		mm.print_PPR();
+	}
+
 }
 
 
