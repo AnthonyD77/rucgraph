@@ -156,20 +156,25 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				int V = instance_graph.hash_of_vectors.size();
 				initialize_global_values_dynamic(V, thread_num);
 
-				for (int k = 0; k < change_times; k++) {
-					pair<int, int> selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
-					double new_ec = selected_edge_weight * (1 + weightChange_ratio);
-					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight						
-					try {
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, max_Maintain_time);
-						//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
-						_2019IN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
-					}
-					catch (string s) {
-						_2019IN_time = INT_MAX;
-						break;
+				if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
+					_2019IN_time = INT_MAX;
+				}
+				else {
+					for (int k = 0; k < change_times; k++) {
+						pair<int, int> selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight						
+						try {
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, max_Maintain_time);
+							//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
+							_2019IN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
+						}
+						catch (string s) {
+							_2019IN_time = INT_MAX;
+							break;
+						}
 					}
 				}
 			}
@@ -194,7 +199,6 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 
 				_2021IN_query_times = global_query_times / change_times;
 			}
-
 
 			/*new*/
 			if (1) {
