@@ -34,7 +34,7 @@ rm A
 
 */
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
-#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
+#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv_multiThread.h>
 #include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
 #include <build_in_progress/HL/dynamic/WeightIncrease2021.h>
 #include <build_in_progress/HL/dynamic/WeightDecrease2021.h>
@@ -461,7 +461,7 @@ void compare_speed() {
 					double new_ec = min(old_ec * (1 + weightChange_ratio), 1e6);
 					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightIncreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec);
+					WeightIncreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec, pool_dynamic, results_dynamic);
 					auto end = std::chrono::high_resolution_clock::now();
 					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 					avg_time_WeightIncreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;
@@ -554,13 +554,17 @@ void PLL_PPR_example() {
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 	PLL_dynamic(instance_graph, 7, 1, mm);
 
+	ThreadPool pool_dynamic(1);
+	std::vector<std::future<int>> results_dynamic;
+	initialize_global_values_dynamic(7, 1);
+
 	mm.print_L();
 	mm.print_PPR();
 
 	/*IN*/
 	if (1) {
 		graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 4, 4); // increase weight
-		WeightIncreaseMaintenance_improv(instance_graph, mm, 0, 4, 2);
+		WeightIncreaseMaintenance_improv(instance_graph, mm, 0, 4, 2, pool_dynamic, results_dynamic);
 		mm.print_L();
 		mm.print_PPR();
 	}
