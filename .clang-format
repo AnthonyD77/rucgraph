@@ -1,9 +1,12 @@
-BasedOnStyle : Microsoft
+BasedOnStyle : Google
 Language : Cpp
 Standard : c++17
 
 
 SortIncludes : false
+
+IndentWidth: 4
+AccessModifierOffset: -4
 
 # 注释不换行
 ReflowComments:  false
