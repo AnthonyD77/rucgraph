@@ -192,14 +192,32 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph,
 	double small_size = min(AFF_x.size(), AFF_y.size());
 	double n = instance_graph.hash_of_vectors.size();
 
-	if (small_size > n / log(n)) {
+	double all_size=AFF_x.size()+AFF_y.size();
+	if(all_size/small_size>500){
 		if (AFF_x.size() < AFF_y.size())
 			GreedyRestore(instance_graph, mm, AFF_x, ay);
 		else
 			GreedyRestore(instance_graph, mm, AFF_y, ax);
 	}
-	else {
-		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+	else{
+		if (small_size < n / log(n)) {
+			if (AFF_x.size() < AFF_y.size())
+				GreedyRestore(instance_graph, mm, AFF_x, ay);
+			else
+				GreedyRestore(instance_graph, mm, AFF_y, ax);
+		}
+		else {
+			OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+		}
 	}
+	// if (small_size < n / log(n)) {
+	// 	if (AFF_x.size() < AFF_y.size())
+	// 		GreedyRestore(instance_graph, mm, AFF_x, ay);
+	// 	else
+	// 		GreedyRestore(instance_graph, mm, AFF_y, ax);
+	// }
+	// else {
+	// 	OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+	// }
 
 }
