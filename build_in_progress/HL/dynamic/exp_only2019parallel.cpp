@@ -7,11 +7,11 @@ using namespace std;
 boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
-#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightIncrease2021_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightDecrease2021_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightDecrease2014_multiThread.h>
+#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
+#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
+#include <build_in_progress/HL/dynamic/WeightIncrease2021.h>
+#include <build_in_progress/HL/dynamic/WeightDecrease2021.h>
+#include <build_in_progress/HL/dynamic/WeightDecrease2014.h>
 #include <build_in_progress/HL/dynamic/WeightIncrease2019_multiThread.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
@@ -60,9 +60,9 @@ void generate_L_PPR() {
 	}
 }
 
-void exp_element(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
+void exp_element(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time) {
 
-	ThreadPool pool_dynamic(thread_num);
+	ThreadPool pool_dynamic(80);
 	std::vector<std::future<int>> results_dynamic;
 
 	ofstream outputFile;
@@ -88,7 +88,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
 		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
-		outputFile.open("exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv");
+		outputFile.open("exp_" + data_name + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv");
 
 		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021DE_query_times,2021IN_time,2021IN_query_times,newDE_time,newDE_query_times,newIN_time,newIN_query_times,2014+2019_time,newDEIN_time," <<
 			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM,PPR_bit_size_afterM,L_bit_size_afterClean,PPR_bit_size_afterClean,clean_time" << endl;
@@ -154,27 +154,22 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 
-				if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
-					_2019IN_time = INT_MAX;
-				}
-				else {
-					for (int k = 0; k < change_times; k++) {
-						pair<int, int> selected_edge = selected_edges[k];
-						double selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
-						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
-						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight						
-						try {
-							auto begin = std::chrono::high_resolution_clock::now();
-							WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, max_Maintain_time);
-							//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
-							_2019IN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
-						}
-						catch (string s) {
-							_2019IN_time = INT_MAX;
-							break;
-						}
+				for (int k = 0; k < change_times; k++) {
+					pair<int, int> selected_edge = selected_edges[k];
+					double selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+					double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight						
+					try {
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, max_Maintain_time);
+						//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
+						_2019IN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
+					}
+					catch (string s) {
+						_2019IN_time = INT_MAX;
+						break;
 					}
 				}
 			}
@@ -184,7 +179,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 				global_query_times = 0;
 
 				for (int k = 0; k < change_times; k++) {
@@ -193,7 +188,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight						
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+					WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					_2021IN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 				}
 
@@ -205,7 +200,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 				global_query_times = 0;
 
 				for (int k = 0; k < change_times; k++) {
@@ -214,7 +209,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight						
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+					WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					_newIN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 				}
 
@@ -279,7 +274,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 
 				for (int k = 0; k < change_times; k++) {
 					pair<int, int> selected_edge = selected_edges[k];
@@ -287,7 +282,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+					WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					_2014DE_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 				}
 			}
@@ -297,7 +292,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 				global_query_times = 0;
 
 				for (int k = 0; k < change_times; k++) {
@@ -306,7 +301,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight					
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+					WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					_2021DE_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 				}
 
@@ -318,7 +313,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 				global_query_times = 0;
 
 				for (int k = 0; k < change_times; k++) {
@@ -327,7 +322,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 					graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight						
 					auto begin = std::chrono::high_resolution_clock::now();
-					WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+					WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 					_newDE_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 				}
 
@@ -410,7 +405,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 
 				for (int k = 0; k < change_times; k++) {
 					pair<int, int> selected_edge = selected_edges[k];
@@ -434,7 +429,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
 						_20142019_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 					}
 				}
@@ -445,7 +440,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				int V = instance_graph.hash_of_vectors.size();
-				initialize_global_values_dynamic(V, thread_num);
+				initialize_global_values_dynamic(V, 1);
 
 				L_bit_size_initial = mm.compute_L_bit_size();
 				PPR_bit_size_initial = mm.compute_PPR_bit_size();
@@ -457,14 +452,14 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
 						_newDEIN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 					}
 					else {
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
 						_newDEIN_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9 / change_times; // s
 					}
 				}
@@ -492,19 +487,17 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 	}
 }
 
-
 void exp() {
 
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
-	int change_times = 20, thread_num = 80;
+	int change_times = 10;
 	double max_Maintain_time = 600;
 
 	/*weightChange_ratio 1*/
 	if (1) {
 		double weightChange_ratio = 0.8;
 		for (auto data_name : data_names) {
-			exp_element(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_element(data_name, weightChange_ratio, change_times, max_Maintain_time, 1);
+			exp_element(data_name, weightChange_ratio, change_times, max_Maintain_time);
 		}
 	}
 
@@ -512,8 +505,7 @@ void exp() {
 	if (1) {
 		double weightChange_ratio = 0.2;
 		for (auto data_name : data_names) {
-			exp_element(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_element(data_name, weightChange_ratio, change_times, max_Maintain_time, 1);
+			exp_element(data_name, weightChange_ratio, change_times, max_Maintain_time);
 		}
 	}
 }

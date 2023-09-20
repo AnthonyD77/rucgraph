@@ -6,6 +6,10 @@ using namespace std;
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
+auto begin_time = std::chrono::high_resolution_clock::now();
+double max_run_time_nanosec;
+string reach_limit_time_string_2019 = "reach limit time in WeightIncrease2019";
+
 void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vector<weightTYPE>& d) {
 	int n = instance_graph.hash_of_vectors.size();
 	vector<bool> mark(n, false);
@@ -56,6 +60,9 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 					Q.push(u);
 				}
 			}
+		}
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string_2019;
 		}
 	}
 }
@@ -144,6 +151,10 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 					dist[u.first] = dist[v] + u.second;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					return 1;
+				}
 			}
 
 			return 1; }));		
@@ -197,6 +208,10 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 					dist[u.first] = dist[v] + u.second;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					return 1;
+				}
 			}
 		
 		return 1; }));
@@ -208,7 +223,10 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 }
 
 void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old,
-	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
+	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic, double max_run_second) {
+
+	begin_time = std::chrono::high_resolution_clock::now();
+	max_run_time_nanosec = max_run_second * 1e9;
 
 	vector<int> AFF_x, AFF_y;
 	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
@@ -230,6 +248,10 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 
 	RemoveAffectedHub(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
 
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+		throw reach_limit_time_string_2019;
+	}
+
 	double small_size = min(AFF_x.size(), AFF_y.size());
 	double n = instance_graph.hash_of_vectors.size();
 
@@ -241,6 +263,10 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 	}
 	else {
 		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
+	}
+
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+		throw reach_limit_time_string_2019;
 	}
 
 }
