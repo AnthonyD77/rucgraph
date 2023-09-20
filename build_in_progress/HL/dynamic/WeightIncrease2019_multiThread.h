@@ -259,7 +259,7 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 
 	if (1) { // new strategy
 		double all_size = AFF_x.size() + AFF_y.size();
-		if (all_size / small_size > 50) {
+		if (all_size / small_size > 500) {
 			if (AFF_x.size() < AFF_y.size())
 				GreedyRestore(instance_graph, mm, AFF_x, ay, pool_dynamic, results_dynamic);
 			else
