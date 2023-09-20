@@ -257,15 +257,34 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 	double small_size = min(AFF_x.size(), AFF_y.size());
 	double n = instance_graph.hash_of_vectors.size();
 
-	if (small_size > n / log(n)) {
+		double all_size=AFF_x.size()+AFF_y.size();
+	if(all_size/small_size>500){
 		if (AFF_x.size() < AFF_y.size())
 			GreedyRestore(instance_graph, mm, AFF_x, ay, pool_dynamic, results_dynamic);
 		else
 			GreedyRestore(instance_graph, mm, AFF_y, ax, pool_dynamic, results_dynamic);
 	}
-	else {
-		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
+	else{
+		if (small_size < n / log(n)) {
+			if (AFF_x.size() < AFF_y.size())
+				GreedyRestore(instance_graph, mm, AFF_x, ay, pool_dynamic, results_dynamic);
+			else
+				GreedyRestore(instance_graph, mm, AFF_y, ax, pool_dynamic, results_dynamic);
+		}
+		else {
+			OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
+		}
 	}
+
+	// if (small_size < n / log(n)) {
+	// 	if (AFF_x.size() < AFF_y.size())
+	// 		GreedyRestore(instance_graph, mm, AFF_x, ay, pool_dynamic, results_dynamic);
+	// 	else
+	// 		GreedyRestore(instance_graph, mm, AFF_y, ax, pool_dynamic, results_dynamic);
+	// }
+	// else {
+	// 	OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
+	// }
 
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
