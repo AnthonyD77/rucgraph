@@ -97,11 +97,10 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 }
 
 void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
-	vector<bool>& ax, vector<bool>& ay) {
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
+	vector<bool>& ay) {
 	int n = instance_graph.hash_of_vectors.size();
 	vector<int>& SA = AFF_x;
-	vector<int>& LA = AFF_y;
 	for (auto a : SA) {
 		vector<weightTYPE> dist(n, MAX_VALUE);
 		priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
@@ -194,9 +193,9 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph,
 
 	if (small_size > n / log(n)) {
 		if (AFF_x.size() < AFF_y.size())
-			GreedyRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+			GreedyRestore(instance_graph, mm, AFF_x, ay);
 		else
-			GreedyRestore(instance_graph, mm, AFF_y, AFF_x, ay, ax);
+			GreedyRestore(instance_graph, mm, AFF_y, ax);
 	}
 	else {
 		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);

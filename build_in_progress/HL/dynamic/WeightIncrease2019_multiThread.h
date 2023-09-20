@@ -31,7 +31,7 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 }
 
 void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A) {
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A,vector<bool>& a) {
 
 	int n = instance_graph.hash_of_vectors.size();
 	vector<bool> mark(n, false);
@@ -44,6 +44,7 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 		int v = Q.front();
 		Q.pop();
 		A.push_back(v);
+		a[v]=true;
 		for (auto u : instance_graph.adj_v(v)) {
 			if (mark[u]) continue;
 			weightTYPE dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, u, y);
@@ -55,7 +56,7 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 			}
 			else {
 				int h = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y).second;
-				if (find(A.begin(), A.end(), h) != A.end() || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
+				if (a[h] || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
 					mark[u] = true;
 					Q.push(u);
 				}
@@ -106,7 +107,7 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 
 void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
-	vector<bool>& ax, vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
+	vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	int n = instance_graph.hash_of_vectors.size();
 	vector<int>& SA = AFF_x;
 	for (auto a : SA) {
@@ -232,8 +233,8 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
 	vector<bool> ay(instance_graph.hash_of_vectors.size(), false);
 
-	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x);
-	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y);
+	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x,ax);
+	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y,ay);
 	sort(AFF_x.begin(), AFF_x.end());
 	AFF_x.erase(unique(AFF_x.begin(), AFF_x.end()), AFF_x.end());
 	sort(AFF_y.begin(), AFF_y.end());
@@ -257,9 +258,9 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 
 	if (small_size > n / log(n)) {
 		if (AFF_x.size() < AFF_y.size())
-			GreedyRestore(instance_graph, mm, AFF_x, ax, ay, pool_dynamic, results_dynamic);
+			GreedyRestore(instance_graph, mm, AFF_x, ay, pool_dynamic, results_dynamic);
 		else
-			GreedyRestore(instance_graph, mm, AFF_y, ay, ax, pool_dynamic, results_dynamic);
+			GreedyRestore(instance_graph, mm, AFF_y, ax, pool_dynamic, results_dynamic);
 	}
 	else {
 		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
