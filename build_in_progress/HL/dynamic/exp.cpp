@@ -156,7 +156,8 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				int V = instance_graph.hash_of_vectors.size();
 				initialize_global_values_dynamic(V, thread_num);
 
-				if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
+				if (//data_name == "google" || 
+					data_name == "youtube" || data_name == "skitter") {
 					_2019IN_time = INT_MAX;
 				}
 				else {
