@@ -527,9 +527,8 @@ void exp_element_median(string data_name, double weightChange_ratio, int change_
 			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM,PPR_bit_size_afterM,L_bit_size_afterClean,PPR_bit_size_afterClean,clean_time" << endl;
 
 		vector<double> _2014DE_time(change_times, 0), _2019IN_time(change_times, 0), _2021DE_time(change_times, 0), _2021DE_query_times(change_times, 0), _2021IN_time(change_times, 0), _2021IN_query_times(change_times, 0),
-			_newDE_time(change_times, 0), _newDE_query_times(change_times, 0), _newIN_time(change_times, 0), _newIN_query_times(change_times, 0), _20142019_time(change_times, 0), _newDEIN_time(change_times, 0),
-			L_bit_size_initial(change_times, 0), PPR_bit_size_initial(change_times, 0), L_bit_size_afterM(change_times, 0), PPR_bit_size_afterM(change_times, 0), 
-			L_bit_size_afterClean(change_times, 0), PPR_bit_size_afterClean(change_times, 0), clean_time(change_times, 0);
+			_newDE_time(change_times, 0), _newDE_query_times(change_times, 0), _newIN_time(change_times, 0), _newIN_query_times(change_times, 0), _20142019_time(change_times, 0), _newDEIN_time(change_times, 0);
+		double L_bit_size_initial = 0, PPR_bit_size_initial = 0, L_bit_size_afterM = 0, PPR_bit_size_afterM = 0, L_bit_size_afterClean = 0, PPR_bit_size_afterClean = 0, clean_time = 0;
 
 		/*IN*/
 		if (1) {
@@ -592,8 +591,8 @@ void exp_element_median(string data_name, double weightChange_ratio, int change_
 
 				if (//data_name == "google" || 
 					data_name == "youtube" || data_name == "skitter") {
-					for (int i = 1 : change_times) {
-						_2019IN_time[i - 1] = INT_MAX;
+					for (int i = 0; i < change_times; i++) {
+						_2019IN_time[i] = INT_MAX;
 					}
 				}
 				else {
@@ -913,12 +912,31 @@ void exp_element_median(string data_name, double weightChange_ratio, int change_
 
 		}
 
-		for (int i = 0; i < change_times; i++) {
+		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0,
+			avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0, avg_20142019_time = 0, avg_newDEIN_time = 0;
+		for (int k = 0; k < change_times; k++) {
 			outputFile << _2014DE_time[k] << "," << _2019IN_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," <<
 				_newDE_time[k] << "," << _newDE_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _20142019_time[k] << "," << _newDEIN_time[k] << "," <<
 				L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM / L_bit_size_initial << ","
 				<< PPR_bit_size_afterM / L_bit_size_initial << "," << L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << clean_time << endl;
+			avg_2014DE_time += _2014DE_time[k] / change_times;
+			avg_2019IN_time += _2019IN_time[k] / change_times;
+			avg_2021DE_time += _2021DE_time[k] / change_times;
+			avg_2021DE_query_times += _2021DE_query_times[k] / change_times;
+			avg_2021IN_time += _2021IN_time[k] / change_times;
+			avg_2021IN_query_times += _2021IN_query_times[k] / change_times;
+			avg_newDE_time += _newDE_time[k] / change_times;
+			avg_newDE_query_times += _newDE_query_times[k] / change_times;
+			avg_newIN_time += _newIN_time[k] / change_times;
+			avg_newIN_query_times += _newIN_query_times[k] / change_times;
+			avg_20142019_time += _20142019_time[k] / change_times;
+			avg_newDEIN_time += _newDEIN_time[k] / change_times;
 		}
+		outputFile << avg_2014DE_time << "," << avg_2019IN_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," <<
+			avg_newDE_time << "," << avg_newDE_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_20142019_time << "," << avg_newDEIN_time << "," <<
+			L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM / L_bit_size_initial << ","
+			<< PPR_bit_size_afterM / L_bit_size_initial << "," << L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << clean_time << endl;
+
 
 		outputFile.close(); // without this, multiple files cannot be successfully created
 	}
