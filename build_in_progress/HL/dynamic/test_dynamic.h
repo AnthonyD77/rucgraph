@@ -575,6 +575,8 @@ void PLL_PPR_example() {
 		WeightDecreaseMaintenance_improv(instance_graph, mm, 0, 3, 3, pool_dynamic, results_dynamic);
 		mm.print_L();
 		mm.print_PPR();
+		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
+		mm.print_L();
 	}
 
 }
