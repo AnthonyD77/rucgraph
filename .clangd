@@ -1,2 +1,0 @@
-CompileFlags:
-  Add: [-std=c++17, -I/Users/dengshi/boost_1_75_0, -I/Users/dengshi/github-rucgraph/rucgraph]
