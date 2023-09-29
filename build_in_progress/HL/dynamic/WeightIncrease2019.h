@@ -34,7 +34,7 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 }
 
 void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A) {
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A, vector<bool>& a) {
 
 	int n = instance_graph.hash_of_vectors.size();
 	vector<bool> mark(n, false);
@@ -47,6 +47,7 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 		int v = Q.front();
 		Q.pop();
 		A.push_back(v);
+		a[v] = true;
 		for (auto u : instance_graph.adj_v(v)) {
 			if (mark[u]) continue;
 			weightTYPE dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, u, y);
@@ -58,7 +59,7 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 			}
 			else {
 				int h = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y).second;
-				if (find(A.begin(), A.end(), h) != A.end() || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
+				if (a[h] || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
 					mark[u] = true;
 					Q.push(u);
 				}
@@ -96,11 +97,10 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 }
 
 void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
-	vector<bool>& ax, vector<bool>& ay) {
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
+	vector<bool>& ay) {
 	int n = instance_graph.hash_of_vectors.size();
 	vector<int>& SA = AFF_x;
-	vector<int>& LA = AFF_y;
 	for (auto a : SA) {
 		vector<weightTYPE> dist(n, MAX_VALUE);
 		priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
@@ -143,7 +143,7 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 		while (!Q.empty()) {
 			int v = Q.top().second;
 			Q.pop();
-			if (v < a) continue;
+			// if(v < a) continue;
 			if ((ay[v] && ax[a]) || (ay[a] && ax[v])) {
 				weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
 				if (dist[v] - 1e-5 < qdist) {
@@ -153,6 +153,7 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 			for (auto u : instance_graph.adj_v_and_ec(v)) {
 				if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
 				dist[u.first] = dist[v] + u.second;
+				if (u.first < a) continue;
 				Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 			}
 		}
@@ -173,32 +174,56 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph,
 	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
 	vector<bool> ay(instance_graph.hash_of_vectors.size(), false);
 
-	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x);
-	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y);
+	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x, ax);
+	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y, ay);
 	sort(AFF_x.begin(), AFF_x.end());
 	AFF_x.erase(unique(AFF_x.begin(), AFF_x.end()), AFF_x.end());
 	sort(AFF_y.begin(), AFF_y.end());
 	AFF_y.erase(unique(AFF_y.begin(), AFF_y.end()), AFF_y.end());
 
-	for (int i = 0; i < AFF_x.size(); i++) {
-		ax[AFF_x[i]] = true;
-	}
-	for (int i = 0; i < AFF_y.size(); i++) {
-		ay[AFF_y[i]] = true;
-	}
+	// for (int i = 0; i < AFF_x.size(); i++) {
+	// 	ax[AFF_x[i]] = true;
+	// }
+	// for (int i = 0; i < AFF_y.size(); i++) {
+	// 	ay[AFF_y[i]] = true;
+	// }
 
 	RemoveAffectedHub(instance_graph, mm, AFF_x, AFF_y, ax, ay);
 	double small_size = min(AFF_x.size(), AFF_y.size());
 	double n = instance_graph.hash_of_vectors.size();
 
-	if (small_size > n / log(n)) {
-		if (AFF_x.size() < AFF_y.size())
-			GreedyRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
-		else
-			GreedyRestore(instance_graph, mm, AFF_y, AFF_x, ay, ax);
+	if (1) { // new strategy
+		double all_size = AFF_x.size() + AFF_y.size();
+		if (all_size / small_size > 500) {
+			if (AFF_x.size() < AFF_y.size())
+				GreedyRestore(instance_graph, mm, AFF_x, ay);
+			else
+				GreedyRestore(instance_graph, mm, AFF_y, ax);
+		}
+		else {
+			if (small_size < n / log(n)) {
+				if (AFF_x.size() < AFF_y.size())
+					GreedyRestore(instance_graph, mm, AFF_x, ay);
+				else
+					GreedyRestore(instance_graph, mm, AFF_y, ax);
+			}
+			else {
+				OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+			}
+		}
 	}
-	else {
-		OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+	else { // 2019 strategy
+		if (small_size < n / log(n)) {
+			if (AFF_x.size() < AFF_y.size())
+				GreedyRestore(instance_graph, mm, AFF_x, ay);
+			else
+				GreedyRestore(instance_graph, mm, AFF_y, ax);
+		}
+		else {
+			OrderRestore(instance_graph, mm, AFF_x, AFF_y, ax, ay);
+		}
 	}
+
+
 
 }
