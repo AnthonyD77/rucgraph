@@ -6,10 +6,6 @@
 a cpp file (try.cpp) for running the following test code:
 ----------------------------------------
 
-#include <iostream>
-#include <fstream>
-using namespace std;
-
 #include <build_in_progress/HL/Hop/test_HBPLL.h>
 
 int main()
@@ -36,16 +32,20 @@ rm A
 #include <graph_v_of_v_idealID/graph_v_of_v_idaelID_sort.h>
 
 void test_HBPLL() {
-    /*parameters*/
-    int iteration_graph_times = 1e2, iteration_source_times = 1000, iteration_terminal_times = 1000;
-    int V = 20, E = 50, precision = 1, thread_num = 10;
+    /* graph parameters */
+    int iteration_graph_times = 1e2, iteration_source_times = 100, iteration_terminal_times = 100;
+    int V = 20, E = 50, precision = 1, thread_num = 5;
     double ec_min = 0.1, ec_max = 1;
-    bool weighted = (ec_min == 1 && ec_max == 1) ? false : true;
-    graph_v_of_v_idealID_two_hop_case_info_v1 mm;
 
-    /*control varible*/
+    /* test parameters */
     bool generate_new_graph = 1;
-    bool print_time_details_in_every_loop = 0;
+    bool use_2019R2 = false, use_enhanced2019R2 = false, use_non_adj_reduc_degree = true;
+    bool use_rank_pruning = true;
+    bool use_canonical_repair = true;
+    bool use_M = true;
+    int upper_k = 10;
+
+    bool print_time_details = 1;
     bool print_label_before_canonical_fix = 0;
     bool print_L = 0;
     bool check_correctness = 1;
@@ -54,37 +54,36 @@ void test_HBPLL() {
     debug = 0;
     if (debug) {
         source_debug = 15;
-        terminal_debug = 16;
-        hop_cst_debug = 1;
-        iteration_graph_times = 1;
+        terminal_debug = 2;
+        hop_cst_debug = 8;
         generate_new_graph = 0;
+        iteration_graph_times = 1;
         iteration_source_times = 1;
         iteration_terminal_times = 1;
         print_L = 1;
     }
 
-    /*hop bounded info*/
+    /* hop bounded info */
+    graph_v_of_v_idealID_two_hop_case_info_v1 mm;
     int query_hop_cst = 5;
-    mm.use_M = 0;
-    mm.upper_k = 10;  // 0 means there is no limit
-    mm.value_M = mm.use_M ? ec_max * E : 0;
-
-    /*reduction method selection*/
-    mm.use_2019R2 = 0;
-    mm.use_enhanced2019R2 = 0;
-    mm.use_non_adj_reduc_degree = 1;
+    mm.use_rank_pruning = use_rank_pruning;
+    mm.value_M = use_M ? ec_max * E : 0;
+    mm.upper_k = upper_k;
+    mm.use_2019R2 = use_2019R2;
+    mm.use_enhanced2019R2 = use_enhanced2019R2;
+    mm.use_non_adj_reduc_degree = use_non_adj_reduc_degree;
     mm.print_label_before_canonical_fix = print_label_before_canonical_fix;
-    mm.use_canonical_repair = true;
+    mm.use_canonical_repair = use_canonical_repair;
 
-    /*result info*/
+    /* result info */
     double avg_index_time = 0, avg_index_size_per_v = 0, avg_MG_num = 0;
-    double avg_canonical_repair_remove_label_ratio = 0;
+    double avg_query_time = 0, avg_canonical_repair_remove_label_ratio = 0;
+    double total_time_initialization = 0, total_time_reduction = 0, total_time_generate_labels = 0;
+    double total_time_update_predecessors = 0, total_time_canonical_repair = 0;
 
-    /*iteration*/
+    /* iteration */
     for (int i = 0; i < iteration_graph_times; i++) {
         cout << ">>>iteration_graph_times: " << i << endl;
-
-        /*input and output; below is for generating random new graph, or read saved graph*/
 
         graph_v_of_v_idealID instance_graph;
         if (generate_new_graph == 1) {
@@ -97,15 +96,13 @@ void test_HBPLL() {
 
         auto begin = std::chrono::high_resolution_clock::now();
         try {
-            graph_v_of_v_idealID_HB_v1(instance_graph, V, weighted, thread_num, mm);
-
-            if (print_time_details_in_every_loop) {
-                cout << "mm.time_initialization: " << mm.time_initialization << "s" << endl;
-                cout << "mm.time_reduction: " << mm.time_reduction << "s" << endl;
-                cout << "mm.time_generate_labels: " << mm.time_generate_labels << "s" << endl;
-                cout << "mm.time_update_predecessors: " << mm.time_update_predecessors << "s" << endl;
-                cout << "mm.time_canonical_repair: " << mm.time_canonical_repair << "s" << endl;
-                cout << "mm.time_update_labels: " << mm.time_update_labels << "s" << endl;
+            graph_v_of_v_idealID_HB_v2(instance_graph, V, thread_num, mm);
+            if (print_time_details) {
+                total_time_initialization += mm.time_initialization;
+                total_time_reduction += mm.time_reduction;
+                total_time_generate_labels += mm.time_generate_labels;
+                total_time_update_predecessors += mm.time_update_predecessors;
+                total_time_canonical_repair += mm.time_canonical_repair;
             }
         } catch (string s) {
             cout << s << endl;
@@ -113,24 +110,24 @@ void test_HBPLL() {
             continue;
         }
 
+        cout << "finish generating labels" << endl;
+
         auto end = std::chrono::high_resolution_clock::now();
 
         double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9;  // s
         avg_index_time = avg_index_time + runningtime / iteration_graph_times;
-        avg_MG_num = avg_MG_num + (double)mm.MG_num / iteration_graph_times;
-        avg_canonical_repair_remove_label_ratio = avg_canonical_repair_remove_label_ratio + (double)mm.canonical_repair_remove_label_ratio / iteration_graph_times;
+        avg_MG_num = avg_MG_num + (double) mm.MG_num / iteration_graph_times;
 
         if (print_L)
             mm.print_L();
 
-        if (check_correctness)
-            graph_v_of_v_idealID_HB_v1_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times, query_hop_cst);
-
-        long long int index_size = 0;
-        for (auto it = mm.L.begin(); it != mm.L.end(); it++) {
-            index_size = index_size + (*it).size();
+        if (check_correctness) {
+            graph_v_of_v_idealID_HB_v2_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times, query_hop_cst);
         }
-        avg_index_size_per_v = avg_index_size_per_v + (double)index_size / V / iteration_graph_times;
+
+        avg_query_time += mm.time_query;
+        avg_index_size_per_v += (double)mm.compute_label_size() / V / iteration_graph_times;
+        avg_canonical_repair_remove_label_ratio += (double) ((double)canonical_removed_labels / (double)mm.compute_label_size()) / iteration_graph_times;
 
         graph_v_of_v_idealID_two_hop_clear_global_values2();
         mm.clear_labels();
@@ -142,4 +139,12 @@ void test_HBPLL() {
         cout << "avg_MG_num: " << avg_MG_num << endl;
     if (mm.use_canonical_repair)
         cout << "avg_canonical_repair_remove_label_ratio: " << avg_canonical_repair_remove_label_ratio << endl;
+    if (print_time_details) {
+        cout << "total_time_initialization: " << total_time_initialization << endl;
+        cout << "total_time_reduction: " << total_time_reduction << endl;
+        cout << "total_time_generate_labels: " << total_time_generate_labels << endl;
+        cout << "total_time_update_predecessors: " << total_time_update_predecessors << endl;
+        cout << "total_time_canonical_repair: " << total_time_canonical_repair << endl;
+    }
+    cout << "avg_query_time: " << avg_query_time / (iteration_graph_times) << endl;
 }

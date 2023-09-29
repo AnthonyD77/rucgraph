@@ -1,245 +1,175 @@
 #pragma once
-#include <build_in_progress/HL/Hop/graph_v_of_v_idealID_HB_two_hop_labels_v1.h>
+#include <build_in_progress/HL/Hop/graph_v_of_v_idealID_two_hop_labels_v1.h>
 
-double graph_v_of_v_idealID_two_hop_v1_extract_distance_no_reduc_for_canonical_repair_with_value_M(int u, int v, int hop_cst, double value_M)
-{
-    /* return query(u,v,h) using L_{>r(v)}[u] and L[v] */
-    /*return std::numeric_limits<double>::max() is not connected*/
+/**
+ * new canonical repair
+ *
+ *
+ *
+ */
 
-    if (u == v)
-    {
+// return query(u,v,h) using L_{>=r(v)}[u] and L[v]
+double canonical_repair_query(int u, int j, int i) {
+    // j: v's position in L[u]
+    // i: label's position in L[u][j].dist_info
+    int v = L2_599[u][j].vertex;
+    int hop_cst = get<2>(L2_599[u][j].dist_info[i]);
+
+    if (u == v) {
         return 0;
     }
-
-    double distance = std::numeric_limits<double>::max(); // if disconnected, return this large value
-
-    vector<two_hop_label_v1>::iterator vector1_check_pointer, vector2_check_pointer, vector1_check_pointer_end, vector2_check_pointer_end;
-
-    vector1_check_pointer = L_temp_599[u].begin();
-    vector1_check_pointer_end = L_temp_599[u].end();
-    vector2_check_pointer_end = L_temp_599[v].end();
-
-    while (vector1_check_pointer != vector1_check_pointer_end)
-    {
-        if (vector1_check_pointer->vertex > v)
-            break;
-        vector2_check_pointer = L_temp_599[v].begin();
-        while (vector2_check_pointer != vector2_check_pointer_end)
-        {
-            if (vector2_check_pointer->vertex > vector1_check_pointer->vertex)
-                break;
-            if (vector1_check_pointer->vertex == vector2_check_pointer->vertex)
-            {
-                int tmp_hop = int(vector1_check_pointer->distance / value_M) + int(vector2_check_pointer->distance / value_M);
-                if ( tmp_hop <= hop_cst)
-                {
-                    double dis = vector1_check_pointer->distance + vector2_check_pointer->distance - value_M * tmp_hop;
-                    if (distance > dis)
-                    {
-                        distance = dis;
-                    }
-                }
-            }
-            vector2_check_pointer++;
-        }
-        vector1_check_pointer++;
-    }
-
-    return distance;
-}
-
-double graph_v_of_v_idealID_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(int u, int v, int hop_cst)
-{
-    /* return query(u,v,h) using L_{>=r(v)}[u] and L[v] */
-    /*return std::numeric_limits<double>::max() is not connected*/
-
-    if (u == v)
-    {
-        return 0;
-    }
-
     double distance = std::numeric_limits<double>::max();
-    vector<two_hop_label_v1>::iterator vector1_check_pointer, vector2_check_pointer, vector1_check_pointer_end, vector2_check_pointer_end;
 
-    vector1_check_pointer = L_temp_599[u].begin();
-    vector1_check_pointer_end = L_temp_599[u].end();
-    vector2_check_pointer_end = L_temp_599[v].end();
+    auto ptr_u = L2_599[u].begin(), ptr_v = L2_599[v].begin();
+    auto ptr_u_end = L2_599[u].end(), ptr_v_end = L2_599[v].end();
 
-    while (vector1_check_pointer != vector1_check_pointer_end)
-    {
-        if (vector1_check_pointer->vertex >= v && vector1_check_pointer->hop > hop_cst)
-            break;
-        vector2_check_pointer = L_temp_599[v].begin();
-        while (vector2_check_pointer != vector2_check_pointer_end)
-        {
-            if (vector2_check_pointer->vertex > vector1_check_pointer->vertex)
-                break;
-            if (vector1_check_pointer->vertex == vector2_check_pointer->vertex)
-            {
-                if (vector1_check_pointer->hop + vector2_check_pointer->hop <= hop_cst)
-                {
-                    double dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
-                    if (distance > dis)
-                    {
-                        distance = dis;
+    while (ptr_u != ptr_u_end && ptr_v != ptr_v_end) {
+        if (ptr_u->vertex == ptr_v->vertex) {
+            int ii = 0, size_u = ptr_u->dist_info.size();
+            auto begin1 = ptr_u->dist_info.begin();
+            auto end2 = ptr_v->dist_info.end();
+            while (size_u > 0) {
+                auto ptr2 = ptr_v->dist_info.begin();
+                while (1) {
+                    if (get<2>(*(begin1+ii)) + get<2>(*ptr2) <= hop_cst) {
+                        double dis = get<0>(*(begin1+ii)) + get<0>(*ptr2);
+                        if (distance > dis) {
+                            distance = dis;
+                        }
+                    } else {
+                        break;
+                    }
+                    ptr2++;
+                    if (ptr2 == end2) {
+                        break;
                     }
                 }
+                ii++;
+                if (ii == size_u) {
+                    break;
+                }
+                if (ptr_u->vertex >= v && ii > i) {
+                    return  distance;
+                }
             }
-            vector2_check_pointer++;
+            ptr_u++;
+        } else if (ptr_u->vertex > ptr_v->vertex) {
+            ptr_v++;
+        } else {
+            ptr_u++;
         }
-        vector1_check_pointer++;
     }
 
     return distance;
 }
 
-void canonical_repair_element1_with_value_M(int u, double value_M)
-{
-    auto it = L_temp_599[u].begin(), end = L_temp_599[u].end();
-    for (; it != end; it++)
-    {
-        int v = it->vertex;
-        if (v == u)
-        {
-            incremental_label_vectors_599[u].push_back(*it);
+double canonical_repair_query_for_M(int u, int j, int i, int value_M) {
+    int v = L2_599[u][j].vertex;
+    int hop_cst = int(get<0>(L2_599[u][j].dist_info[i]) / value_M);
+
+    if (u == v) {
+        return 0;
+    }
+    double distance = std::numeric_limits<double>::max();
+
+    auto ptr_u = L2_599[u].begin(), ptr_v = L2_599[v].begin();
+    auto ptr_u_end = L2_599[u].end(), ptr_v_end = L2_599[v].end();
+
+    while (ptr_u != ptr_u_end && ptr_v != ptr_v_end) {
+        if (ptr_u->vertex == ptr_v->vertex) {
+            int ii = 0, size_u = ptr_u->dist_info.size();
+            auto begin1 = ptr_u->dist_info.begin();
+            auto end2 = ptr_v->dist_info.end();
+            while (size_u > 0) {
+                auto ptr2 = ptr_v->dist_info.begin();
+                while (1) {
+                    int hop_sum = int(get<0>(*(begin1+ii)) / value_M) + int(get<0>(*ptr2) / value_M);
+                    if (hop_sum <= hop_cst) {
+                        double dis = get<0>(*(begin1+ii)) + get<0>(*ptr2) - value_M * hop_sum;
+                        if (distance > dis) {
+                            distance = dis;
+                        }
+                    } else {
+                        break;
+                    }
+                    ptr2++;
+                    if (ptr2 == end2) {
+                        break;
+                    }
+                }
+                ii++;
+                if (ii == size_u) {
+                    break;
+                }
+                if (ptr_u->vertex >= v && ii > i) {
+                    return  distance;
+                }
+            }
+            ptr_u++;
+        } else if (ptr_u->vertex > ptr_v->vertex) {
+            ptr_v++;
+        } else {
+            ptr_u++;
+        }
+    }
+
+    return distance;
+}
+
+void canonical_repair_element_v2(int u, vector<two_hop_label_v2> &L2_u, int value_M) {
+    int size1 = L2_599[u].size();
+    auto it1 = L2_599[u].begin();
+    for (int j = 0; j < size1; j++) {
+        int v = (it1+j)->vertex;
+        if (v == u) {
             continue;
         }
-        
-        double v_distance = it->distance - int(it->distance / value_M) * value_M;
-        /* query in the canonical repair has nothing to do with reduction */
-        double query_dis = graph_v_of_v_idealID_two_hop_v1_extract_distance_no_reduc_for_canonical_repair_with_value_M(u, v, it->hop, value_M);
-        // cout << "check " << v << " in L[" << u << "],  dist = " << it->distance << ",  query = " << query_dis << endl;
-        if (query_dis + 1e-5 >= v_distance)
-        {                                                  
-            incremental_label_vectors_599[u].push_back(*it);
+
+        int size2 = (it1+j)->dist_info.size();
+        auto it2 = (it1+j)->dist_info.begin();
+        if (value_M == 0){
+            for (int i = 0; i < size2; i++) {
+                double query_dis = canonical_repair_query(u, j, i);
+                if (query_dis < get<0>(*(it2 + i))) {
+                    L2_u[j].dist_info[i] = {-1, -1, 100};
+                    canonical_removed_labels++;
+                }
+            }
+        } else {
+            for (int i = 0; i < size2; i++) {
+                double query_dis = canonical_repair_query_for_M(u, j, i, value_M);
+                double dist = get<0>(*(it2+i)) - (int(get<0>(*(it2+i))/value_M) * value_M);
+                if (query_dis < dist) {
+                    L2_u[j].dist_info[i] = {-1,-1,100};
+                    canonical_removed_labels++;
+                }
+            }
         }
     }
 }
 
-void canonical_repair_element1(int u)
-{
-    auto it = L_temp_599[u].begin(), end = L_temp_599[u].end();
-    for (; it != end; it++)
-    {
-        int v = it->vertex;
-        if (v == u)
-        {
-            incremental_label_vectors_599[u].push_back(*it);
-            continue;
-        }
-        
-        /* query in the canonical repair has nothing to do with reduction */
-        double query_dis = graph_v_of_v_idealID_two_hop_v1_extract_distance_no_reduc_for_canonical_repair(u, v, it->hop);
-        if (query_dis >= it->distance)
-        {                                                  
-            incremental_label_vectors_599[u].push_back(*it);
-        }
-    }
-}
+void canonical_repair_multi_threads_v2(graph_v_of_v_idealID_two_hop_case_info_v1 &case_info, int num_of_threads) {
 
-void canonical_repair_element2(int target_v)
-{
-    L_temp_599[target_v] = incremental_label_vectors_599[target_v];
-    vector<two_hop_label_v1>(L_temp_599[target_v]).swap(L_temp_599[target_v]);
-}
-
-void canonical_repair_multi_threads_with_value_M(long long int &label_size_before_canonical_repair, long long int &label_size_after_canonical_repair, double &canonical_repair_remove_label_ratio, int num_of_threads, double value_M)
-{
-
-    int max_N_ID = L_temp_599.size();
-    incremental_label_vectors_599.resize(max_N_ID);
-
+    int N = case_info.L2.size();
+    int value_M = case_info.value_M;
     ThreadPool pool(num_of_threads);
-    std::vector<std::future<int>> results; // return typename: xxx
+    std::vector<std::future<int>> results;
+
+    auto begin = std::chrono::high_resolution_clock::now();
 
     /*find labels_to_be_removed*/
-    for (int target_v = 0; target_v < max_N_ID; target_v++)
-    {
-        int size = L_temp_599[target_v].size();
-        if (size > 0)
-        {
+    for (int target_v = 0; target_v < N; target_v++) {
+        int size = L2_599[target_v].size();
+        auto L2_v = &case_info.L2[target_v];
+        if (size > 0) {
             results.emplace_back(
-                pool.enqueue([target_v, value_M] { // pass const type value j to thread; [] can be empty
-                    canonical_repair_element1_with_value_M(target_v, value_M);
-                    return 1;
-                }));
+                    pool.enqueue([target_v, L2_v, value_M] {
+                        canonical_repair_element_v2(target_v, *L2_v, value_M);
+                        return 1;
+                    }));
         }
     }
     for (auto &&result : results)
-        result.get(); // all threads finish here
+        result.get();
     results.clear();
-
-    /*remove labels_to_be_removed*/
-    label_size_before_canonical_repair = 0;
-    label_size_after_canonical_repair = 0;
-    for (int target_v = 0; target_v < max_N_ID; target_v++)
-    {
-        int old_size = L_temp_599[target_v].size();
-        int new_size = incremental_label_vectors_599[target_v].size();
-        label_size_before_canonical_repair = label_size_before_canonical_repair + old_size;
-        label_size_after_canonical_repair = label_size_after_canonical_repair + new_size;
-        if (new_size < old_size)
-        {
-            // canonical_repair_element2(target_v);
-            results.emplace_back(
-                pool.enqueue([target_v] {
-                    canonical_repair_element2(target_v);
-                    return 1;
-                }));
-        }
-    }
-    for (auto &&result : results)
-        result.get(); // all threads finish here
-
-    canonical_repair_remove_label_ratio = (double)(label_size_before_canonical_repair - label_size_after_canonical_repair) / label_size_before_canonical_repair;
-}
-
-void canonical_repair_multi_threads(long long int &label_size_before_canonical_repair, long long int &label_size_after_canonical_repair, double &canonical_repair_remove_label_ratio, int num_of_threads)
-{
-
-    int max_N_ID = L_temp_599.size();
-    incremental_label_vectors_599.resize(max_N_ID);
-
-    ThreadPool pool(num_of_threads);
-    std::vector<std::future<int>> results; // return typename: xxx
-
-    /*find labels_to_be_removed*/
-    for (int target_v = 0; target_v < max_N_ID; target_v++)
-    {
-        int size = L_temp_599[target_v].size();
-        if (size > 0)
-        {
-            results.emplace_back(
-                pool.enqueue([target_v] { // pass const type value j to thread; [] can be empty
-                    canonical_repair_element1(target_v);
-                    return 1; // return to results; the return type must be the same with results
-                }));
-        }
-    }
-    for (auto &&result : results)
-        result.get(); // all threads finish here
-    results.clear();
-
-    /*remove labels_to_be_removed*/
-    label_size_before_canonical_repair = 0;
-    label_size_after_canonical_repair = 0;
-    for (int target_v = 0; target_v < max_N_ID; target_v++)
-    {
-        int old_size = L_temp_599[target_v].size();
-        int new_size = incremental_label_vectors_599[target_v].size();
-        label_size_before_canonical_repair = label_size_before_canonical_repair + old_size;
-        label_size_after_canonical_repair = label_size_after_canonical_repair + new_size;
-        if (new_size < old_size)
-        {
-            results.emplace_back(
-                pool.enqueue([target_v] {
-                    canonical_repair_element2(target_v);
-                    return 1;
-                }));
-        }
-    }
-    for (auto &&result : results)
-        result.get(); // all threads finish here
-
-    canonical_repair_remove_label_ratio = (double)(label_size_before_canonical_repair - label_size_after_canonical_repair) / label_size_before_canonical_repair;
 }
