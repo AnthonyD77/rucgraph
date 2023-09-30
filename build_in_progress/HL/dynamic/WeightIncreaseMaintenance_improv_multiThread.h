@@ -118,7 +118,6 @@ void SPREAD3(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	for (auto it : al3) {
-
 		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, instance_graph, PPR] {
 
 			mtx_595_1.lock();
@@ -170,8 +169,11 @@ void SPREAD3(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 				Q_VALUE[x] = MAX_VALUE;
 
 				mtx_595[x].lock();
-				insert_sorted_two_hop_label((*L)[x], v, std::min(dx, search_sorted_two_hop_label((*L)[x], v)));
+				if (dx < search_sorted_two_hop_label((*L)[x], v)) {
+					insert_sorted_two_hop_label((*L)[x], v, dx);
+				}
 				mtx_595[x].unlock();
+
 				auto neis = instance_graph->adj_v_and_ec(x);
 				for (auto nei : neis) {
 					int xnei = nei.first;
