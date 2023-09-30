@@ -22,9 +22,11 @@ void SPREAD1(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 				mtx_595_1.unlock();
 				auto v_neis = instance_graph->adj_v_and_ec(x);
 				for (auto nei : v_neis) {
-					weightTYPE search_weight = search_sorted_two_hop_label((*L)[nei.first], v);
-					if (abs(dx + nei.second - search_weight) < 1e-5) { 
-						q.push(pair<int, weightTYPE>(nei.first, dx + nei.second));
+					if (v < nei.first) {
+						weightTYPE search_weight = search_sorted_two_hop_label((*L)[nei.first], v);
+						if (abs(dx + nei.second - search_weight) < 1e-5) {
+							q.push(pair<int, weightTYPE>(nei.first, dx + nei.second));
+						}
 					}
 				}
 			}
