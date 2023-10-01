@@ -140,12 +140,6 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 							mtx_595[v].unlock();
 						}
 					}
-
-					// weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
-					// if (dist[v] - 1e-5 < qdist) {
-					// 	if (v < a) insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
-					// 	else insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
-					// }
 				}
 				for (auto u : instance_graph.adj_v_and_ec(v)) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
@@ -185,7 +179,6 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 				Q.pop();
 				// if (v < a) continue;
 				if ((ay[v] && ax[a]) || (ay[a] && ax[v])) {
-
 					mtx_595[a].lock();
 					auto L_a = mm.L[a];
 					mtx_595[a].unlock();
@@ -198,11 +191,6 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 						insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
 						mtx_595[v].unlock();
 					}
-
-					// weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
-					// if (dist[v] - 1e-5 < qdist) {
-					// 	insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
-					// }
 				}
 				for (auto u : instance_graph.adj_v_and_ec(v)) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
