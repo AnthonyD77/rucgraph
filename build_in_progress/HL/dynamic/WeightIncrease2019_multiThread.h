@@ -21,10 +21,26 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 		Q.pop();
 		if (mark[v]) continue;
 		mark[v] = true;
-		for (auto nei : instance_graph.adj_v_and_ec(v)) {
-			if (d[nei.first] > d[v] + nei.second) {
-				d[nei.first] = d[v] + nei.second;
-				Q.push(pair<weightTYPE, int>(d[nei.first], nei.first));
+		auto search = instance_graph.hash_of_hashs.find(v);
+		if (search != instance_graph.hash_of_hashs.end()) { // vertex is in hash_of_hashs
+			for (auto it = search->second.begin(); it != search->second.end(); ++it) {
+				int adj_v = it->first;
+				double adj_ec = it->second;
+				if (d[adj_v] > d[v] + adj_ec) {
+					d[adj_v] = d[v] + adj_ec;
+					Q.push(pair<weightTYPE, int>(d[adj_v], adj_ec));
+				}
+			}
+		}
+		else {
+			auto search2 = instance_graph.hash_of_vectors.find(v);
+			if (search2 != instance_graph.hash_of_vectors.end()) { // vertex is in input_graph, otherwise return empty list
+				for (auto nei : search2->second.adj_vertices) {
+					if (d[nei.first] > d[v] + nei.second) {
+						d[nei.first] = d[v] + nei.second;
+						Q.push(pair<weightTYPE, int>(d[nei.first], nei.first));
+					}
+				}
 			}
 		}
 	}
@@ -47,15 +63,15 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 		a[v] = true;
 		for (auto u : instance_graph.adj_v(v)) {
 			if (mark[u]) continue;
-			weightTYPE dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, u, y);
-			weightTYPE dy_new = dy[u];
+			auto query_dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y);
+			weightTYPE dy_old = query_dy_old.first;
 			weightTYPE dx_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, u, x);
-			if (abs(dy_old - dy_new) > 1e-5) {
+			if (abs(dy_old - dy[u]) > 1e-5) {
 				mark[u] = true;
 				Q.push(u);
 			}
 			else {
-				int h = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y).second;
+				int h = query_dy_old.second;
 				if (a[h] || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
 					mark[u] = true;
 					Q.push(u);
@@ -75,7 +91,7 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ay] {
 			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
 				if (ay[it->vertex]) {
-					it = mm.L[v].erase(it);
+					it = mm.L[v].erase(it); // this is likely to be faster than building a new vector with not erased elements
 				}
 				else {
 					it++;
@@ -105,8 +121,7 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 	results_dynamic.clear();
 }
 
-void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
+void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
 	vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	int n = instance_graph.hash_of_vectors.size();
 	vector<int>& SA = AFF_x;
@@ -141,10 +156,25 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 						}
 					}
 				}
-				for (auto u : instance_graph.adj_v_and_ec(v)) {
-					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
-					dist[u.first] = dist[v] + u.second;
-					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
+
+				auto search = instance_graph.hash_of_hashs.find(v);
+				if (search != instance_graph.hash_of_hashs.end()) { // vertex is in hash_of_hashs
+					for (auto it = search->second.begin(); it != search->second.end(); ++it) {
+						auto u = *it;
+						if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
+						dist[u.first] = dist[v] + u.second;
+						Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
+					}
+				}
+				else {
+					auto search2 = instance_graph.hash_of_vectors.find(v);
+					if (search2 != instance_graph.hash_of_vectors.end()) { // vertex is in input_graph, otherwise return empty list
+						for (auto u : search2->second.adj_vertices) {
+							if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
+							dist[u.first] = dist[v] + u.second;
+							Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
+						}
+					}
 				}
 
 				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
@@ -192,11 +222,27 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 						mtx_595[v].unlock();
 					}
 				}
-				for (auto u : instance_graph.adj_v_and_ec(v)) {
-					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
-					dist[u.first] = dist[v] + u.second;
-					if (u.first < a) continue;
-					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
+
+				auto search = instance_graph.hash_of_hashs.find(v);
+				if (search != instance_graph.hash_of_hashs.end()) { // vertex is in hash_of_hashs
+					for (auto it = search->second.begin(); it != search->second.end(); ++it) {
+						auto u = *it;
+						if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
+						dist[u.first] = dist[v] + u.second;
+						if (u.first < a) continue;
+						Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
+					}
+				}
+				else {
+					auto search2 = instance_graph.hash_of_vectors.find(v);
+					if (search2 != instance_graph.hash_of_vectors.end()) { // vertex is in input_graph, otherwise return empty list
+						for (auto u : search2->second.adj_vertices) {
+							if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
+							dist[u.first] = dist[v] + u.second;
+							if (u.first < a) continue;
+							Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
+						}
+					}
 				}
 
 				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
