@@ -91,11 +91,12 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
 		outputFile.open("exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv");
 
-		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021DE_query_times,2021IN_time,2021IN_query_times,newDE_time,newDE_query_times,newIN_time,newIN_query_times,2014+2019_time,newDEIN_time," <<
+		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021DE_query_times,2021IN_time,2021IN_query_times,newDE_time,newDE_query_times,newIN_time,newIN_query_times,2014+2019_time,2021DEIN_time,newDE2021IN_time,newDEIN_time," <<
 			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM,PPR_bit_size_afterM,L_bit_size_afterClean,PPR_bit_size_afterClean,clean_time" << endl;
 
 		vector<double> _2014DE_time(change_times, 0), _2019IN_time(change_times, 0), _2021DE_time(change_times, 0), _2021DE_query_times(change_times, 0), _2021IN_time(change_times, 0), _2021IN_query_times(change_times, 0),
-			_newDE_time(change_times, 0), _newDE_query_times(change_times, 0), _newIN_time(change_times, 0), _newIN_query_times(change_times, 0), _20142019_time(change_times, 0), _newDEIN_time(change_times, 0);
+			_newDE_time(change_times, 0), _newDE_query_times(change_times, 0), _newIN_time(change_times, 0), _newIN_query_times(change_times, 0), _20142019_time(change_times, 0),
+			_2021DEIN_time(change_times, 0), _newDE2021IN_time(change_times, 0), _newDEIN_time(change_times, 0);
 		double L_bit_size_initial = 0, PPR_bit_size_initial = 0, L_bit_size_afterM = 0, PPR_bit_size_afterM = 0, L_bit_size_afterClean = 0, PPR_bit_size_afterClean = 0, clean_time = 0;
 
 		/*IN*/
@@ -379,6 +380,66 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				}
 			}
 
+			/*2021DEIN*/
+			if (1) {
+				instance_graph = instance_graph_initial;
+				mm = mm_initial;
+				int V = instance_graph.size();
+				initialize_global_values_dynamic(V, thread_num);
+
+				for (int k = 0; k < change_times; k++) {
+					pair<int, int> selected_edge = selected_edges[k];
+					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+					if (k % 2 == 0) { // increase
+						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
+						_2021DEIN_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					}
+					else {
+						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						double t = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_2021DEIN_time[k] = (_2021DEIN_time[k - 1] + t) / 2;
+						_2021DEIN_time[k - 1] = _2021DEIN_time[k];
+					}
+				}
+			}
+
+			/*newDE2021IN*/
+			if (1) {
+				instance_graph = instance_graph_initial;
+				mm = mm_initial;
+				int V = instance_graph.size();
+				initialize_global_values_dynamic(V, thread_num);
+
+				for (int k = 0; k < change_times; k++) {
+					pair<int, int> selected_edge = selected_edges[k];
+					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+					if (k % 2 == 0) { // increase
+						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, max_Maintain_time);
+						_newDE2021IN_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					}
+					else {
+						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						double t = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_newDE2021IN_time[k] = (_newDE2021IN_time[k - 1] + t) / 2;
+						_newDE2021IN_time[k - 1] = _newDE2021IN_time[k];
+					}
+				}
+			}
+
 			/*new*/
 			if (1) {
 				instance_graph = instance_graph_initial;
@@ -425,10 +486,11 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 		}
 
 		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0,
-			avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0, avg_20142019_time = 0, avg_newDEIN_time = 0;
+			avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0, avg_20142019_time = 0, avg_2021DEIN_time = 0, avg_newDE2021IN_time = 0, avg_newDEIN_time = 0;
 		for (int k = 0; k < change_times; k++) {
 			outputFile << _2014DE_time[k] << "," << _2019IN_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," <<
-				_newDE_time[k] << "," << _newDE_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _20142019_time[k] << "," << _newDEIN_time[k] << "," <<
+				_newDE_time[k] << "," << _newDE_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _20142019_time[k] << ","
+				<< _2021DEIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEIN_time[k] << "," <<
 				L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM / L_bit_size_initial << ","
 				<< PPR_bit_size_afterM / L_bit_size_initial << "," << L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << clean_time << endl;
 			avg_2014DE_time += _2014DE_time[k] / change_times;
@@ -442,10 +504,13 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			avg_newIN_time += _newIN_time[k] / change_times;
 			avg_newIN_query_times += _newIN_query_times[k] / change_times;
 			avg_20142019_time += _20142019_time[k] / change_times;
+			avg_2021DEIN_time += _2021DEIN_time[k] / change_times;
+			avg_newDE2021IN_time += _newDE2021IN_time[k] / change_times;
 			avg_newDEIN_time += _newDEIN_time[k] / change_times;
 		}
 		outputFile << avg_2014DE_time << "," << avg_2019IN_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," <<
-			avg_newDE_time << "," << avg_newDE_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_20142019_time << "," << avg_newDEIN_time << "," <<
+			avg_newDE_time << "," << avg_newDE_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_20142019_time << ","
+			<< avg_2021DEIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEIN_time << "," <<
 			L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM / L_bit_size_initial << ","
 			<< PPR_bit_size_afterM / L_bit_size_initial << "," << L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << clean_time << endl;
 
