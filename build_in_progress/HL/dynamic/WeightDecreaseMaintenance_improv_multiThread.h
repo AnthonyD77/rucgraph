@@ -49,13 +49,13 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 	results_dynamic.clear();
 }
 
-void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& CL, 
+void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& CL,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	//cout << "CL.size(): " << CL.size() << endl;
 
 	for (auto it : CL) {
-		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, instance_graph, PPR] {
+		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, &instance_graph, PPR] {
 
 			mtx_595_1.lock();
 			int current_tid = Qid_595.front();
@@ -87,8 +87,7 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 				insert_sorted_two_hop_label((*L)[x], v, dx);
 				mtx_595[x].unlock();
 
-				auto neis = instance_graph->adj_v_and_ec(x);
-				for (auto nei : neis) {
+				for (auto& nei : instance_graph[x]) {
 					int xnei = nei.first;
 					weightTYPE d_new = dx + nei.second;
 
@@ -155,11 +154,11 @@ void DIFFUSE(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 	results_dynamic.clear();
 }
 
-void WeightDecreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new, 
+void WeightDecreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	std::vector<affected_label> CL;
 	WeightDecreaseMaintenance_improv_step1(v1, v2, w_new, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic);
 
-	DIFFUSE(&instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic);
+	DIFFUSE(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic);
 }

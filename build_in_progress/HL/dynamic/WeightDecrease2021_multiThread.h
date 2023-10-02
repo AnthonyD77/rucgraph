@@ -2,15 +2,14 @@
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
-void ProDecreasep(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
+void ProDecreasep(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
 	std::vector<affected_label>& CL_curr, std::vector<affected_label>* CL_next, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	for (auto it : CL_curr) {
-		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, CL_next, instance_graph] {
+		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, CL_next, &instance_graph] {
 
 			int v = it.first, u = it.second;
-			auto neis = instance_graph->adj_v_and_ec(v);
-			for (auto nei : neis) {
+			for (auto nei : instance_graph[v]) {
 				int vnei = nei.first;
 				weightTYPE dnew = it.dis + nei.second;
 				if (u < vnei) {
@@ -61,7 +60,7 @@ void ProDecreasep(graph_hash_of_mixed_weighted* instance_graph, vector<vector<tw
 }
 
 
-void WeightDecrease2021(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
+void WeightDecrease2021(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	std::vector<affected_label> CL_curr, CL_next;
@@ -104,7 +103,7 @@ void WeightDecrease2021(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 
 
 	while (CL_curr.size()) {
-		ProDecreasep(&instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic);
+		ProDecreasep(instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic);
 		CL_curr = CL_next;
 		std::vector<affected_label>().swap(CL_next);	
 	}

@@ -37,7 +37,7 @@ weightTYPE PrefixalQuery2(vector<two_hop_label_v1>& Ls, vector<two_hop_label_v1>
 
 }
 
-void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_hop_label_v1>>& L, int vk, int u, weightTYPE delta) {
+void ResumePBFS(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>& L, int vk, int u, weightTYPE delta) {
 	std::queue<affected_label> Q;
 	affected_label x;
 	x.first = u;
@@ -67,8 +67,7 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 		if (v == vk) {
 			insert_sorted_two_hop_label(L_vk, vk, now_delta);
 		}
-		auto neis = instance_graph.adj_v_and_ec(v);
-		for (auto nei : neis) {
+		for (auto nei : instance_graph[v]) {
 			auto vnei = nei.first;
 			affected_label now_nei;
 			now_nei.first = vnei;
@@ -78,7 +77,7 @@ void ResumePBFS(graph_hash_of_mixed_weighted& instance_graph, vector<vector<two_
 	}
 }
 
-void WeightDecrease2014(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
+void WeightDecrease2014(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	auto& L = mm.L;

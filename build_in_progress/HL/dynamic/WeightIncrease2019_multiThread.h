@@ -10,8 +10,8 @@ auto begin_time = std::chrono::high_resolution_clock::now();
 double max_run_time_nanosec;
 string reach_limit_time_string_2019 = "reach limit time in WeightIncrease2019";
 
-void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vector<weightTYPE>& d) {
-	int n = instance_graph.hash_of_vectors.size();
+void Distance_Dijsktra(graph_v_of_v_idealID& instance_graph, int s, vector<weightTYPE>& d) {
+	int n = instance_graph.size();
 	vector<bool> mark(n, false);
 	d[s] = 0;
 	priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
@@ -21,35 +21,20 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 		Q.pop();
 		if (mark[v]) continue;
 		mark[v] = true;
-		auto search = instance_graph.hash_of_hashs.find(v);
-		if (search != instance_graph.hash_of_hashs.end()) { // vertex is in hash_of_hashs
-			for (auto it = search->second.begin(); it != search->second.end(); ++it) {
-				int adj_v = it->first;
-				double adj_ec = it->second;
-				if (d[adj_v] > d[v] + adj_ec) {
-					d[adj_v] = d[v] + adj_ec;
-					Q.push(pair<weightTYPE, int>(d[adj_v], adj_ec));
-				}
-			}
-		}
-		else {
-			auto search2 = instance_graph.hash_of_vectors.find(v);
-			if (search2 != instance_graph.hash_of_vectors.end()) { // vertex is in input_graph, otherwise return empty list
-				for (auto nei : search2->second.adj_vertices) {
-					if (d[nei.first] > d[v] + nei.second) {
-						d[nei.first] = d[v] + nei.second;
-						Q.push(pair<weightTYPE, int>(d[nei.first], nei.first));
-					}
-				}
+
+		for (auto nei : instance_graph[v]) {
+			if (d[nei.first] > d[v] + nei.second) {
+				d[nei.first] = d[v] + nei.second;
+				Q.push(pair<weightTYPE, int>(d[nei.first], nei.first));
 			}
 		}
 	}
 }
 
-void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
+void FindAffectedNode(graph_v_of_v_idealID& instance_graph,
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A, vector<bool>& a) {
 
-	int n = instance_graph.hash_of_vectors.size();
+	int n = instance_graph.size();
 	vector<bool> mark(n, false);
 
 	vector<weightTYPE> dy(n, MAX_VALUE);
@@ -61,7 +46,8 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 		Q.pop();
 		A.push_back(v);
 		a[v] = true;
-		for (auto u : instance_graph.adj_v(v)) {
+		for (auto ux : instance_graph[v]) {
+			int u = ux.first;
 			if (mark[u]) continue;
 			auto query_dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y);
 			weightTYPE dy_old = query_dy_old.first;
@@ -84,8 +70,7 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 	}
 }
 
-void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y, vector<bool>& ax, vector<bool>& ay,
+void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y, vector<bool>& ax, vector<bool>& ay,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	for (auto v : AFF_x) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ay] {
@@ -121,9 +106,9 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 	results_dynamic.clear();
 }
 
-void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
+void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
 	vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
-	int n = instance_graph.hash_of_vectors.size();
+	int n = instance_graph.size();
 	vector<int>& SA = AFF_x;
 	for (auto a : SA) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ay] {
@@ -157,24 +142,10 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_m
 					}
 				}
 
-				auto search = instance_graph.hash_of_hashs.find(v);
-				if (search != instance_graph.hash_of_hashs.end()) { // vertex is in hash_of_hashs
-					for (auto it = search->second.begin(); it != search->second.end(); ++it) {
-						auto u = *it;
-						if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
-						dist[u.first] = dist[v] + u.second;
-						Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
-					}
-				}
-				else {
-					auto search2 = instance_graph.hash_of_vectors.find(v);
-					if (search2 != instance_graph.hash_of_vectors.end()) { // vertex is in input_graph, otherwise return empty list
-						for (auto u : search2->second.adj_vertices) {
-							if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
-							dist[u.first] = dist[v] + u.second;
-							Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
-						}
-					}
+				for (auto u : instance_graph[v]) {
+					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
+					dist[u.first] = dist[v] + u.second;
+					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
 
 				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
@@ -190,10 +161,10 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_m
 	results_dynamic.clear();
 }
 
-void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
+void OrderRestore(graph_v_of_v_idealID& instance_graph,
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
 	vector<bool>& ax, vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
-	int n = instance_graph.hash_of_vectors.size();
+	int n = instance_graph.size();
 	vector<int>& FA = AFF_x;
 	FA.insert(FA.end(), AFF_y.begin(), AFF_y.end());
 	sort(FA.begin(), FA.end());
@@ -223,26 +194,11 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 					}
 				}
 
-				auto search = instance_graph.hash_of_hashs.find(v);
-				if (search != instance_graph.hash_of_hashs.end()) { // vertex is in hash_of_hashs
-					for (auto it = search->second.begin(); it != search->second.end(); ++it) {
-						auto u = *it;
-						if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
-						dist[u.first] = dist[v] + u.second;
-						if (u.first < a) continue;
-						Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
-					}
-				}
-				else {
-					auto search2 = instance_graph.hash_of_vectors.find(v);
-					if (search2 != instance_graph.hash_of_vectors.end()) { // vertex is in input_graph, otherwise return empty list
-						for (auto u : search2->second.adj_vertices) {
-							if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
-							dist[u.first] = dist[v] + u.second;
-							if (u.first < a) continue;
-							Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
-						}
-					}
+				for (auto u : instance_graph[v]) {
+					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
+					dist[u.first] = dist[v] + u.second;
+					if (u.first < a) continue;
+					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
 
 				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
@@ -258,15 +214,17 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 	results_dynamic.clear();
 }
 
-void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old,
+void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic, double max_run_second) {
 
 	begin_time = std::chrono::high_resolution_clock::now();
 	max_run_time_nanosec = max_run_second * 1e9;
 
+	double n = instance_graph.size();
+
 	vector<int> AFF_x, AFF_y;
-	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
-	vector<bool> ay(instance_graph.hash_of_vectors.size(), false);
+	vector<bool> ax(n, false);
+	vector<bool> ay(n, false);
 
 	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x, ax);
 	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y, ay);
@@ -275,14 +233,13 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 	sort(AFF_y.begin(), AFF_y.end());
 	AFF_y.erase(unique(AFF_y.begin(), AFF_y.end()), AFF_y.end());
 
-	RemoveAffectedHub(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
+	RemoveAffectedHub(mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
 
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
 
 	double small_size = min(AFF_x.size(), AFF_y.size());
-	double n = instance_graph.hash_of_vectors.size();
 
 	if (1) { // new strategy
 		double all_size = AFF_x.size() + AFF_y.size();
