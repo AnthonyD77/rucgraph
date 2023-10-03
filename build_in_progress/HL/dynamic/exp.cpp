@@ -440,9 +440,12 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				L_bit_size_afterM1 = mm.compute_L_bit_size();
 				PPR_bit_size_afterM1 = mm.compute_PPR_bit_size();
 
-				int total_change_times = 1e5;
+				int total_change_times = 1e4;
+				if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
+					total_change_times = 1e5;
+				}
 
-				/*10000-change_times changes*/
+				/*total_change_times-change_times changes*/
 				int left_change_times = total_change_times - change_times;
 				while (left_change_times) {
 					/*randomly select an edge*/
@@ -520,6 +523,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
 				begin = std::chrono::high_resolution_clock::now();
 				PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm);
+				clean_L_dynamic(mm.L, mm.PPR, pool_dynamic2, results_dynamic2, thread_num);
 				rege_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 			}
 		}
