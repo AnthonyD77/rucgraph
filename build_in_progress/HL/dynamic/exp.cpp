@@ -22,6 +22,7 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 #include <graph_hash_of_mixed_weighted/common_algorithms/graph_hash_of_mixed_weighted_shortest_paths.h>
 #include <build_in_progress/HL/dynamic/clean_labels.h>
 #include <text_mining/binary_save_read_vector_of_vectors.h>
+#include <graph_v_of_v_idealID/graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted.h>
 
 void generate_L_PPR() {
 
@@ -92,12 +93,13 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 		outputFile.open("exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv");
 
 		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021DE_query_times,2021IN_time,2021IN_query_times,newDE_time,newDE_query_times,newIN_time,newIN_query_times,2014+2019_time,2021DEIN_time,newDE2021IN_time,newDEIN_time," <<
-			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM1,PPR_bit_size_afterM1,L_bit_size_afterM2,PPR_bit_size_afterM2,L_bit_size_afterClean,PPR_bit_size_afterClean,clean_time" << endl;
+			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM1,PPR_bit_size_afterM1,L_bit_size_afterM2,PPR_bit_size_afterM2,L_bit_size_afterClean,PPR_bit_size_afterClean,cleanL_time,cleanPPR_time,rege_time" << endl;
 
 		vector<double> _2014DE_time(change_times, 0), _2019IN_time(change_times, 0), _2021DE_time(change_times, 0), _2021DE_query_times(change_times, 0), _2021IN_time(change_times, 0), _2021IN_query_times(change_times, 0),
 			_newDE_time(change_times, 0), _newDE_query_times(change_times, 0), _newIN_time(change_times, 0), _newIN_query_times(change_times, 0), _20142019_time(change_times, 0),
 			_2021DEIN_time(change_times, 0), _newDE2021IN_time(change_times, 0), _newDEIN_time(change_times, 0);
-		double L_bit_size_initial = 0, PPR_bit_size_initial = 0, L_bit_size_afterM1 = 0, PPR_bit_size_afterM1 = 0, L_bit_size_afterM2 = 0, PPR_bit_size_afterM2 = 0, L_bit_size_afterClean = 0, PPR_bit_size_afterClean = 0, clean_time = 0;
+		double L_bit_size_initial = 0, PPR_bit_size_initial = 0, L_bit_size_afterM1 = 0, PPR_bit_size_afterM1 = 0, L_bit_size_afterM2 = 0, PPR_bit_size_afterM2 = 0,
+			L_bit_size_afterClean = 0, PPR_bit_size_afterClean = 0, cleanL_time = 0, cleanPPR_time = 0, rege_time = 0;
 
 		/*IN*/
 		if (1) {
@@ -539,11 +541,21 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				std::vector<std::future<int>> results_dynamic2;
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm.L, mm.PPR, pool_dynamic2, results_dynamic2);
-				clean_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				cleanL_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				L_bit_size_afterClean = mm.compute_L_bit_size();
-				PPR_bit_size_afterClean = mm.compute_PPR_bit_size();
-			}
 
+				begin = std::chrono::high_resolution_clock::now();
+				clean_PPR(instance_graph, mm.L, mm.PPR, pool_dynamic2, results_dynamic2, thread_num);
+				cleanPPR_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				PPR_bit_size_afterClean = mm.compute_PPR_bit_size();
+
+
+				mm.clear_labels;
+				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
+				begin = std::chrono::high_resolution_clock::now();
+				PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm);
+				rege_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+			}
 		}
 
 		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0,
@@ -554,7 +566,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				<< _2021DEIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEIN_time[k] << "," <<
 				L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << ","
 				<< L_bit_size_afterM2 / L_bit_size_initial << "," << PPR_bit_size_afterM2 / L_bit_size_initial << ","
-				<< L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << clean_time << endl;
+				<< L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << cleanL_time << "," << cleanPPR_time << "," << rege_time << endl;
 			avg_2014DE_time += _2014DE_time[k] / change_times;
 			avg_2019IN_time += _2019IN_time[k] / change_times;
 			avg_2021DE_time += _2021DE_time[k] / change_times;
@@ -575,7 +587,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 			<< avg_2021DEIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEIN_time << "," <<
 			L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << ","
 			<< L_bit_size_afterM2 / L_bit_size_initial << "," << PPR_bit_size_afterM2 / L_bit_size_initial << ","
-			<< L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << clean_time << endl;
+			<< L_bit_size_afterClean / L_bit_size_initial << "," << PPR_bit_size_afterClean / L_bit_size_initial << "," << cleanL_time << "," << cleanPPR_time << "," << rege_time << endl;
 
 		outputFile.close(); // without this, multiple files cannot be successfully created
 	}

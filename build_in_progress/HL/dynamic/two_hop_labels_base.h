@@ -35,6 +35,18 @@ queue<int> Qid_595; // IDs of available elements of P T
 vector<vector<weightTYPE>> P_dij_595;
 vector<vector<weightTYPE>> T_dij_595;
 
+struct PLL_dynamic_node_for_sp {
+public:
+	int vertex;
+	weightTYPE priority_value;
+}; // define the node in the queue
+bool operator<(PLL_dynamic_node_for_sp const& x, PLL_dynamic_node_for_sp const& y) {
+	return x.priority_value > y.priority_value; // < is the max-heap; > is the min heap
+}
+typedef typename boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::handle_type graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp;
+
+vector<vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>> Q_handles_dij_595;
+
 void two_hop_clear_global_values() {
 
 	this_parallel_PLL_PSL_is_running_595 = false;

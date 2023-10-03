@@ -5,15 +5,6 @@
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <build_in_progress/HL/dynamic/two_hop_labels_base.h>
 
-struct PLL_v1_node_for_sp {
-public:
-	int vertex, parent_vertex;
-	weightTYPE priority_value;
-}; // define the node in the queue
-bool operator<(PLL_v1_node_for_sp const& x, PLL_v1_node_for_sp const& y) {
-	return x.priority_value > y.priority_value; // < is the max-heap; > is the min heap
-}
-typedef typename boost::heap::fibonacci_heap<PLL_v1_node_for_sp>::handle_type graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp;
 
 void PLL_thread_function_dij_mixed(int v_k, int N)
 {
@@ -37,14 +28,13 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 	mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
 	queue<int> P_changed_vertices, T_changed_vertices;
-	vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp> Q_handles(N);
+	auto& Q_handles = Q_handles_dij_595[used_id];
 
-	PLL_v1_node_for_sp node;
-	boost::heap::fibonacci_heap<PLL_v1_node_for_sp> Q;
+	PLL_dynamic_node_for_sp node;
+	boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 	two_hop_label_v1 xx;
 
 	node.vertex = v_k;
-	node.parent_vertex = v_k;
 	node.priority_value = 0;
 	Q_handles[v_k] = Q.push(node);
 	P_dij_595[used_id][v_k] = 0;
@@ -111,7 +101,6 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 
 					if (P_dij_595[used_id][adj_v] == std::numeric_limits<weightTYPE>::max()) { //尚未到达的点
 						node.vertex = adj_v;
-						node.parent_vertex = u;
 						node.priority_value = P_u + ec;
 						Q_handles[adj_v] = Q.push(node);
 						P_dij_595[used_id][adj_v] = node.priority_value;
@@ -120,7 +109,6 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 					else {
 						if (P_dij_595[used_id][adj_v] > P_u + ec) {
 							node.vertex = adj_v;
-							node.parent_vertex = u;
 							node.priority_value = P_u + ec;
 							Q.update(Q_handles[adj_v], node);
 							P_dij_595[used_id][adj_v] = node.priority_value;
@@ -213,16 +201,12 @@ void PLL_dynamic(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, int nu
 	std::vector< std::future<int> > results; // return typename: xxx
 	P_dij_595.resize(num_of_threads);
 	T_dij_595.resize(num_of_threads);
+	Q_handles_dij_595.resize(num_of_threads);
 	queue<int>().swap(Qid_595);
-	for (int i = 0; i < num_of_threads; i++)
-	{
-		P_dij_595[i].resize(N);
-		T_dij_595[i].resize(N);
-		for (int j = 0; j < N; j++)
-		{
-			P_dij_595[i][j] = std::numeric_limits<weightTYPE>::max();
-			T_dij_595[i][j] = std::numeric_limits<weightTYPE>::max();
-		}
+	for (int i = 0; i < num_of_threads; i++) {
+		P_dij_595[i].resize(N, std::numeric_limits<weightTYPE>::max());
+		T_dij_595[i].resize(N, std::numeric_limits<weightTYPE>::max());
+		Q_handles_dij_595[i].resize(N);
 		Qid_595.push(i);
 	}
 	int push_num = 0;
