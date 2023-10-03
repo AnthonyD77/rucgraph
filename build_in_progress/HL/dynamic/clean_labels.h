@@ -50,9 +50,8 @@ void clean_L_element(int v, vector<vector<two_hop_label_v1>>& L, PPR_type& PPR) 
 			continue;
 		}
 		mtx_595[u].lock();
-		vector<two_hop_label_v1> Lu = L[u];
+		pair<weightTYPE, int> query = clean_L_extract_distance(Lv_final, L[u]);
 		mtx_595[u].unlock();
-		pair<weightTYPE, int> query = clean_L_extract_distance(Lv_final, Lu);
 		if (query.first > Lv[i].distance + 1e-5) {
 			Lv_final.push_back(Lv[i]);
 		}
@@ -112,7 +111,6 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 	vector<vector<weightTYPE>>().swap(T_clean_PPR);
 	d_clean_PPR.resize(thread_num);
 	T_clean_PPR.resize(thread_num);
-	vector<vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>>().swap(Q_handles_clean_PPR);
 	Q_handles_clean_PPR.resize(thread_num);
 	queue<int>().swap(Qid_clean_PPR);
 	for (int i = 0; i < thread_num; i++) {
