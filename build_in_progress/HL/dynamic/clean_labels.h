@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <build_in_progress/HL/dynamic/two_hop_labels_base.h>
 
 
@@ -103,13 +103,16 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, ThreadP
 
 
 
-/*clean PPR*/
+/*
+clean PPR
+
+it is slower to use thread_vertices_clean_L_dynamic in the following codes
+*/
 
 vector<vector<weightTYPE>> d_clean_PPR;
 vector<vector<weightTYPE>> T_clean_PPR;
 vector<vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>> Q_handles_clean_PPR;
 queue<int> Qid_clean_PPR;
-vector<vector<int>> thread_vertices_clean_PPR;
 
 void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& L, std::vector<std::vector<std::pair<int, std::vector<int>>>>& PPR,
 	ThreadPool& pool, std::vector<std::future<int>>& results, int thread_num) {
@@ -131,94 +134,94 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 		Qid_clean_PPR.push(i);
 	}
 
-	vector<vector<int>>().swap(thread_vertices_clean_PPR);
-	thread_vertices_clean_PPR.resize(thread_num);
-	for (int i = 0; i < N; i++) {
-		thread_vertices_clean_PPR[i % thread_num].push_back(i);
-	}
-
-	for (int thread_id = 0; thread_id < thread_num; thread_id++) {
+	for (int u = 0; u < N; u++) {
 		results.emplace_back(
-			pool.enqueue([thread_id, &ideal_g, &L, &PPR] { // pass const type value j to thread; [] can be empty
+			pool.enqueue([u, &ideal_g, &L, &PPR] { // pass const type value j to thread; [] can be empty
 
-				for (auto u : thread_vertices_clean_PPR[thread_id]) {
+				mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+				int used_id = Qid_clean_PPR.front();
+				Qid_clean_PPR.pop();
+				mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
-					auto& d = d_clean_PPR[thread_id];
-					auto& T = T_clean_PPR[thread_id];
-					queue<int> d_changed_vertices;
-					auto& Q_handles = Q_handles_clean_PPR[thread_id];
-					PLL_dynamic_node_for_sp node;
-					boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
+				auto& d = d_clean_PPR[used_id];
+				auto& T = T_clean_PPR[used_id];
+				queue<int> d_changed_vertices;
+				auto& Q_handles = Q_handles_clean_PPR[used_id];
+				PLL_dynamic_node_for_sp node;
+				boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 
-					for (auto label : L[u]) {
-						T[label.vertex] = label.distance;
-					}
+				for (auto label : L[u]) {
+					T[label.vertex] = label.distance;
+				}
 
-					node.vertex = u;
-					node.priority_value = 0;
-					Q_handles[u] = Q.push(node);
-					d[u] = 0;
-					d_changed_vertices.push(u);
+				node.vertex = u;
+				node.priority_value = 0;
+				Q_handles[u] = Q.push(node);
+				d[u] = 0;
+				d_changed_vertices.push(u);
 
-					while (Q.size() > 0) {
-						node = Q.top();
-						Q.pop();
-						int v = node.vertex;
-						if (u <= v) {
-							double Lvu = search_sorted_two_hop_label(L[v], u);
-							double dv = d[v];
-							if (abs(Lvu - dv) < 1e-4) {
-								for (auto adj : ideal_g[v]) {
-									if (d[adj.first] == std::numeric_limits<weightTYPE>::max()) { //ÉÐÎ´µ½´ïµÄµã
+				while (Q.size() > 0) {
+					node = Q.top();
+					Q.pop();
+					int v = node.vertex;
+					if (u <= v) {
+						double Lvu = search_sorted_two_hop_label(L[v], u);
+						double dv = d[v];
+						if (abs(Lvu - dv) < 1e-4) {
+							for (auto adj : ideal_g[v]) {
+								if (d[adj.first] == std::numeric_limits<weightTYPE>::max()) {
+									node.vertex = adj.first;
+									node.priority_value = dv + adj.second;
+									Q_handles[adj.first] = Q.push(node);
+									d[adj.first] = node.priority_value;
+									d_changed_vertices.push(adj.first);
+								}
+								else {
+									if (d[adj.first] > dv + adj.second) {
 										node.vertex = adj.first;
 										node.priority_value = dv + adj.second;
-										Q_handles[adj.first] = Q.push(node);
+										Q.update(Q_handles[adj.first], node);
 										d[adj.first] = node.priority_value;
-										d_changed_vertices.push(adj.first);
 									}
-									else {
-										if (d[adj.first] > dv + adj.second) {
-											node.vertex = adj.first;
-											node.priority_value = dv + adj.second;
-											Q.update(Q_handles[adj.first], node);
-											d[adj.first] = node.priority_value;
-										}
-									}
-								}
-							}
-							else {
-								double min_dis = std::numeric_limits<weightTYPE>::max();
-								int min_dis_v;
-								for (auto label : L[v]) {
-									double query_dis = label.distance + T[label.vertex];
-									if (query_dis < min_dis) {
-										min_dis = query_dis;
-										min_dis_v = label.vertex;
-									}
-								}
-								if (min_dis_v != v) {
-									mtx_595[u].lock();
-									PPR_insert(PPR, u, min_dis_v, v);
-									mtx_595[u].unlock();
-								}
-								if (min_dis_v != u) {
-									mtx_595[v].lock();
-									PPR_insert(PPR, v, min_dis_v, u);
-									mtx_595[v].unlock();
 								}
 							}
 						}
-					}
-
-					while (d_changed_vertices.size() > 0) {
-						d[d_changed_vertices.front()] = std::numeric_limits<weightTYPE>::max(); // reverse-allocate T values
-						d_changed_vertices.pop();
-					}
-
-					for (auto label : L[u]) {
-						T[label.vertex] = std::numeric_limits<weightTYPE>::max();
+						else {
+							double min_dis = std::numeric_limits<weightTYPE>::max();
+							int min_dis_v;
+							for (auto label : L[v]) {
+								double query_dis = label.distance + T[label.vertex];
+								if (query_dis < min_dis) {
+									min_dis = query_dis;
+									min_dis_v = label.vertex;
+								}
+							}
+							if (min_dis_v != v) {
+								mtx_595[u].lock();
+								PPR_insert(PPR, u, min_dis_v, v);
+								mtx_595[u].unlock();
+							}
+							if (min_dis_v != u) {
+								mtx_595[v].lock();
+								PPR_insert(PPR, v, min_dis_v, u);
+								mtx_595[v].unlock();
+							}
+						}
 					}
 				}
+
+				while (d_changed_vertices.size() > 0) {
+					d[d_changed_vertices.front()] = std::numeric_limits<weightTYPE>::max(); // reverse-allocate T values
+					d_changed_vertices.pop();
+				}
+
+				for (auto label : L[u]) {
+					T[label.vertex] = std::numeric_limits<weightTYPE>::max();
+				}
+
+				mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+				Qid_clean_PPR.push(used_id);
+				mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
 				return 1; // return to results; the return type must be the same with results
 				}));
