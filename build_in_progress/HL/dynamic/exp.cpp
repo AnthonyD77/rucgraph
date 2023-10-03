@@ -440,11 +440,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				L_bit_size_afterM1 = mm.compute_L_bit_size();
 				PPR_bit_size_afterM1 = mm.compute_PPR_bit_size();
 
-
-				int total_change_times = 1e4;
-				if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
-					total_change_times = 1e5;
-				}
+				int total_change_times = 1e5;
 
 				/*10000-change_times changes*/
 				int left_change_times = total_change_times - change_times;
