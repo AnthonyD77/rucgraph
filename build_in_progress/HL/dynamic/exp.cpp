@@ -550,7 +550,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				PPR_bit_size_afterClean = mm.compute_PPR_bit_size();
 
 
-				mm.clear_labels;
+				mm.clear_labels();
 				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
 				begin = std::chrono::high_resolution_clock::now();
 				PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm);

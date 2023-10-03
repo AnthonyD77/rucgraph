@@ -97,6 +97,7 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, ThreadP
 
 
 vector<vector<weightTYPE>> d_clean_PPR;
+vector<vector<weightTYPE>> T_clean_PPR;
 vector<vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>> Q_handles_clean_PPR;
 queue<int> Qid_clean_PPR;
 
@@ -108,12 +109,15 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 	PPR.resize(N);
 
 	vector<vector<weightTYPE>>().swap(d_clean_PPR);
+	vector<vector<weightTYPE>>().swap(T_clean_PPR);
 	d_clean_PPR.resize(thread_num);
+	T_clean_PPR.resize(thread_num);
 	vector<vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>>().swap(Q_handles_clean_PPR);
 	Q_handles_clean_PPR.resize(thread_num);
 	queue<int>().swap(Qid_clean_PPR);
 	for (int i = 0; i < thread_num; i++) {
 		d_clean_PPR[i].resize(N, std::numeric_limits<weightTYPE>::max());
+		T_clean_PPR[i].resize(N, std::numeric_limits<weightTYPE>::max());
 		Q_handles_clean_PPR[i].resize(N);
 		Qid_clean_PPR.push(i);
 	}
@@ -128,10 +132,15 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 				mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
 				auto& d = d_clean_PPR[used_id];
+				auto& T = T_clean_PPR[used_id];
 				queue<int> d_changed_vertices;
 				auto& Q_handles = Q_handles_clean_PPR[used_id];
 				PLL_dynamic_node_for_sp node;
 				boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
+
+				for (auto label : L[u]) {
+					T[label.vertex] = label.distance;
+				}
 
 				node.vertex = u;
 				node.priority_value = 0;
@@ -148,7 +157,6 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 						double dv = d[v];
 						if (abs(Lvu - dv) < 1e-4) {
 							for (auto adj : ideal_g[v]) {
-
 								if (d[adj.first] == std::numeric_limits<weightTYPE>::max()) { //尚未到达的点
 									node.vertex = adj.first;
 									node.priority_value = dv + adj.second;
@@ -167,15 +175,23 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 							}
 						}
 						else {
-							auto query = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(L, u, v);
-							if (query.second != v) {
+							double min_dis = std::numeric_limits<weightTYPE>::max();
+							int min_dis_v;
+							for (auto label: L[v]) {
+								double query_dis = label.distance + T[label.vertex];
+								if (query_dis < min_dis) {
+									min_dis = query_dis;
+									min_dis_v = label.vertex;
+								}
+							}
+							if (min_dis_v != v) {
 								mtx_595[u].lock();
-								PPR_insert(PPR, u, query.second, v);
+								PPR_insert(PPR, u, min_dis_v, v);
 								mtx_595[u].unlock();
 							}
-							if (query.second != u) {
+							if (min_dis_v != u) {
 								mtx_595[v].lock();
-								PPR_insert(PPR, v, query.second, u);
+								PPR_insert(PPR, v, min_dis_v, u);
 								mtx_595[v].unlock();
 							}
 						}
@@ -185,6 +201,10 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 				while (d_changed_vertices.size() > 0) {
 					d[d_changed_vertices.front()] = std::numeric_limits<weightTYPE>::max(); // reverse-allocate T values
 					d_changed_vertices.pop();
+				}
+
+				for (auto label : L[u]) {
+					T[label.vertex] = std::numeric_limits<weightTYPE>::max();
 				}
 
 				mtx_595[max_N_ID_for_mtx_595 - 1].lock();
