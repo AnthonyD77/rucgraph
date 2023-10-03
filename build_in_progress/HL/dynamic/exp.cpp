@@ -504,7 +504,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				ThreadPool pool_dynamic2(80);
 				std::vector<std::future<int>> results_dynamic2;
 				auto begin = std::chrono::high_resolution_clock::now();
-				clean_L_dynamic(mm.L, mm.PPR, pool_dynamic2, results_dynamic2);
+				clean_L_dynamic(mm.L, mm.PPR, pool_dynamic2, results_dynamic2, thread_num);
 				cleanL_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				L_bit_size_afterClean = mm.compute_L_bit_size();
 
