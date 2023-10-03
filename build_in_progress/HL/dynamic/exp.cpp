@@ -4,6 +4,7 @@ using namespace std;
 
 // header files in the Boost library: https://www.boost.org/
 #include <boost/random.hpp>
+#include <boost/range/algorithm.hpp>
 boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
@@ -23,6 +24,7 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 #include <build_in_progress/HL/dynamic/clean_labels.h>
 #include <text_mining/binary_save_read_vector_of_vectors.h>
 #include <graph_v_of_v_idealID/graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted.h>
+
 
 void generate_L_PPR() {
 
@@ -440,54 +442,57 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				L_bit_size_afterM1 = mm.compute_L_bit_size();
 				PPR_bit_size_afterM1 = mm.compute_PPR_bit_size();
 
-				int total_change_times = 1e4;
-				if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
-					total_change_times = 1e5;
-				}
+				int total_change_times = 1e5;
+				//if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
+				//	total_change_times = 1e5;
+				//}
+
+				cout << "here" << endl;
 
 				/*total_change_times-change_times changes*/
+				auto gg = instance_graph;
+				vector<pair<int, int>> edge_pool;
+				for (int i = 0; i < V; i++) {
+					for (auto adj : instance_graph[i]) {
+						if (i < adj.first && adj.second >= 0.1 && adj.second <= 1e5) {
+							edge_pool.push_back({ i, adj.first });
+						}
+					}
+				}
 				int left_change_times = total_change_times - change_times;
 				while (left_change_times) {
-					/*randomly select an edge*/
-					pair<int, int> selected_edge;
-					double selected_edge_weight;
-					while (1) {
-						boost::random::uniform_int_distribution<> dist_v1{ static_cast<int>(0), static_cast<int>(V - 1) };
-						int v1 = dist_v1(boost_random_time_seed);
-						if (instance_graph[v1].size() > 0) {
-							boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph[v1].size() - 1) };
-							int rand = dist_v2(boost_random_time_seed);
-							int v2 = instance_graph[v1][rand].first;
-							selected_edge = { v1,v2 };
-							selected_edge_weight = instance_graph[v1][rand].second;
+					boost::range::random_shuffle(edge_pool);
+					vector<pair<int, int>> new_edge_pool;
+					for (auto e : edge_pool) {
+						pair<int, int> selected_edge = e;
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+						selected_edges.push_back(selected_edge);
+						if (left_change_times % 2 == 0) { // first increase
+							double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+							if (new_ec >= 0.1 && new_ec <= 1e5) {
+								new_edge_pool.push_back(selected_edge);
+							}
+						}
+						else { // then decrease
+							double new_ec = selected_edge_weight * (1 - weightChange_ratio);
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+							selected_edges.push_back(selected_edge);
+							if (new_ec >= 0.1 && new_ec <= 1e5) {
+								new_edge_pool.push_back(selected_edge);
+							}
+						}
+						left_change_times--;
+						if (left_change_times == 0) {
 							break;
 						}
 					}
-
-					if (left_change_times % 2 == 0) { // first increase
-						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
-						if (new_ec > 1e6) {
-							continue;
-						}
-						else {
-							left_change_times--;
-							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-							selected_edges.push_back(selected_edge);
-						}
-					}
-					else { // then decrease
-						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
-						if (new_ec < 1e-2) {
-							continue;
-						}
-						else {
-							left_change_times--;
-							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-							selected_edges.push_back(selected_edge);
-						}
-
-					}
+					edge_pool = new_edge_pool;
 				}
+
+				cout << "here1" << endl;
+
+				instance_graph = gg;
 				for (int k = change_times; k < total_change_times; k++) {
 					pair<int, int> selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
