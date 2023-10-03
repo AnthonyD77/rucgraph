@@ -43,7 +43,7 @@ void generate_L_PPR() {
 	for (auto s : data_names) {
 		g = graph_hash_of_mixed_weighted_binary_read(path + s + "_random.bin");
 		PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
-		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
+		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 80);
 		binary_save_PPR(path + s + "_PPR_random.bin", mm.PPR);
 		binary_save_vector_of_vectors(path + s + "_L_random.bin", mm.L);
 		outputFile.open(path + s + "_L_random_generation.txt");
@@ -52,7 +52,7 @@ void generate_L_PPR() {
 
 		g = graph_hash_of_mixed_weighted_binary_read(path + s + "_unique.bin");
 		PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
-		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
+		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 80);
 		binary_save_PPR(path + s + "_PPR_unique.bin", mm.PPR);
 		binary_save_vector_of_vectors(path + s + "_L_unique.bin", mm.L);
 		outputFile.open(path + s + "_L_unique_generation.txt");
@@ -440,8 +440,14 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				L_bit_size_afterM1 = mm.compute_L_bit_size();
 				PPR_bit_size_afterM1 = mm.compute_PPR_bit_size();
 
+
+				int total_change_times = 1e4;
+				if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
+					total_change_times = 1e5;
+				}
+
 				/*10000-change_times changes*/
-				int left_change_times = 10000 - change_times;
+				int left_change_times = total_change_times - change_times;
 				while (left_change_times) {
 					/*randomly select an edge*/
 					pair<int, int> selected_edge;
@@ -483,7 +489,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 
 					}
 				}
-				for (int k = change_times; k < 10000; k++) {
+				for (int k = change_times; k < total_change_times; k++) {
 					pair<int, int> selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 					if (k % 2 == 0) { // increase
