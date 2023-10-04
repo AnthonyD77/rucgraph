@@ -442,7 +442,7 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 				L_bit_size_afterM1 = mm.compute_L_bit_size();
 				PPR_bit_size_afterM1 = mm.compute_PPR_bit_size();
 
-				int total_change_times = 1e5;
+				int total_change_times = graph_v_of_v_idealID_total_edge_num(instance_graph) / 10;
 				//if (data_name == "google" || data_name == "youtube" || data_name == "skitter") {
 				//	total_change_times = 1e5;
 				//}
