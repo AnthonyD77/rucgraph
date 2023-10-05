@@ -598,13 +598,15 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
 		outputFile.open("exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv");
 
-		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021IN_time,2021IN_query_times,newIN_time,newIN_query_times,2014+2019_time,2021DE2021IN_time,2021DEnewIN_time," <<
+		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021DE_query_times,2021IN_time,2021IN_query_times,newDE_time,newDE_query_times,newIN_time,newIN_query_times," <<
+			"2014+2019_time,2021DE2021IN_time,2021DEnewIN_time,newDE2021IN_time,newDEnewIN_time," <<
 			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM1,PPR_bit_size_afterM1,L_bit_size_afterClean1,PPR_bit_size_afterClean1,cleanL_time1,cleanPPR_time1,rege_time1," <<
 			"L_bit_size_afterM2,PPR_bit_size_afterM2,L_bit_size_afterClean2,PPR_bit_size_afterClean2,cleanL_time2,cleanPPR_time2,rege_time2" << endl;
 
 		int half_change_times = change_times / 2;
-		vector<double> _2014DE_time(half_change_times, 0), _2019IN_time(half_change_times, 0), _2021DE_time(half_change_times, 0), _2021IN_time(half_change_times, 0), _2021IN_query_times(half_change_times, 0),
-			_newIN_time(half_change_times, 0), _newIN_query_times(half_change_times, 0), _20142019_time(half_change_times, 0), _2021DE2021IN_time(half_change_times, 0), _2021DEnewIN_time(half_change_times, 0);
+		vector<double> _2014DE_time(half_change_times, 0), _2019IN_time(half_change_times, 0), _2021DE_time(half_change_times, 0), _2021DE_query_times(half_change_times, 0), _2021IN_time(half_change_times, 0), _2021IN_query_times(half_change_times, 0),
+			_newDE_time(half_change_times, 0), _newDE_query_times(half_change_times, 0), _newIN_time(half_change_times, 0), _newIN_query_times(half_change_times, 0),
+			_20142019_time(half_change_times, 0), _2021DE2021IN_time(half_change_times, 0), _2021DEnewIN_time(half_change_times, 0), _newDE2021IN_time(half_change_times, 0), _newDEnewIN_time(half_change_times, 0);
 		double L_bit_size_initial = 0, PPR_bit_size_initial = 0, L_bit_size_afterM1 = 0, PPR_bit_size_afterM1 = 0, L_bit_size_afterClean1 = 0, PPR_bit_size_afterClean1 = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, rege_time1 = 0,
 			L_bit_size_afterM2 = 0, PPR_bit_size_afterM2 = 0, L_bit_size_afterClean2 = 0, PPR_bit_size_afterClean2 = 0, cleanL_time2 = 0, cleanPPR_time2 = 0, rege_time2 = 0;
 
@@ -695,11 +697,13 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 						_2021IN_query_times[k / 2] = global_query_times;
 					}
 					else {
+						global_query_times = 0;
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
 						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 						_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_2021DE_query_times[(k - 1) / 2] = global_query_times;
 						_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
 					}
 				}
@@ -727,10 +731,16 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 						_newIN_query_times[k / 2] = global_query_times;
 					}
 					else {
+						global_query_times = 0;
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_newDE_query_times[(k - 1) / 2] = global_query_times;
+						_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
 						_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+						_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
 					}
 				}
 
@@ -787,7 +797,7 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 						else {
 							double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-							WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 						}
 					}
 
@@ -865,7 +875,7 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 						else {
 							double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-							WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 						}
 					}
 
@@ -893,11 +903,13 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 			}
 		}
 
-		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0,
-			avg_newIN_time = 0, avg_newIN_query_times = 0, avg_20142019_time = 0, avg_2021DE2021IN_time = 0, avg_2021DEnewIN_time = 0;
+		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0,
+			avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0,
+			avg_20142019_time = 0, avg_2021DE2021IN_time = 0, avg_2021DEnewIN_time = 0, avg_newDE2021IN_time = 0, avg_newDEnewIN_time = 0;
 		for (int k = 0; k < half_change_times; k++) {
-			outputFile << _2014DE_time[k] << "," << _2019IN_time[k] << "," << _2021DE_time[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," <<
-				_newIN_time[k] << "," << _newIN_query_times[k] << "," << _20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," <<
+			outputFile << _2014DE_time[k] << "," << _2019IN_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," <<
+				_newDE_time[k] << "," << _newDE_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << ","
+				<< _20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << "," <<
 				L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
 				L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
 				L_bit_size_afterM2 / L_bit_size_initial << "," << PPR_bit_size_afterM2 / L_bit_size_initial << "," <<
@@ -905,16 +917,22 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 			avg_2014DE_time += _2014DE_time[k] / change_times;
 			avg_2019IN_time += _2019IN_time[k] / change_times;
 			avg_2021DE_time += _2021DE_time[k] / change_times;
+			avg_2021DE_query_times += _2021DE_query_times[k] / change_times;
 			avg_2021IN_time += _2021IN_time[k] / change_times;
 			avg_2021IN_query_times += _2021IN_query_times[k] / change_times;
+			avg_newDE_time += _newDE_time[k] / change_times;
+			avg_newDE_query_times += _newDE_query_times[k] / change_times;
 			avg_newIN_time += _newIN_time[k] / change_times;
 			avg_newIN_query_times += _newIN_query_times[k] / change_times;
 			avg_20142019_time += _20142019_time[k] / change_times;
 			avg_2021DE2021IN_time += _2021DE2021IN_time[k] / change_times;
 			avg_2021DEnewIN_time += _2021DEnewIN_time[k] / change_times;
+			avg_newDE2021IN_time += _newDE2021IN_time[k] / change_times;
+			avg_newDEnewIN_time += _newDEnewIN_time[k] / change_times;
 		}
-		outputFile << avg_2014DE_time << "," << avg_2019IN_time << "," << avg_2021DE_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," <<
-			avg_newIN_time << "," << avg_newIN_query_times << "," << avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," <<
+		outputFile << avg_2014DE_time << "," << avg_2019IN_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," <<
+			avg_newDE_time << "," << avg_newDE_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," <<
+			avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << "," <<
 			L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
 			L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
 			L_bit_size_afterM2 / L_bit_size_initial << "," << PPR_bit_size_afterM2 / L_bit_size_initial << "," <<
