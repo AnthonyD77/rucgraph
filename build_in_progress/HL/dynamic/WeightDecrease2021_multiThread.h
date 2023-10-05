@@ -9,13 +9,18 @@ void ProDecreasep(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_la
 		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, CL_next, &instance_graph] {
 
 			int v = it.first, u = it.second;
+
+			mtx_595[u].lock();
+			auto Lu = (*L)[u]; // to avoid interlocking
+			mtx_595[u].unlock();
+
 			for (auto nei : instance_graph[v]) {
 				int vnei = nei.first;
 				weightTYPE dnew = it.dis + nei.second;
 				if (u < vnei) {
-					mtx_595[vnei].lock(), mtx_595[u].lock();
-					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, vnei, u); // query_result is {distance, common hub}
-					mtx_595[vnei].unlock(), mtx_595[u].unlock();
+					mtx_595[vnei].lock();
+					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[vnei], Lu); // query_result is {distance, common hub}
+					mtx_595[vnei].unlock();
 					if (query_result.first > dnew) {
 						mtx_595[vnei].lock();
 						insert_sorted_two_hop_label((*L)[vnei], u, dnew);

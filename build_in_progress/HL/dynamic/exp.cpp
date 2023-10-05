@@ -582,10 +582,10 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 	vector<pair<int, int>> selected_edges;
 
-	for (int i = 0; i < 2; i++) {
+	for (int type = 0; type < 2; type++) {
 
 		string weight_type;
-		if (i == 0) {
+		if (type == 0) {
 			weight_type = "unique";
 		}
 		else {
@@ -596,7 +596,9 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
 		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
-		outputFile.open("exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv");
+		string file_name = "exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv";
+		cout << file_name << endl;
+		outputFile.open(file_name);
 
 		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021DE_query_times,2021IN_time,2021IN_query_times,newDE_time,newDE_query_times,newIN_time,newIN_query_times," <<
 			"2014+2019_time,2021DE2021IN_time,2021DEnewIN_time,newDE2021IN_time,newDEnewIN_time," <<
@@ -646,6 +648,8 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 				}
 			}
 
+			cout << "step 1" << endl;
+
 			/*2014+2019*/
 			if (1) {
 				instance_graph = instance_graph_initial;
@@ -678,6 +682,8 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 				}
 			}
 
+			cout << "step 2" << endl;
+
 			/*2021DE2021IN*/
 			if (1) {
 				instance_graph = instance_graph_initial;
@@ -708,6 +714,8 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 					}
 				}
 			}
+
+			cout << "step 3" << endl;
 
 			/*2021DEnewIN*/
 			if (1) {
@@ -743,6 +751,8 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 						_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
 					}
 				}
+
+				cout << "step 4" << endl;
 
 				if (1) {
 
@@ -822,6 +832,8 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 					rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
 
+				cout << "step 5" << endl;
+
 				if (1) {
 
 					int total_change_times = 5e4;
@@ -900,6 +912,8 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 					clean_PPR(instance_graph, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
 					rege_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
+
+				cout << "step 6" << endl;
 			}
 		}
 
@@ -946,7 +960,7 @@ void exp() {
 
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
 	int change_times = 100, thread_num = 80;
-	double max_Maintain_time = 600;
+	double max_Maintain_time = 100;
 
 	/*weightChange_ratio 1*/
 	if (1) {
