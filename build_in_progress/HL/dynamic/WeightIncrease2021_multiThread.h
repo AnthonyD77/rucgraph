@@ -38,6 +38,10 @@ void PI12(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 			mtx_5952[v].unlock();
 			PPR_binary_operations_insert(temp, u);
 
+			mtx_595[v].lock();
+			auto Lv = (*L)[v]; // to avoid interlocking
+			mtx_595[v].unlock();
+
 			for (auto t : temp) {
 				if (v < t) {
 					weightTYPE d1 = MAX_VALUE;
@@ -46,9 +50,9 @@ void PI12(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 						d1 = min(d1, search_sorted_two_hop_label((*L)[nei.first], v) + (weightTYPE)nei.second);
 						mtx_595[nei.first].unlock();
 					}
-					mtx_595[t].lock(), mtx_595[v].lock();
-					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, t, v);
-					mtx_595[t].unlock(), mtx_595[v].unlock();
+					mtx_595[t].lock();
+					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[t], Lv);
+					mtx_595[t].unlock();
 					if (query_result.first > d1) {
 						mtx_595[t].lock();
 						insert_sorted_two_hop_label((*L)[t], v, d1);
@@ -77,9 +81,9 @@ void PI12(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 						d1 = min(d1, search_sorted_two_hop_label((*L)[nei.first], t) + (weightTYPE)nei.second);
 						mtx_595[nei.first].unlock();
 					}
-					mtx_595[t].lock(), mtx_595[v].lock();
-					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, v, t);
-					mtx_595[t].unlock(), mtx_595[v].unlock();
+					mtx_595[t].lock();
+					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[t], Lv);
+					mtx_595[t].unlock();
 					if (query_result.first > d1) {
 						mtx_595[v].lock();
 						insert_sorted_two_hop_label((*L)[v], t, d1);
@@ -118,14 +122,18 @@ void PI22(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 	for (auto it = al2_curr.begin(); it != al2_curr.end(); it++) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, al2_next, &instance_graph] {
 
+			mtx_595[it->second].lock();
+			auto Lxx = (*L)[it->second]; // to avoid interlocking
+			mtx_595[it->second].unlock();
+
 			for (auto nei : instance_graph[it->first]) {
 				if (nei.first > it->second) {
 					mtx_595[it->first].lock();
 					weightTYPE search_result = search_sorted_two_hop_label((*L)[it->first], it->second) + nei.second;
 					mtx_595[it->first].unlock();
-					mtx_595[nei.first].lock(), mtx_595[it->second].lock();
-					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, nei.first, it->second);
-					mtx_595[nei.first].unlock(), mtx_595[it->second].unlock();
+					mtx_595[nei.first].lock();
+					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[nei.first], Lxx); 
+					mtx_595[nei.first].unlock();
 					if (query_result.first + 1e-3 >= search_result) {
 						mtx_595[nei.first].lock();
 						insert_sorted_two_hop_label((*L)[nei.first], it->second, search_result);
