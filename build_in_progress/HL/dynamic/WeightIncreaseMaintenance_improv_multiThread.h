@@ -125,9 +125,13 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			int u = it.first, v = it.second;
 			weightTYPE du = it.dis;
 
-			mtx_595[u].lock(), mtx_595[v].lock();
-			auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, u, v);
-			mtx_595[u].unlock(), mtx_595[v].unlock();
+			mtx_595[v].lock();
+			auto Lv = (*L)[v]; // to avoid interlocking
+			mtx_595[v].unlock();
+
+			mtx_595[u].lock();
+			auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[u], Lv);
+			mtx_595[u].unlock();
 
 			if (query_result.first < du + 1e-5) {
 				if (query_result.second != v) {
@@ -177,9 +181,9 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 
 					if (v < xnei) {
 						if (DIS[xnei].first == -1) {
-							mtx_595[xnei].lock(), mtx_595[v].lock(); // xnei != v here, otherwise you cannot lock the same lock twice!
-							DIS[xnei] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, xnei, v);
-							mtx_595[xnei].unlock(), mtx_595[v].unlock();
+							mtx_595[xnei].lock(); 
+							DIS[xnei] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[xnei], Lv);
+							mtx_595[xnei].unlock();
 							Dis_changed.push_back(xnei);
 						}
 						if (DIS[xnei].first > d_new - 1e-5) {
