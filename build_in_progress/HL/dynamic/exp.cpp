@@ -657,6 +657,7 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 				initialize_global_values_dynamic(V, thread_num);
 
 				for (int k = 0; k < change_times; k++) {
+					cout << "k " << k << endl;
 					pair<int, int> selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 					if (k % 2 == 0) { // increase
