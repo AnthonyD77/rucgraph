@@ -161,8 +161,7 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 	results_dynamic.clear();
 }
 
-void OrderRestore(graph_v_of_v_idealID& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
+void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
 	vector<bool>& ax, vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	int n = instance_graph.size();
 	vector<int>& FA = AFF_x;
