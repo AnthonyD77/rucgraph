@@ -660,6 +660,7 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 					pair<int, int> selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 					if (k % 2 == 0) { // increase
+						cout << "step 1.1" << endl;
 						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						try {
@@ -670,14 +671,17 @@ void exp_element2(string data_name, double weightChange_ratio, int change_times,
 						catch (string s) {
 							_2019IN_time[k / 2] = INT_MAX;
 						}
+						cout << "step 1.2" << endl;
 					}
 					else {
+						cout << "step 1.3" << endl;
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
 						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
 						_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
+						cout << "step 1.4" << endl;
 					}
 				}
 			}
