@@ -185,7 +185,7 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 			/*maintain labels*/
 			//WeightIncrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
 			//WeightIncreaseMaintenance_improv(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
-			WeightIncrease2019(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, 1e1);
+			WeightIncrease2019(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, 1e-1);
 			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 + weightChange_ratio) << endl;
 			//mm.print_L();
 			//mm.print_PPR();
@@ -268,11 +268,11 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 void test_dynamic() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e1, iteration_source_times = 10, iteration_terminal_times = 10;
+	int iteration_graph_times = 1e3, iteration_source_times = 10, iteration_terminal_times = 10;
 	int V = 1000, E = 5000, precision = 1, thread_num = 10;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 30, weightDecrease_time = 0;
+	int weightIncrease_time = 30, weightDecrease_time = 30;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_maintain_time = 0;

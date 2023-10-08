@@ -147,6 +147,10 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 	for (auto a : SA) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ay] {
 
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
 			mtx_595_1.lock();
 			int current_tid = Qid_595.front();
 			Qid_595.pop();
@@ -162,6 +166,12 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 			while (!Q.empty()) {
 
 				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					for (int i : dist_changed) {
+						dist[i] = MAX_VALUE;
+					}
+					mtx_595_1.lock();
+					Qid_595.push(current_tid);
+					mtx_595_1.unlock();
 					return 1;
 				}
 
@@ -200,7 +210,6 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 			for (int i : dist_changed) {
 				dist[i] = MAX_VALUE;
 			}
-
 			mtx_595_1.lock();
 			Qid_595.push(current_tid);
 			mtx_595_1.unlock();
@@ -222,6 +231,10 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 	for (auto a : FA) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ax, &ay] {
 
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
 			mtx_595_1.lock();
 			int current_tid = Qid_595.front();
 			Qid_595.pop();
@@ -237,6 +250,12 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 			while (!Q.empty()) {
 
 				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					for (int i : dist_changed) {
+						dist[i] = MAX_VALUE;
+					}
+					mtx_595_1.lock();
+					Qid_595.push(current_tid);
+					mtx_595_1.unlock();
 					return 1;
 				}
 
@@ -302,12 +321,14 @@ void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 	sort(AFF_y.begin(), AFF_y.end());
 	AFF_y.erase(unique(AFF_y.begin(), AFF_y.end()), AFF_y.end());
 
+	cout << "x 1" << endl;
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
 
 	RemoveAffectedHub(mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
 
+	cout << "x 2" << endl;
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
@@ -346,7 +367,7 @@ void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 		}
 	}
 
-
+	cout << "x 3" << endl;
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
