@@ -321,14 +321,12 @@ void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 	sort(AFF_y.begin(), AFF_y.end());
 	AFF_y.erase(unique(AFF_y.begin(), AFF_y.end()), AFF_y.end());
 
-	cout << "x 1" << endl;
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
 
 	RemoveAffectedHub(mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
 
-	cout << "x 2" << endl;
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
@@ -367,7 +365,6 @@ void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 		}
 	}
 
-	cout << "x 3" << endl;
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
