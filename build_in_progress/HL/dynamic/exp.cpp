@@ -159,6 +159,8 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 					if (k % 2 == 0) { // increase
 						cout << "step 1.1" << endl;
 						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
+						auto mm_temp = mm;
+						auto graph_temp = instance_graph;
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						try {
 							auto begin = std::chrono::high_resolution_clock::now();
@@ -166,6 +168,8 @@ void exp_element(string data_name, double weightChange_ratio, int change_times, 
 							_2019IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						}
 						catch (string s) {
+							instance_graph = graph_temp;
+							mm = mm_temp; // WeightIncrease2019 may leave too many incorrect labels 
 							_2019IN_time[k / 2] = INT_MAX;
 						}
 						cout << "step 1.2" << endl;
