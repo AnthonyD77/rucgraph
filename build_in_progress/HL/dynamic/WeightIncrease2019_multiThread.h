@@ -42,6 +42,11 @@ void FindAffectedNode(graph_v_of_v_idealID& instance_graph,
 	queue<int> Q;
 	Q.push(x);
 	while (!Q.empty()) {
+
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string_2019;
+		}
+
 		int v = Q.front();
 		Q.pop();
 		A.push_back(v);
@@ -63,9 +68,6 @@ void FindAffectedNode(graph_v_of_v_idealID& instance_graph,
 					Q.push(u);
 				}
 			}
-		}
-		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-			throw reach_limit_time_string_2019;
 		}
 	}
 }
@@ -118,6 +120,11 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 			dist[a] = 0;
 			Q.push(pair<weightTYPE, int>(0, a));
 			while (!Q.empty()) {
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					return 1;
+				}
+
 				int v = Q.top().second;
 				Q.pop();
 				if (ay[v]) {
@@ -147,10 +154,6 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 					dist[u.first] = dist[v] + u.second;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
-
-				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-					return 1;
-				}
 			}
 
 			return 1; }));
@@ -175,6 +178,11 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 			dist[a] = 0;
 			Q.push(pair<weightTYPE, int>(0, a));
 			while (!Q.empty()) {
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					return 1;
+				}
+
 				int v = Q.top().second;
 				Q.pop();
 				// if (v < a) continue;
@@ -198,10 +206,6 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 					dist[u.first] = dist[v] + u.second;
 					if (u.first < a) continue;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
-				}
-
-				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-					return 1;
 				}
 			}
 
