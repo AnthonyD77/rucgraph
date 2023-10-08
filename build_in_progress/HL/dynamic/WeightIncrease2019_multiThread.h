@@ -76,6 +76,11 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, ve
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	for (auto v : AFF_x) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ay] {
+
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
 			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
 				if (ay[it->vertex]) {
 					it = mm.L[v].erase(it); // this is likely to be faster than building a new vector with not erased elements
@@ -92,6 +97,11 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, ve
 	results_dynamic.clear();
 	for (auto v : AFF_y) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ax] {
+
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
 			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
 				if (ax[it->vertex]) {
 					it = mm.L[v].erase(it);
@@ -115,9 +125,17 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 	for (auto a : SA) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ay] {
 
-			vector<weightTYPE> dist(n, MAX_VALUE);
+			mtx_595_1.lock();
+			int current_tid = Qid_595.front();
+			Qid_595.pop();
+			mtx_595_1.unlock();
+
+			auto& dist = Q_value[current_tid];
+			vector<int> dist_changed;
+
 			priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
 			dist[a] = 0;
+			dist_changed.push_back(a);
 			Q.push(pair<weightTYPE, int>(0, a));
 			while (!Q.empty()) {
 
@@ -152,9 +170,18 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 				for (auto u : instance_graph[v]) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
 					dist[u.first] = dist[v] + u.second;
+					dist_changed.push_back(u.first);
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
 			}
+
+			for (int i : dist_changed) {
+				dist[i] = MAX_VALUE;
+			}
+
+			mtx_595_1.lock();
+			Qid_595.push(current_tid);
+			mtx_595_1.unlock();
 
 			return 1; }));
 	}
@@ -173,9 +200,17 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 	for (auto a : FA) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ax, &ay] {
 
-			vector<weightTYPE> dist(n, MAX_VALUE);
+			mtx_595_1.lock();
+			int current_tid = Qid_595.front();
+			Qid_595.pop();
+			mtx_595_1.unlock();
+
+			auto& dist = Q_value[current_tid];
+			vector<int> dist_changed;
+
 			priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
 			dist[a] = 0;
+			dist_changed.push_back(a);
 			Q.push(pair<weightTYPE, int>(0, a));
 			while (!Q.empty()) {
 
@@ -204,10 +239,19 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 				for (auto u : instance_graph[v]) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
 					dist[u.first] = dist[v] + u.second;
+					dist_changed.push_back(u.first);
 					if (u.first < a) continue;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
 			}
+
+			for (int i : dist_changed) {
+				dist[i] = MAX_VALUE;
+			}
+
+			mtx_595_1.lock();
+			Qid_595.push(current_tid);
+			mtx_595_1.unlock();
 
 			return 1; }));
 	}
