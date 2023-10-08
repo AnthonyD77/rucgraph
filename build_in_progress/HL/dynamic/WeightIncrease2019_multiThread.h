@@ -81,14 +81,25 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, ve
 				return 1;
 			}
 
-			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
-				if (ay[it->vertex]) {
-					it = mm.L[v].erase(it); // this is likely to be faster than building a new vector with not erased elements
-				}
-				else {
-					it++;
+			vector<two_hop_label_v1> Lv;
+			for (auto it = mm.L[v].begin(); it != mm.L[v].end(); it++) {
+				if (ay[it->vertex] == 0) {
+					Lv.push_back(*it);
 				}
 			}
+			mm.L[v] = Lv;
+
+
+			//for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
+			//	if (ay[it->vertex]) {
+			//		it = mm.L[v].erase(it); // this is likely to be faster than building a new vector with not erased elements
+			//	}
+			//	else {
+			//		it++;
+			//	}
+			//}
+
+
 			return 1; }));
 	}
 	for (auto&& result : results_dynamic) {
@@ -102,14 +113,25 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, ve
 				return 1;
 			}
 
-			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
-				if (ax[it->vertex]) {
-					it = mm.L[v].erase(it);
-				}
-				else {
-					it++;
+			vector<two_hop_label_v1> Lv;
+			for (auto it = mm.L[v].begin(); it != mm.L[v].end(); it++) {
+				if (ax[it->vertex] == 0) {
+					Lv.push_back(*it);
 				}
 			}
+			mm.L[v] = Lv;
+
+
+			//for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
+			//	if (ax[it->vertex]) {
+			//		it = mm.L[v].erase(it);
+			//	}
+			//	else {
+			//		it++;
+			//	}
+			//}
+
+
 			return 1; }));
 	}
 	for (auto&& result : results_dynamic) {
