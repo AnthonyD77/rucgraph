@@ -527,6 +527,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 				boost::range::random_shuffle(vertex_pool);
 				if (vertex_pool.size() < change_times) {
 					cout << "vertex_pool.size() < left_change_times!" << endl;
+					exit(1);
 				}
 				for (int i = 0; i < change_times; i++) {
 					for (auto adj : instance_graph[vertex_pool[i]]) {
@@ -551,9 +552,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					try {
 						auto begin = std::chrono::high_resolution_clock::now();
 						for (auto e : _edges) {
+							graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
 							WeightIncrease2019(instance_graph, mm, e.v1, e.v2, dummy_weight, pool_dynamic, results_dynamic, max_Maintain_time);
 						}
 						for (auto e : _edges) {
+							graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, e.ec);
 							WeightDecrease2014(instance_graph, mm, e.v1, e.v2, e.ec, pool_dynamic, results_dynamic);
 						}
 						_20142019_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9;
@@ -578,9 +581,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					auto& _edges = changed_edges[k];
 					auto begin = std::chrono::high_resolution_clock::now();
 					for (auto e : _edges) {
+						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
 						WeightIncrease2021(instance_graph, mm, e.v1, e.v2, dummy_weight, pool_dynamic, results_dynamic);
 					}
 					for (auto e : _edges) {
+						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, e.ec);
 						WeightDecrease2021(instance_graph, mm, e.v1, e.v2, e.ec, pool_dynamic, results_dynamic);
 					}
 					_2021DE2021IN_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9;
@@ -598,9 +603,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					auto& _edges = changed_edges[k];
 					auto begin = std::chrono::high_resolution_clock::now();
 					for (auto e : _edges) {
+						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
 						WeightIncreaseMaintenance_improv(instance_graph, mm, e.v1, e.v2, dummy_weight, pool_dynamic, results_dynamic);
 					}
 					for (auto e : _edges) {
+						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, e.ec);
 						WeightDecreaseMaintenance_improv(instance_graph, mm, e.v1, e.v2, e.ec, pool_dynamic, results_dynamic);
 					}
 					_newDEnewIN_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9;
