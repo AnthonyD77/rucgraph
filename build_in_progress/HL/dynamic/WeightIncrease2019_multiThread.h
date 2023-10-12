@@ -302,7 +302,7 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 	results_dynamic.clear();
 }
 
-void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old,
+void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic, double max_run_second) {
 
 	begin_time = std::chrono::high_resolution_clock::now();

@@ -164,7 +164,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						try {
 							auto begin = std::chrono::high_resolution_clock::now();
-							WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, max_Maintain_time);
+							WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, max_Maintain_time);
 							_2019IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						}
 						catch (string s) {
@@ -179,7 +179,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
 						cout << "step 1.4" << endl;
@@ -203,7 +203,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_2021IN_query_times[k / 2] = global_query_times;
 					}
@@ -212,7 +212,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_2021DE_query_times[(k - 1) / 2] = global_query_times;
 						_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
@@ -239,7 +239,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						_newIN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_newIN_query_times[k / 2] = global_query_times;
 					}
@@ -248,7 +248,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_newDE_query_times[(k - 1) / 2] = global_query_times;
 						_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
@@ -310,12 +310,12 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						if (k % 2 == 0) { // increase
 							double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-							WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+							WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						}
 						else {
 							double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						}
 					}
 
@@ -393,12 +393,12 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						if (k % 2 == 0) { // increase
 							double new_ec = selected_edge_weight * (1 + weightChange_ratio);
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-							WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic);
+							WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						}
 						else {
 							double new_ec = selected_edge_weight * (1 - weightChange_ratio);
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						}
 					}
 
@@ -439,21 +439,21 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
 				L_bit_size_afterM2 / L_bit_size_initial << "," << PPR_bit_size_afterM2 / L_bit_size_initial << "," <<
 				L_bit_size_afterClean2 / L_bit_size_initial << "," << PPR_bit_size_afterClean2 / L_bit_size_initial << "," << cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << endl;
-			avg_2014DE_time += _2014DE_time[k] / change_times;
-			avg_2019IN_time += _2019IN_time[k] / change_times;
-			avg_2021DE_time += _2021DE_time[k] / change_times;
-			avg_2021DE_query_times += _2021DE_query_times[k] / change_times;
-			avg_2021IN_time += _2021IN_time[k] / change_times;
-			avg_2021IN_query_times += _2021IN_query_times[k] / change_times;
-			avg_newDE_time += _newDE_time[k] / change_times;
-			avg_newDE_query_times += _newDE_query_times[k] / change_times;
-			avg_newIN_time += _newIN_time[k] / change_times;
-			avg_newIN_query_times += _newIN_query_times[k] / change_times;
-			avg_20142019_time += _20142019_time[k] / change_times;
-			avg_2021DE2021IN_time += _2021DE2021IN_time[k] / change_times;
-			avg_2021DEnewIN_time += _2021DEnewIN_time[k] / change_times;
-			avg_newDE2021IN_time += _newDE2021IN_time[k] / change_times;
-			avg_newDEnewIN_time += _newDEnewIN_time[k] / change_times;
+			avg_2014DE_time += _2014DE_time[k] / half_change_times;
+			avg_2019IN_time += _2019IN_time[k] / half_change_times;
+			avg_2021DE_time += _2021DE_time[k] / half_change_times;
+			avg_2021DE_query_times += _2021DE_query_times[k] / half_change_times;
+			avg_2021IN_time += _2021IN_time[k] / half_change_times;
+			avg_2021IN_query_times += _2021IN_query_times[k] / half_change_times;
+			avg_newDE_time += _newDE_time[k] / half_change_times;
+			avg_newDE_query_times += _newDE_query_times[k] / half_change_times;
+			avg_newIN_time += _newIN_time[k] / half_change_times;
+			avg_newIN_query_times += _newIN_query_times[k] / half_change_times;
+			avg_20142019_time += _20142019_time[k] / half_change_times;
+			avg_2021DE2021IN_time += _2021DE2021IN_time[k] / half_change_times;
+			avg_2021DEnewIN_time += _2021DEnewIN_time[k] / half_change_times;
+			avg_newDE2021IN_time += _newDE2021IN_time[k] / half_change_times;
+			avg_newDEnewIN_time += _newDEnewIN_time[k] / half_change_times;
 		}
 		outputFile << avg_2014DE_time << "," << avg_2019IN_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," <<
 			avg_newDE_time << "," << avg_newDE_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," <<
@@ -520,7 +520,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 				vector<int> vertex_pool;
 				for (int i = 0; i < V; i++) {
 					int degree = instance_graph[i].size();
-					if (degree >= 3 && degree <= 10) {
+					if (degree >= 2 && degree <= 5) {
 						vertex_pool.push_back(i);
 					}
 				}
@@ -539,7 +539,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			cout << "step 1" << endl;
 
 			/*2014+2019*/
-			if (1) {
+			if (0) {
 				instance_graph = instance_graph_initial;
 				mm = mm_initial;
 				initialize_global_values_dynamic(V, thread_num);
@@ -553,11 +553,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 						auto begin = std::chrono::high_resolution_clock::now();
 						for (auto e : _edges) {
 							graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
-							WeightIncrease2019(instance_graph, mm, e.v1, e.v2, dummy_weight, pool_dynamic, results_dynamic, max_Maintain_time);
+							WeightIncrease2019(instance_graph, mm, e.v1, e.v2, e.ec, dummy_weight, pool_dynamic, results_dynamic, max_Maintain_time);
 						}
 						for (auto e : _edges) {
 							graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, e.ec);
-							WeightDecrease2014(instance_graph, mm, e.v1, e.v2, e.ec, pool_dynamic, results_dynamic);
+							WeightDecrease2014(instance_graph, mm, e.v1, e.v2, dummy_weight, e.ec, pool_dynamic, results_dynamic);
 						}
 						_20142019_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9;
 					}
@@ -578,15 +578,18 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 				mm = mm_initial;
 				initialize_global_values_dynamic(V, thread_num);
 				for (int k = 0; k < change_times; k++) {
+					cout << "k " << k << endl;
 					auto& _edges = changed_edges[k];
 					auto begin = std::chrono::high_resolution_clock::now();
 					for (auto e : _edges) {
+						cout << "IN " << e.v1 << " " << e.v2 << endl;
 						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
-						WeightIncrease2021(instance_graph, mm, e.v1, e.v2, dummy_weight, pool_dynamic, results_dynamic);
+						WeightIncrease2021(instance_graph, mm, e.v1, e.v2, e.ec, dummy_weight, pool_dynamic, results_dynamic);
 					}
 					for (auto e : _edges) {
+						cout << "DE " << e.v1 << " " << e.v2 << endl;
 						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, e.ec);
-						WeightDecrease2021(instance_graph, mm, e.v1, e.v2, e.ec, pool_dynamic, results_dynamic);
+						WeightDecrease2021(instance_graph, mm, e.v1, e.v2, dummy_weight, e.ec, pool_dynamic, results_dynamic);
 					}
 					_2021DE2021IN_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9;
 				}
@@ -604,11 +607,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					auto begin = std::chrono::high_resolution_clock::now();
 					for (auto e : _edges) {
 						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
-						WeightIncreaseMaintenance_improv(instance_graph, mm, e.v1, e.v2, dummy_weight, pool_dynamic, results_dynamic);
+						WeightIncreaseMaintenance_improv(instance_graph, mm, e.v1, e.v2, e.ec, dummy_weight, pool_dynamic, results_dynamic);
 					}
 					for (auto e : _edges) {
 						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, e.ec);
-						WeightDecreaseMaintenance_improv(instance_graph, mm, e.v1, e.v2, e.ec, pool_dynamic, results_dynamic);
+						WeightDecreaseMaintenance_improv(instance_graph, mm, e.v1, e.v2, dummy_weight, e.ec, pool_dynamic, results_dynamic);
 					}
 					_newDEnewIN_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9;
 				}
@@ -656,7 +659,8 @@ void exp() {
 	/*DeleteInsert*/
 	if (1) {
 		for (auto data_name : data_names) {
-			exp_element2(data_name, change_times / 2, max_Maintain_time, thread_num);
+			exp_element2(data_name, 2, //change_times / 2, 
+				max_Maintain_time, thread_num);
 		}
 	}
 

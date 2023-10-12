@@ -229,7 +229,7 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 	results_dynamic.clear();
 }
 
-void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old,
+void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	std::vector<affected_label> al1, al3;
