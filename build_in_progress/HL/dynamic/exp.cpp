@@ -585,11 +585,13 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 						cout << "IN " << e.v1 << " " << e.v2 << endl;
 						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
 						WeightIncrease2021(instance_graph, mm, e.v1, e.v2, e.ec, dummy_weight, pool_dynamic, results_dynamic);
+						cout << "INend" << endl;
 					}
 					for (auto e : _edges) {
 						cout << "DE " << e.v1 << " " << e.v2 << endl;
 						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, e.ec);
 						WeightDecrease2021(instance_graph, mm, e.v1, e.v2, dummy_weight, e.ec, pool_dynamic, results_dynamic);
+						cout << "DEend" << endl;
 					}
 					_2021DE2021IN_time[k] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9;
 				}
