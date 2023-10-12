@@ -581,6 +581,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					cout << "k " << k << endl;
 					auto& _edges = changed_edges[k];
 					auto begin = std::chrono::high_resolution_clock::now();
+					cout << "_edges.size(): " << _edges.size() << endl;
 					for (auto e : _edges) {
 						cout << "IN " << e.v1 << " " << e.v2 << endl;
 						graph_v_of_v_idealID_add_edge(instance_graph, e.v1, e.v2, dummy_weight);
@@ -635,6 +636,210 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 	}
 }
 
+void exp_element3(string data_name, int change_times, double max_Maintain_time, int thread_num) {
+
+	ThreadPool pool_dynamic(thread_num);
+	std::vector<std::future<int>> results_dynamic;
+
+	ofstream outputFile;
+	outputFile.precision(6);
+	outputFile.setf(ios::fixed);
+	outputFile.setf(ios::showpoint);
+
+	string path = "dynamicHL//";
+	graph_v_of_v_idealID instance_graph;
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+	vector<pair<int, int>> selected_edges;
+
+	for (int type = 0; type < 2; type++) {
+
+		string weight_type;
+		if (type == 0) {
+			weight_type = "unique";
+		}
+		else {
+			weight_type = "random";
+		}
+		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
+		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
+		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
+		string file_name = "exp_" + data_name + "_T_" + to_string(thread_num) + "_DeleteInsert_" + weight_type + ".csv";
+		cout << file_name << endl;
+		outputFile.open(file_name);
+
+		outputFile << "2014+2019_time,2021DE2021IN_time,newDEnewIN_time" << endl;
+
+		int half_change_times = change_times / 2;
+		vector<double> _2014DE_time(half_change_times, 0), _2019IN_time(half_change_times, 0), _2021DE_time(half_change_times, 0), _2021DE_query_times(half_change_times, 0), _2021IN_time(half_change_times, 0), _2021IN_query_times(half_change_times, 0),
+			_newDE_time(half_change_times, 0), _newDE_query_times(half_change_times, 0), _newIN_time(half_change_times, 0), _newIN_query_times(half_change_times, 0),
+			_20142019_time(half_change_times, 0), _2021DE2021IN_time(half_change_times, 0), _2021DEnewIN_time(half_change_times, 0), _newDE2021IN_time(half_change_times, 0), _newDEnewIN_time(half_change_times, 0);
+
+		/*mixed*/
+		if (1) {
+			double dummy_ec = 1e5, de_ec = 1;
+
+			instance_graph = instance_graph_initial;
+			int V = instance_graph.size();
+			vector<pair<int, int>>().swap(selected_edges);
+			int left_change_times = change_times;
+			vector<pair<int, int>> edge_pool;
+			for (int i = 0; i < V; i++) {
+				for (auto adj : instance_graph[i]) {
+					if (i < adj.first) {
+						edge_pool.push_back({ i, adj.first });
+					}
+				}
+			}
+			boost::range::random_shuffle(edge_pool);
+			boost::random::uniform_int_distribution<> dist{ static_cast<int>(0), static_cast<int>(V - 1) };
+			while (left_change_times) {
+				if (left_change_times % 2 == 0) { // first increase
+					selected_edges.push_back(edge_pool.back());
+					edge_pool.pop_back();
+				}
+				else { // then decrease					
+					while (1) {
+						int v1 = dist(boost_random_time_seed), v2 = dist(boost_random_time_seed);
+						if (graph_v_of_v_idealID_contain_edge(instance_graph, v1, v2) && v1 == v2) {
+							continue;
+						}
+						selected_edges.push_back({ v1, v2 });
+						break;
+					}
+				}
+				left_change_times--;
+			}
+
+			cout << "step 1" << endl;
+
+			/*2014+2019*/
+			if (1) {
+				instance_graph = instance_graph_initial;
+				mm = mm_initial;
+				initialize_global_values_dynamic(V, thread_num);
+
+				for (int k = 0; k < change_times; k++) {
+					cout << "k " << k << endl;
+					pair<int, int> selected_edge = selected_edges[k];
+					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+					if (k % 2 == 0) { // increase
+						cout << "step 1.1" << endl;
+						double new_ec = dummy_ec;
+						auto mm_temp = mm;
+						auto graph_temp = instance_graph;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+						try {
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, max_Maintain_time);
+							_2019IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						}
+						catch (string s) {
+							instance_graph = graph_temp;
+							mm = mm_temp; // WeightIncrease2019 may leave too many incorrect labels 
+							_2019IN_time[k / 2] = INT_MAX;
+						}
+						cout << "step 1.2" << endl;
+					}
+					else {
+						cout << "step 1.3" << endl;
+						double new_ec = de_ec;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+						_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
+						cout << "step 1.4" << endl;
+					}
+				}
+			}
+
+			cout << "step 2" << endl;
+
+			/*2021DE2021IN*/
+			if (1) {
+				instance_graph = instance_graph_initial;
+				mm = mm_initial;
+				initialize_global_values_dynamic(V, thread_num);
+
+				for (int k = 0; k < change_times; k++) {
+					pair<int, int> selected_edge = selected_edges[k];
+					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+					if (k % 2 == 0) { // increase
+						global_query_times = 0;
+						double new_ec = dummy_ec;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+						_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_2021IN_query_times[k / 2] = global_query_times;
+					}
+					else {
+						global_query_times = 0;
+						double new_ec = de_ec;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+						_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_2021DE_query_times[(k - 1) / 2] = global_query_times;
+						_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+					}
+				}
+			}
+
+			cout << "step 3" << endl;
+
+			/*new*/
+			if (1) {
+				instance_graph = instance_graph_initial;
+				mm = mm_initial;
+				initialize_global_values_dynamic(V, thread_num);
+
+				for (int k = 0; k < change_times; k++) {
+					pair<int, int> selected_edge = selected_edges[k];
+					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+					if (k % 2 == 0) { // increase
+						global_query_times = 0;
+						double new_ec = dummy_ec;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+						_newIN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_newIN_query_times[k / 2] = global_query_times;
+					}
+					else {
+						global_query_times = 0;
+						double new_ec = de_ec;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+						auto begin = std::chrono::high_resolution_clock::now();
+						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+						_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						_newDE_query_times[(k - 1) / 2] = global_query_times;
+						_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+						_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+					}
+				}
+			}
+
+			cout << "step 4" << endl;
+		}
+
+		double avg_20142019_time = 0, avg_2021DE2021IN_time = 0, avg_newDEnewIN_time = 0;
+		for (int k = 0; k < half_change_times; k++) {
+			outputFile << _20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _newDEnewIN_time[k] << endl;
+			avg_20142019_time += _20142019_time[k] / half_change_times;
+			avg_2021DE2021IN_time += _2021DE2021IN_time[k] / half_change_times;
+			avg_newDEnewIN_time += _newDEnewIN_time[k] / half_change_times;
+		}
+		outputFile << avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_newDEnewIN_time << endl;
+
+		outputFile.close(); // without this, multiple files cannot be successfully created
+	}
+}
+
+
 
 void exp() {
 
@@ -643,7 +848,7 @@ void exp() {
 	double max_Maintain_time = 100;
 
 	/*weightChange_ratio 1*/
-	if (0) {
+	if (1) {
 		double weightChange_ratio = 0.8;
 		for (auto data_name : data_names) {
 			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
@@ -651,7 +856,7 @@ void exp() {
 	}
 
 	/*weightChange_ratio 2*/
-	if (0) {
+	if (1) {
 		double weightChange_ratio = 0.2;
 		for (auto data_name : data_names) {
 			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
@@ -661,8 +866,7 @@ void exp() {
 	/*DeleteInsert*/
 	if (1) {
 		for (auto data_name : data_names) {
-			exp_element2(data_name, 2, //change_times / 2, 
-				max_Maintain_time, thread_num);
+			exp_element3(data_name, change_times, max_Maintain_time, thread_num);
 		}
 	}
 
@@ -675,6 +879,7 @@ int main()
 	/*the two values below are for #include <graph_hash_of_mixed_weighted.h>*/
 	graph_hash_of_mixed_weighted_turn_on_value = 1e3;
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
+	//srand(time(NULL)); //  seed random number generator
 
 	exp();
 
