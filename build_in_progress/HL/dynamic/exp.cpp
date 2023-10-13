@@ -425,6 +425,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					rege_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
 
+				mm.clear_labels();
 				cout << "step 6" << endl;
 			}
 		}
