@@ -143,7 +143,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						}
 						else { // then decrease
-							boost::random::uniform_int_distribution<> dist{ static_cast<int>(selected_edge_weight * 0.1 * precision), static_cast<int>(selected_edge_weight * 0.9 * precision) };
+							boost::random::uniform_int_distribution<> dist{ static_cast<int>(selected_edge_weight * 0.1 * precision), static_cast<int>(selected_edge_weight * 0.5 * precision) };
 							double new_ec = dist(boost_random_time_seed) / precision;
 							selected_edges.push_back({ selected_edge.first, selected_edge.second, new_ec });
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
@@ -307,7 +307,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 									graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 								}
 								else { // then decrease
-									boost::random::uniform_int_distribution<> dist{ static_cast<int>(selected_edge_weight * 0.1 * precision), static_cast<int>(selected_edge_weight * 0.9 * precision) };
+									boost::random::uniform_int_distribution<> dist{ static_cast<int>(selected_edge_weight * 0.1 * precision), static_cast<int>(selected_edge_weight * 0.5 * precision) };
 									double new_ec = dist(boost_random_time_seed) / precision;
 									selected_edges.push_back({ selected_edge.first, selected_edge.second, new_ec });
 									graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
