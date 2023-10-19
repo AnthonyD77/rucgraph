@@ -99,18 +99,22 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 	outputFile.setf(ios::showpoint);
 
 	string path = "dynamicHL//";
-	graph_v_of_v_idealID instance_graph;
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-	vector<_edge> selected_edges;
 
-	for (int type = 0; type < 2; type++) {
+	for (int type = 0; type < 3; type++) {
+
+		graph_v_of_v_idealID instance_graph;
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+		vector<_edge> selected_edges;
 
 		string weight_type;
 		if (type == 0) {
-			weight_type = "unique";
+			weight_type = "Jaccard";
+		}
+		else if (type == 1) {
+			weight_type = "random";
 		}
 		else {
-			weight_type = "random";
+			weight_type = "unique";
 		}
 		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
@@ -447,17 +451,21 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 	outputFile.setf(ios::showpoint);
 
 	string path = "dynamicHL//";
-	graph_v_of_v_idealID instance_graph;
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 
-	for (int type = 0; type < 2; type++) {
+	for (int type = 0; type < 3; type++) {
+
+		graph_v_of_v_idealID instance_graph;
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 
 		string weight_type;
 		if (type == 0) {
-			weight_type = "unique";
+			weight_type = "Jaccard";
+		}
+		else if (type == 1) {
+			weight_type = "random";
 		}
 		else {
-			weight_type = "random";
+			weight_type = "unique";
 		}
 		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
@@ -610,18 +618,22 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 	outputFile.setf(ios::showpoint);
 
 	string path = "dynamicHL//";
-	graph_v_of_v_idealID instance_graph;
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-	vector<pair<int, int>> selected_edges;
 
-	for (int type = 0; type < 2; type++) {
+	for (int type = 0; type < 3; type++) {
+
+		graph_v_of_v_idealID instance_graph;
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+		vector<pair<int, int>> selected_edges;
 
 		string weight_type;
 		if (type == 0) {
-			weight_type = "unique";
+			weight_type = "Jaccard";
+		}
+		else if (type == 1) {
+			weight_type = "random";
 		}
 		else {
-			weight_type = "random";
+			weight_type = "unique";
 		}
 		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
@@ -852,7 +864,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 	//srand(time(NULL)); //  seed random number generator
 
-	generate_L_PPR();
+	exp();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
