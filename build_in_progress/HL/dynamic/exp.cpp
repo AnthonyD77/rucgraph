@@ -28,7 +28,8 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 
 void generate_L_PPR() {
 
-	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
+	vector<string> data_names = { //"astro", "condmat", "github", "google", "youtube", "skitter" 
+	"imdb", "hyves", "amazon" };
 	string path = "dynamicHL//";
 	int thread_num = 50;
 	ThreadPool pool_dynamic(thread_num);
@@ -864,7 +865,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 	//srand(time(NULL)); //  seed random number generator
 
-	exp();
+	generate_L_PPR();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
