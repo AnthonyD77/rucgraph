@@ -650,4 +650,144 @@ void generate_github() {
 	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
+void generate_imdb() {
 
+	string data_name = "imdb";
+
+	unordered_map<int, int> old_id_to_new_id;
+	vector<pair<int, int>> edges_new_id;
+
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\download.tsv.actor2.tar\\actor2\\out.actor2";
+	ifstream myfile(file_name); // open the file
+	string line_content;
+	if (myfile.is_open()) // if the file is opened successfully
+	{
+		int count = 0;
+		while (getline(myfile, line_content)) // read file line by line
+		{
+			if (count >= 1) {
+				std::vector<string> Parsed_content = parse_string(line_content, " "); // parse line_content
+				int id1 = stoi(Parsed_content[0]);
+				int id2 = stoi(Parsed_content[1]);
+				if (id1 == id2) {
+					continue;
+				}
+				int new_id1, new_id2;
+				if (old_id_to_new_id.count(id1) > 0) {
+					new_id1 = old_id_to_new_id[id1];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id1 = size;
+					old_id_to_new_id[id1] = new_id1;
+				}
+				if (old_id_to_new_id.count(id2) > 0) {
+					new_id2 = old_id_to_new_id[id2];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id2 = size;
+					old_id_to_new_id[id2] = new_id2;
+				}
+				edges_new_id.push_back({ new_id1, new_id2 });
+			}
+			count++;
+		}
+		myfile.close(); //close the file
+	}
+	else
+	{
+		std::cout << "Unable to open file " << file_name << endl << "Please check the file location or file name." << endl; // throw an error message
+		getchar(); // keep the console window
+		exit(1); // end the program
+	}
+
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
+	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
+	for (auto p : edges_new_id) {
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_unique, p.first, p.second, unique_ec);
+	}
+
+	cout << data_name << ":" << endl;
+	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
+	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
+
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
+
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
+}
+
+void generate_amazon() {
+
+	string data_name = "amazon";
+
+	unordered_map<int, int> old_id_to_new_id;
+	vector<pair<int, int>> edges_new_id;
+
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\download.tsv.amazon-ratings.tar\\amazon-ratings\\out.amazon-ratings";
+	ifstream myfile(file_name); // open the file
+	string line_content;
+	if (myfile.is_open()) // if the file is opened successfully
+	{
+		int count = 0;
+		while (getline(myfile, line_content)) // read file line by line
+		{
+			if (count >= 2) {
+				std::vector<string> Parsed_content = parse_string(line_content, " "); // parse line_content
+				int id1 = stoi(Parsed_content[0]);
+				int id2 = stoi(Parsed_content[1]);
+				if (id1 == id2) {
+					continue;
+				}
+				int new_id1, new_id2;
+				if (old_id_to_new_id.count(id1) > 0) {
+					new_id1 = old_id_to_new_id[id1];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id1 = size;
+					old_id_to_new_id[id1] = new_id1;
+				}
+				if (old_id_to_new_id.count(id2) > 0) {
+					new_id2 = old_id_to_new_id[id2];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id2 = size;
+					old_id_to_new_id[id2] = new_id2;
+				}
+				edges_new_id.push_back({ new_id1, new_id2 });
+			}
+			count++;
+		}
+		myfile.close(); //close the file
+	}
+	else
+	{
+		std::cout << "Unable to open file " << file_name << endl << "Please check the file location or file name." << endl; // throw an error message
+		getchar(); // keep the console window
+		exit(1); // end the program
+	}
+
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
+	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
+	for (auto p : edges_new_id) {
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_unique, p.first, p.second, unique_ec);
+	}
+
+	cout << data_name << ":" << endl;
+	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
+	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
+
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
+
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
+}
