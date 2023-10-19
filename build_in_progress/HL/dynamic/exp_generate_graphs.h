@@ -175,7 +175,7 @@ void generate_google() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\web-Google.txt\\web-Google.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\web-Google.txt\\web-Google.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -243,7 +243,7 @@ void generate_astro() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\ca-AstroPh.txt\\ca-AstroPh.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\ca-AstroPh.txt\\ca-AstroPh.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -311,7 +311,7 @@ void generate_condmat() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\ca-CondMat.txt\\ca-CondMat.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\ca-CondMat.txt\\ca-CondMat.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -379,7 +379,7 @@ void generate_lj() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\com-lj.ungraph.txt\\com-lj.ungraph.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\com-lj.ungraph.txt\\com-lj.ungraph.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -447,7 +447,7 @@ void generate_skitter() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\as-skitter.txt\\as-skitter.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\as-skitter.txt\\as-skitter.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -515,7 +515,7 @@ void generate_youtube() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\com-youtube.ungraph.txt\\com-youtube.ungraph.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\com-youtube.ungraph.txt\\com-youtube.ungraph.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -583,7 +583,7 @@ void generate_github() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\git_web_ml\\git_web_ml\\musae_git_edges.csv";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\git_web_ml\\git_web_ml\\musae_git_edges.csv";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
