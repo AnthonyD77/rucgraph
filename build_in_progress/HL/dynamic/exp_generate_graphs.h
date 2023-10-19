@@ -62,7 +62,7 @@ using namespace std;
 int max_ec = 100, unique_ec = 100;
 std::shared_mutex glock;
 
-void update_Jacard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
+void update_Jaccard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
 	vector<pair<pair<int, int>, double>>* input_new_ec, vector<vector<pair<int, double>>>* input_adj_lists) {
 
 	auto& graph = *input_graph;
@@ -95,14 +95,14 @@ void update_Jacard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
 			double ec = 1 - (double)V_i_cap_V_j / V_i_cup_V_j;
 
 			glock.lock();
-			new_ec.push_back({ {i, j} ,ec });
+			new_ec.push_back({ {i, j} ,ec * 100 }); // 100Jaccard
 			glock.unlock();
 		}
 	}
 
 }
 
-graph_hash_of_mixed_weighted update_Jacard_ec(graph_hash_of_mixed_weighted graph) {
+graph_hash_of_mixed_weighted update_Jaccard_ec(graph_hash_of_mixed_weighted graph) {
 
 	ThreadPool pool(20);
 	std::vector< std::future<int> > results; // return typename: xxx
@@ -123,7 +123,7 @@ graph_hash_of_mixed_weighted update_Jacard_ec(graph_hash_of_mixed_weighted graph
 		int i = it1->first;
 		results.emplace_back(
 			pool.enqueue([input_graph, i, input_new_ec, input_adj_lists] { // pass const type value j to thread; [] can be empty
-				update_Jacard_ec_element(input_graph, i, input_new_ec, input_adj_lists);
+				update_Jaccard_ec_element(input_graph, i, input_new_ec, input_adj_lists);
 				return 1; // return to results; the return type must be the same with results
 				})
 		);
@@ -139,7 +139,7 @@ graph_hash_of_mixed_weighted update_Jacard_ec(graph_hash_of_mixed_weighted graph
 	return graph;
 }
 
-void save_data(graph_hash_of_mixed_weighted& graph_random, string save_name) {
+void save_data(graph_hash_of_mixed_weighted& graph_random, graph_hash_of_mixed_weighted& graph_Jaccard, string save_name) {
 
 	string save_file_name;
 	ofstream outputFile;
@@ -152,15 +152,16 @@ void save_data(graph_hash_of_mixed_weighted& graph_random, string save_name) {
 	save_file_name = save_name + "_graph.txt";
 	outputFile.open(save_file_name);
 	outputFile << "V=" << V << " E=" << E << endl;
-	outputFile << "Vetex_1	Vertex_2	Random_weight" << endl;
+	outputFile << "Vetex_1	Vertex_2	Random_weight	Jaccard_weight*100" << endl;
 	for (int i = 0; i < V; i++) {
 		auto x = graph_random.adj_v_and_ec(i);
-		//auto y = graph_Jacard.adj_v_and_ec(i);
+		auto y = graph_Jaccard.adj_v_and_ec(i);
 		for (int j = 0; j < x.size(); j++) {
-			//if (x[j].first != y[j].first) {
-			//	cout << "graph_random edges are different from graph_Jacard edges!" << endl;
-			//}
-			outputFile << i << "	" << x[j].first << "	" << x[j].second << endl;
+			if (x[j].first != y[j].first) {
+				cout << "graph_random edges are different from graph_Jaccard edges!" << endl;
+				exit(1);
+			}
+			outputFile << i << "	" << x[j].first << "	" << x[j].second << "	" << y[j].second << endl;
 		}
 	}
 	outputFile.close();
@@ -216,7 +217,7 @@ void generate_google() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -227,12 +228,12 @@ void generate_google() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_astro() {
@@ -284,7 +285,7 @@ void generate_astro() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -295,12 +296,12 @@ void generate_astro() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_condmat() {
@@ -352,7 +353,7 @@ void generate_condmat() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -363,12 +364,12 @@ void generate_condmat() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_lj() {
@@ -420,7 +421,7 @@ void generate_lj() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -431,12 +432,12 @@ void generate_lj() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_skitter() {
@@ -488,7 +489,7 @@ void generate_skitter() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -499,12 +500,12 @@ void generate_skitter() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_youtube() {
@@ -556,7 +557,7 @@ void generate_youtube() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -567,12 +568,12 @@ void generate_youtube() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_github() {
@@ -624,7 +625,7 @@ void generate_github() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -635,12 +636,12 @@ void generate_github() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 
