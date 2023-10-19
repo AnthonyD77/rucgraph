@@ -18,7 +18,12 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 
 int main()
 {
-	;
+	generate_astro();
+	generate_condmat();
+	generate_github();
+	generate_google();
+	generate_youtube();
+	generate_skitter();
 }
 
 ------------------------------------------------------------------------------------------
