@@ -93,9 +93,10 @@ void update_Jaccard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
 			}
 			int V_i_cup_V_j = adj_lists[i].size() + adj_lists[j].size() - V_i_cap_V_j;
 			double ec = 1 - (double)V_i_cap_V_j / V_i_cup_V_j;
+			ec = (int) (ec * 100); // 100Jaccard; high precesion induce large L
 
 			glock.lock();
-			new_ec.push_back({ {i, j} ,ec * 100 }); // 100Jaccard
+			new_ec.push_back({ {i, j} , ec}); 
 			glock.unlock();
 		}
 	}
