@@ -31,8 +31,6 @@ void generate_L_PPR() {
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
 	string path = "dynamicHL//";
 	int thread_num = 50;
-	graph_hash_of_mixed_weighted g;
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 	ThreadPool pool_dynamic(thread_num);
 	std::vector<std::future<int>> results_dynamic;
 
@@ -43,23 +41,44 @@ void generate_L_PPR() {
 	outputFile.setf(ios::showpoint);
 
 	for (auto s : data_names) {
-		g = graph_hash_of_mixed_weighted_binary_read(path + s + "_random.bin");
-		PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
-		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 80);
-		binary_save_PPR(path + s + "_PPR_random.bin", mm.PPR);
-		binary_save_vector_of_vectors(path + s + "_L_random.bin", mm.L);
-		outputFile.open(path + s + "_L_random_generation.txt");
-		outputFile << "time_generate_labels=" << mm.time_generate_labels << "s" << endl;
-		outputFile.close();
+		if (1) {
+			graph_hash_of_mixed_weighted g;
+			graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+			g = graph_hash_of_mixed_weighted_binary_read(path + s + "_random.bin");
+			PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
+			clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 80);
+			binary_save_PPR(path + s + "_PPR_random.bin", mm.PPR);
+			binary_save_vector_of_vectors(path + s + "_L_random.bin", mm.L);
+			outputFile.open(path + s + "_L_random_generation.txt");
+			outputFile << "time_generate_labels=" << mm.time_generate_labels << "s" << endl;
+			outputFile.close();
+		}
 
-		g = graph_hash_of_mixed_weighted_binary_read(path + s + "_unique.bin");
-		PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
-		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 80);
-		binary_save_PPR(path + s + "_PPR_unique.bin", mm.PPR);
-		binary_save_vector_of_vectors(path + s + "_L_unique.bin", mm.L);
-		outputFile.open(path + s + "_L_unique_generation.txt");
-		outputFile << "time_generate_labels=" << mm.time_generate_labels << "s" << endl;
-		outputFile.close();
+		if (1) {
+			graph_hash_of_mixed_weighted g;
+			graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+			g = graph_hash_of_mixed_weighted_binary_read(path + s + "_Jaccard.bin");
+			PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
+			clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 80);
+			binary_save_PPR(path + s + "_PPR_Jaccard.bin", mm.PPR);
+			binary_save_vector_of_vectors(path + s + "_L_Jaccard.bin", mm.L);
+			outputFile.open(path + s + "_L_Jaccard_generation.txt");
+			outputFile << "time_generate_labels=" << mm.time_generate_labels << "s" << endl;
+			outputFile.close();
+		}
+
+		if (1) {
+			graph_hash_of_mixed_weighted g;
+			graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+			g = graph_hash_of_mixed_weighted_binary_read(path + s + "_unique.bin");
+			PLL_dynamic(g, g.hash_of_vectors.size(), thread_num, mm);
+			clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 80);
+			binary_save_PPR(path + s + "_PPR_unique.bin", mm.PPR);
+			binary_save_vector_of_vectors(path + s + "_L_unique.bin", mm.L);
+			outputFile.open(path + s + "_L_unique_generation.txt");
+			outputFile << "time_generate_labels=" << mm.time_generate_labels << "s" << endl;
+			outputFile.close();
+		}
 	}
 }
 
@@ -833,7 +852,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 	//srand(time(NULL)); //  seed random number generator
 
-	exp();
+	generate_L_PPR();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
