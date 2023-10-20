@@ -239,8 +239,6 @@ void graph_v_of_v_idealID_HL_HB_v2_thread_function_HBDIJ_Qhandle(int v_k, int N,
     while (Q.size() > 0) {
         node = Q.top();
         Q.pop();
-//        Q_handle.erase(Q_handle.find({node.vertex, node.hop}));
-//        Q_handle[{node.vertex, node.hop}].first.operator!=();
         int u = node.vertex;
 
         if (v_k <= u || !use_rank_pruning) {  // rank pruning, r(v_k) > r(u)
