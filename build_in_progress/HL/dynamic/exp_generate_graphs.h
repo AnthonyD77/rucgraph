@@ -18,7 +18,12 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 
 int main()
 {
-	;
+	generate_astro();
+	generate_condmat();
+	generate_github();
+	generate_google();
+	generate_youtube();
+	generate_skitter();
 }
 
 ------------------------------------------------------------------------------------------
@@ -62,7 +67,7 @@ using namespace std;
 int max_ec = 100, unique_ec = 100;
 std::shared_mutex glock;
 
-void update_Jacard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
+void update_Jaccard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
 	vector<pair<pair<int, int>, double>>* input_new_ec, vector<vector<pair<int, double>>>* input_adj_lists) {
 
 	auto& graph = *input_graph;
@@ -93,16 +98,17 @@ void update_Jacard_ec_element(graph_hash_of_mixed_weighted* input_graph, int i,
 			}
 			int V_i_cup_V_j = adj_lists[i].size() + adj_lists[j].size() - V_i_cap_V_j;
 			double ec = 1 - (double)V_i_cap_V_j / V_i_cup_V_j;
+			ec = (int) (ec * 100); // 100Jaccard; high precesion induce large L
 
 			glock.lock();
-			new_ec.push_back({ {i, j} ,ec });
+			new_ec.push_back({ {i, j} , ec}); 
 			glock.unlock();
 		}
 	}
 
 }
 
-graph_hash_of_mixed_weighted update_Jacard_ec(graph_hash_of_mixed_weighted graph) {
+graph_hash_of_mixed_weighted update_Jaccard_ec(graph_hash_of_mixed_weighted graph) {
 
 	ThreadPool pool(20);
 	std::vector< std::future<int> > results; // return typename: xxx
@@ -123,7 +129,7 @@ graph_hash_of_mixed_weighted update_Jacard_ec(graph_hash_of_mixed_weighted graph
 		int i = it1->first;
 		results.emplace_back(
 			pool.enqueue([input_graph, i, input_new_ec, input_adj_lists] { // pass const type value j to thread; [] can be empty
-				update_Jacard_ec_element(input_graph, i, input_new_ec, input_adj_lists);
+				update_Jaccard_ec_element(input_graph, i, input_new_ec, input_adj_lists);
 				return 1; // return to results; the return type must be the same with results
 				})
 		);
@@ -139,7 +145,7 @@ graph_hash_of_mixed_weighted update_Jacard_ec(graph_hash_of_mixed_weighted graph
 	return graph;
 }
 
-void save_data(graph_hash_of_mixed_weighted& graph_random, string save_name) {
+void save_data(graph_hash_of_mixed_weighted& graph_random, graph_hash_of_mixed_weighted& graph_Jaccard, string save_name) {
 
 	string save_file_name;
 	ofstream outputFile;
@@ -152,15 +158,16 @@ void save_data(graph_hash_of_mixed_weighted& graph_random, string save_name) {
 	save_file_name = save_name + "_graph.txt";
 	outputFile.open(save_file_name);
 	outputFile << "V=" << V << " E=" << E << endl;
-	outputFile << "Vetex_1	Vertex_2	Random_weight" << endl;
+	outputFile << "Vetex_1	Vertex_2	Random_weight	Jaccard_weight*100" << endl;
 	for (int i = 0; i < V; i++) {
 		auto x = graph_random.adj_v_and_ec(i);
-		//auto y = graph_Jacard.adj_v_and_ec(i);
+		auto y = graph_Jaccard.adj_v_and_ec(i);
 		for (int j = 0; j < x.size(); j++) {
-			//if (x[j].first != y[j].first) {
-			//	cout << "graph_random edges are different from graph_Jacard edges!" << endl;
-			//}
-			outputFile << i << "	" << x[j].first << "	" << x[j].second << endl;
+			if (x[j].first != y[j].first) {
+				cout << "graph_random edges are different from graph_Jaccard edges!" << endl;
+				exit(1);
+			}
+			outputFile << i << "	" << x[j].first << "	" << x[j].second << "	" << y[j].second << endl;
 		}
 	}
 	outputFile.close();
@@ -174,7 +181,7 @@ void generate_google() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\web-Google.txt\\web-Google.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\web-Google.txt\\web-Google.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -216,7 +223,7 @@ void generate_google() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -227,12 +234,12 @@ void generate_google() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_astro() {
@@ -242,7 +249,7 @@ void generate_astro() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\ca-AstroPh.txt\\ca-AstroPh.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\ca-AstroPh.txt\\ca-AstroPh.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -284,7 +291,7 @@ void generate_astro() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -295,12 +302,12 @@ void generate_astro() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_condmat() {
@@ -310,7 +317,7 @@ void generate_condmat() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\ca-CondMat.txt\\ca-CondMat.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\ca-CondMat.txt\\ca-CondMat.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -352,7 +359,7 @@ void generate_condmat() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -363,12 +370,12 @@ void generate_condmat() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_lj() {
@@ -378,7 +385,7 @@ void generate_lj() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\com-lj.ungraph.txt\\com-lj.ungraph.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\com-lj.ungraph.txt\\com-lj.ungraph.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -420,7 +427,7 @@ void generate_lj() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -431,12 +438,12 @@ void generate_lj() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_skitter() {
@@ -446,7 +453,7 @@ void generate_skitter() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\as-skitter.txt\\as-skitter.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\as-skitter.txt\\as-skitter.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -488,7 +495,7 @@ void generate_skitter() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -499,12 +506,12 @@ void generate_skitter() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_youtube() {
@@ -514,7 +521,7 @@ void generate_youtube() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\com-youtube.ungraph.txt\\com-youtube.ungraph.txt";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\com-youtube.ungraph.txt\\com-youtube.ungraph.txt";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -556,7 +563,7 @@ void generate_youtube() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -567,12 +574,12 @@ void generate_youtube() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
 void generate_github() {
@@ -582,7 +589,7 @@ void generate_github() {
 	unordered_map<int, int> old_id_to_new_id;
 	vector<pair<int, int>> edges_new_id;
 
-	string file_name = "G:\\Drive2\\DynamicHL_data\\git_web_ml\\git_web_ml\\musae_git_edges.csv";
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\git_web_ml\\git_web_ml\\musae_git_edges.csv";
 	ifstream myfile(file_name); // open the file
 	string line_content;
 	if (myfile.is_open()) // if the file is opened successfully
@@ -624,7 +631,7 @@ void generate_github() {
 		exit(1); // end the program
 	}
 
-	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique;
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
 	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
 	for (auto p : edges_new_id) {
 		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
@@ -635,12 +642,223 @@ void generate_github() {
 	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
 	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
 
-	//graph_hash_of_mixed_weighted new_id_graph_Jacard = update_Jacard_ec(new_id_graph_random);
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
 
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
-	//graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jacard, data_name + "_Jacard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
 	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
-	save_data(new_id_graph_random, data_name);
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
 }
 
+void generate_imdb() {
 
+	string data_name = "imdb";
+
+	unordered_map<int, int> old_id_to_new_id;
+	vector<pair<int, int>> edges_new_id;
+
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\download.tsv.actor2.tar\\actor2\\out.actor2";
+	ifstream myfile(file_name); // open the file
+	string line_content;
+	if (myfile.is_open()) // if the file is opened successfully
+	{
+		int count = 0;
+		while (getline(myfile, line_content)) // read file line by line
+		{
+			if (count >= 1) {
+				std::vector<string> Parsed_content = parse_string(line_content, " "); // parse line_content
+				int id1 = stoi(Parsed_content[0]);
+				int id2 = stoi(Parsed_content[1]);
+				if (id1 == id2) {
+					continue;
+				}
+				int new_id1, new_id2;
+				if (old_id_to_new_id.count(id1) > 0) {
+					new_id1 = old_id_to_new_id[id1];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id1 = size;
+					old_id_to_new_id[id1] = new_id1;
+				}
+				if (old_id_to_new_id.count(id2) > 0) {
+					new_id2 = old_id_to_new_id[id2];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id2 = size;
+					old_id_to_new_id[id2] = new_id2;
+				}
+				edges_new_id.push_back({ new_id1, new_id2 });
+			}
+			count++;
+		}
+		myfile.close(); //close the file
+	}
+	else
+	{
+		std::cout << "Unable to open file " << file_name << endl << "Please check the file location or file name." << endl; // throw an error message
+		getchar(); // keep the console window
+		exit(1); // end the program
+	}
+
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
+	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
+	for (auto p : edges_new_id) {
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_unique, p.first, p.second, unique_ec);
+	}
+
+	cout << data_name << ":" << endl;
+	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
+	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
+
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
+
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
+}
+
+void generate_amazon() {
+
+	string data_name = "amazon";
+
+	unordered_map<int, int> old_id_to_new_id;
+	vector<pair<int, int>> edges_new_id;
+
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\download.tsv.amazon-ratings.tar\\amazon-ratings\\out.amazon-ratings";
+	ifstream myfile(file_name); // open the file
+	string line_content;
+	if (myfile.is_open()) // if the file is opened successfully
+	{
+		int count = 0;
+		while (getline(myfile, line_content)) // read file line by line
+		{
+			if (count >= 2) {
+				std::vector<string> Parsed_content = parse_string(line_content, " "); // parse line_content
+				int id1 = stoi(Parsed_content[0]);
+				int id2 = stoi(Parsed_content[1]);
+				if (id1 == id2) {
+					continue;
+				}
+				int new_id1, new_id2;
+				if (old_id_to_new_id.count(id1) > 0) {
+					new_id1 = old_id_to_new_id[id1];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id1 = size;
+					old_id_to_new_id[id1] = new_id1;
+				}
+				if (old_id_to_new_id.count(id2) > 0) {
+					new_id2 = old_id_to_new_id[id2];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id2 = size;
+					old_id_to_new_id[id2] = new_id2;
+				}
+				edges_new_id.push_back({ new_id1, new_id2 });
+			}
+			count++;
+		}
+		myfile.close(); //close the file
+	}
+	else
+	{
+		std::cout << "Unable to open file " << file_name << endl << "Please check the file location or file name." << endl; // throw an error message
+		getchar(); // keep the console window
+		exit(1); // end the program
+	}
+
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
+	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
+	for (auto p : edges_new_id) {
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_unique, p.first, p.second, unique_ec);
+	}
+
+	cout << data_name << ":" << endl;
+	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
+	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
+
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
+
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
+}
+
+void generate_hyves() {
+
+	string data_name = "hyves";
+
+	unordered_map<int, int> old_id_to_new_id;
+	vector<pair<int, int>> edges_new_id;
+
+	string file_name = "F:\\data\\2023_dynamicHL\\DynamicHL_data\\download.tsv.hyves.tar\\hyves\\out.hyves";
+	ifstream myfile(file_name); // open the file
+	string line_content;
+	if (myfile.is_open()) // if the file is opened successfully
+	{
+		int count = 0;
+		while (getline(myfile, line_content)) // read file line by line
+		{
+			if (count >= 1) {
+				std::vector<string> Parsed_content = parse_string(line_content, " "); // parse line_content
+				int id1 = stoi(Parsed_content[0]);
+				int id2 = stoi(Parsed_content[1]);
+				if (id1 == id2) {
+					continue;
+				}
+				int new_id1, new_id2;
+				if (old_id_to_new_id.count(id1) > 0) {
+					new_id1 = old_id_to_new_id[id1];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id1 = size;
+					old_id_to_new_id[id1] = new_id1;
+				}
+				if (old_id_to_new_id.count(id2) > 0) {
+					new_id2 = old_id_to_new_id[id2];
+				}
+				else {
+					int size = old_id_to_new_id.size();
+					new_id2 = size;
+					old_id_to_new_id[id2] = new_id2;
+				}
+				edges_new_id.push_back({ new_id1, new_id2 });
+			}
+			count++;
+		}
+		myfile.close(); //close the file
+	}
+	else
+	{
+		std::cout << "Unable to open file " << file_name << endl << "Please check the file location or file name." << endl; // throw an error message
+		getchar(); // keep the console window
+		exit(1); // end the program
+	}
+
+	graph_hash_of_mixed_weighted new_id_graph_random, new_id_graph_unique, new_id_graph_Jaccard;
+	boost::random::uniform_int_distribution<> dist{ 1, max_ec };
+	for (auto p : edges_new_id) {
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_random, p.first, p.second, dist(boost_random_time_seed));
+		graph_hash_of_mixed_weighted_add_edge(new_id_graph_unique, p.first, p.second, unique_ec);
+	}
+
+	cout << data_name << ":" << endl;
+	cout << "num_vertices(read_graph): " << graph_hash_of_mixed_weighted_num_vertices(new_id_graph_random) << endl;
+	cout << "num_edges(read_graph): " << graph_hash_of_mixed_weighted_num_edges(new_id_graph_random) << endl;
+
+	new_id_graph_Jaccard = update_Jaccard_ec(new_id_graph_random);
+
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_random, data_name + "_random.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_Jaccard, data_name + "_Jaccard.bin");
+	graph_hash_of_mixed_weighted_binary_save(new_id_graph_unique, data_name + "_unique.bin");
+	save_data(new_id_graph_random, new_id_graph_Jaccard, data_name);
+}

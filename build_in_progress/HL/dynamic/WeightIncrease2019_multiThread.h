@@ -10,8 +10,8 @@ auto begin_time = std::chrono::high_resolution_clock::now();
 double max_run_time_nanosec;
 string reach_limit_time_string_2019 = "reach limit time in WeightIncrease2019";
 
-void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vector<weightTYPE>& d) {
-	int n = instance_graph.hash_of_vectors.size();
+void Distance_Dijsktra(graph_v_of_v_idealID& instance_graph, int s, vector<weightTYPE>& d) {
+	int n = instance_graph.size();
 	vector<bool> mark(n, false);
 	d[s] = 0;
 	priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
@@ -21,7 +21,8 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 		Q.pop();
 		if (mark[v]) continue;
 		mark[v] = true;
-		for (auto nei : instance_graph.adj_v_and_ec(v)) {
+
+		for (auto nei : instance_graph[v]) {
 			if (d[nei.first] > d[v] + nei.second) {
 				d[nei.first] = d[v] + nei.second;
 				Q.push(pair<weightTYPE, int>(d[nei.first], nei.first));
@@ -30,10 +31,10 @@ void Distance_Dijsktra(graph_hash_of_mixed_weighted& instance_graph, int s, vect
 	}
 }
 
-void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
+void FindAffectedNode(graph_v_of_v_idealID& instance_graph,
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, vector<int>& A, vector<bool>& a) {
 
-	int n = instance_graph.hash_of_vectors.size();
+	int n = instance_graph.size();
 	vector<bool> mark(n, false);
 
 	vector<weightTYPE> dy(n, MAX_VALUE);
@@ -41,46 +42,64 @@ void FindAffectedNode(graph_hash_of_mixed_weighted& instance_graph,
 	queue<int> Q;
 	Q.push(x);
 	while (!Q.empty()) {
+
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string_2019;
+		}
+
 		int v = Q.front();
 		Q.pop();
 		A.push_back(v);
 		a[v] = true;
-		for (auto u : instance_graph.adj_v(v)) {
+		for (auto ux : instance_graph[v]) {
+			int u = ux.first;
 			if (mark[u]) continue;
-			weightTYPE dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, u, y);
-			weightTYPE dy_new = dy[u];
+			auto query_dy_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y);
+			weightTYPE dy_old = query_dy_old.first;
 			weightTYPE dx_old = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, u, x);
-			if (abs(dy_old - dy_new) > 1e-5) {
+			if (abs(dy_old - dy[u]) > 1e-5) {
 				mark[u] = true;
 				Q.push(u);
 			}
 			else {
-				int h = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(mm.L, u, y).second;
+				int h = query_dy_old.second;
 				if (a[h] || (h == u || h == y) && abs(dy_old - (dx_old + w_old)) <= 1e-5) {
 					mark[u] = true;
 					Q.push(u);
 				}
 			}
 		}
-		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-			throw reach_limit_time_string_2019;
-		}
 	}
 }
 
-void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y, vector<bool>& ax, vector<bool>& ay,
+void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y, vector<bool>& ax, vector<bool>& ay,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 	for (auto v : AFF_x) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ay] {
-			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
-				if (ay[it->vertex]) {
-					it = mm.L[v].erase(it);
-				}
-				else {
-					it++;
+
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
+			vector<two_hop_label_v1> Lv;
+			for (auto it = mm.L[v].begin(); it != mm.L[v].end(); it++) {
+				if (ay[it->vertex] == 0) {
+					Lv.push_back(*it);
 				}
 			}
+			mm.L[v] = Lv;
+
+
+			//for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
+			//	if (ay[it->vertex]) {
+			//		it = mm.L[v].erase(it); // this is likely to be faster than building a new vector with not erased elements
+			//	}
+			//	else {
+			//		it++;
+			//	}
+			//}
+
+
 			return 1; }));
 	}
 	for (auto&& result : results_dynamic) {
@@ -89,14 +108,30 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 	results_dynamic.clear();
 	for (auto v : AFF_y) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ax] {
-			for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
-				if (ax[it->vertex]) {
-					it = mm.L[v].erase(it);
-				}
-				else {
-					it++;
+
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
+			vector<two_hop_label_v1> Lv;
+			for (auto it = mm.L[v].begin(); it != mm.L[v].end(); it++) {
+				if (ax[it->vertex] == 0) {
+					Lv.push_back(*it);
 				}
 			}
+			mm.L[v] = Lv;
+
+
+			//for (auto it = mm.L[v].begin(); it != mm.L[v].end();) {
+			//	if (ax[it->vertex]) {
+			//		it = mm.L[v].erase(it);
+			//	}
+			//	else {
+			//		it++;
+			//	}
+			//}
+
+
 			return 1; }));
 	}
 	for (auto&& result : results_dynamic) {
@@ -105,19 +140,41 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted& instance_graph,
 	results_dynamic.clear();
 }
 
-void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
+void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
 	vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
-	int n = instance_graph.hash_of_vectors.size();
+	int n = instance_graph.size();
 	vector<int>& SA = AFF_x;
 	for (auto a : SA) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ay] {
 
-			vector<weightTYPE> dist(n, MAX_VALUE);
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
+			mtx_595_1.lock();
+			int current_tid = Qid_595.front();
+			Qid_595.pop();
+			mtx_595_1.unlock();
+
+			auto& dist = Q_value[current_tid];
+			vector<int> dist_changed;
+
 			priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
 			dist[a] = 0;
+			dist_changed.push_back(a);
 			Q.push(pair<weightTYPE, int>(0, a));
 			while (!Q.empty()) {
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					for (int i : dist_changed) {
+						dist[i] = MAX_VALUE;
+					}
+					mtx_595_1.lock();
+					Qid_595.push(current_tid);
+					mtx_595_1.unlock();
+					return 1;
+				}
+
 				int v = Q.top().second;
 				Q.pop();
 				if (ay[v]) {
@@ -140,23 +197,22 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 							mtx_595[v].unlock();
 						}
 					}
-
-					// weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
-					// if (dist[v] - 1e-5 < qdist) {
-					// 	if (v < a) insert_sorted_two_hop_label(mm.L[a], v, dist[v]);
-					// 	else insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
-					// }
 				}
-				for (auto u : instance_graph.adj_v_and_ec(v)) {
+
+				for (auto u : instance_graph[v]) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
 					dist[u.first] = dist[v] + u.second;
+					dist_changed.push_back(u.first);
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
-
-				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-					return 1;
-				}
 			}
+
+			for (int i : dist_changed) {
+				dist[i] = MAX_VALUE;
+			}
+			mtx_595_1.lock();
+			Qid_595.push(current_tid);
+			mtx_595_1.unlock();
 
 			return 1; }));
 	}
@@ -166,26 +222,47 @@ void GreedyRestore(graph_hash_of_mixed_weighted& instance_graph,
 	results_dynamic.clear();
 }
 
-void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
-	graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
+void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
 	vector<bool>& ax, vector<bool>& ay, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
-	int n = instance_graph.hash_of_vectors.size();
+	int n = instance_graph.size();
 	vector<int>& FA = AFF_x;
 	FA.insert(FA.end(), AFF_y.begin(), AFF_y.end());
 	sort(FA.begin(), FA.end());
 	for (auto a : FA) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([n, &instance_graph, a, &mm, &ax, &ay] {
 
-			vector<weightTYPE> dist(n, MAX_VALUE);
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
+			mtx_595_1.lock();
+			int current_tid = Qid_595.front();
+			Qid_595.pop();
+			mtx_595_1.unlock();
+
+			auto& dist = Q_value[current_tid];
+			vector<int> dist_changed;
+
 			priority_queue<pair<weightTYPE, int>, vector<pair<weightTYPE, int> >, greater<pair<weightTYPE, int> > > Q;
 			dist[a] = 0;
+			dist_changed.push_back(a);
 			Q.push(pair<weightTYPE, int>(0, a));
 			while (!Q.empty()) {
+
+				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+					for (int i : dist_changed) {
+						dist[i] = MAX_VALUE;
+					}
+					mtx_595_1.lock();
+					Qid_595.push(current_tid);
+					mtx_595_1.unlock();
+					return 1;
+				}
+
 				int v = Q.top().second;
 				Q.pop();
 				// if (v < a) continue;
 				if ((ay[v] && ax[a]) || (ay[a] && ax[v])) {
-
 					mtx_595[a].lock();
 					auto L_a = mm.L[a];
 					mtx_595[a].unlock();
@@ -198,23 +275,24 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 						insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
 						mtx_595[v].unlock();
 					}
-
-					// weightTYPE qdist = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm.L, v, a);
-					// if (dist[v] - 1e-5 < qdist) {
-					// 	insert_sorted_two_hop_label(mm.L[v], a, dist[v]);
-					// }
 				}
-				for (auto u : instance_graph.adj_v_and_ec(v)) {
+
+				for (auto u : instance_graph[v]) {
 					if (dist[u.first] - 1e-5 < dist[v] + u.second) continue;
 					dist[u.first] = dist[v] + u.second;
+					dist_changed.push_back(u.first);
 					if (u.first < a) continue;
 					Q.push(pair<weightTYPE, int>(dist[u.first], u.first));
 				}
-
-				if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-					return 1;
-				}
 			}
+
+			for (int i : dist_changed) {
+				dist[i] = MAX_VALUE;
+			}
+
+			mtx_595_1.lock();
+			Qid_595.push(current_tid);
+			mtx_595_1.unlock();
 
 			return 1; }));
 	}
@@ -224,15 +302,17 @@ void OrderRestore(graph_hash_of_mixed_weighted& instance_graph,
 	results_dynamic.clear();
 }
 
-void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old,
+void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic, double max_run_second) {
 
 	begin_time = std::chrono::high_resolution_clock::now();
 	max_run_time_nanosec = max_run_second * 1e9;
 
+	double n = instance_graph.size();
+
 	vector<int> AFF_x, AFF_y;
-	vector<bool> ax(instance_graph.hash_of_vectors.size(), false);
-	vector<bool> ay(instance_graph.hash_of_vectors.size(), false);
+	vector<bool> ax(n, false);
+	vector<bool> ay(n, false);
 
 	FindAffectedNode(instance_graph, mm, x, y, w_old, AFF_x, ax);
 	FindAffectedNode(instance_graph, mm, y, x, w_old, AFF_y, ay);
@@ -241,21 +321,17 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 	sort(AFF_y.begin(), AFF_y.end());
 	AFF_y.erase(unique(AFF_y.begin(), AFF_y.end()), AFF_y.end());
 
-	// for (int i = 0; i < AFF_x.size(); i++) {
-	// 	ax[AFF_x[i]] = true;
-	// }
-	// for (int i = 0; i < AFF_y.size(); i++) {
-	// 	ay[AFF_y[i]] = true;
-	// }
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+		throw reach_limit_time_string_2019;
+	}
 
-	RemoveAffectedHub(instance_graph, mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
+	RemoveAffectedHub(mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
 
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
 
 	double small_size = min(AFF_x.size(), AFF_y.size());
-	double n = instance_graph.hash_of_vectors.size();
 
 	if (1) { // new strategy
 		double all_size = AFF_x.size() + AFF_y.size();
@@ -289,9 +365,7 @@ void WeightIncrease2019(graph_hash_of_mixed_weighted& instance_graph, graph_hash
 		}
 	}
 
-
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
 		throw reach_limit_time_string_2019;
 	}
-
 }

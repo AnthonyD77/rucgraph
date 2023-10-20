@@ -3,11 +3,11 @@
 #include <queue>
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
-void SPREAD1(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L,
+void SPREAD1(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L,
 	std::vector<affected_label>& al1, std::vector<pair_label>* al2, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	for (auto it : al1) {
-		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, al2, instance_graph] {
+		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, al2, &instance_graph] {
 
 			queue<pair<int, weightTYPE> > q; //(u,d)
 			int v = it.second;
@@ -20,11 +20,12 @@ void SPREAD1(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 				mtx_595_1.lock();
 				al2->push_back(pair_label(x, v));
 				mtx_595_1.unlock();
-				auto v_neis = instance_graph->adj_v_and_ec(x);
-				for (auto nei : v_neis) {
-					weightTYPE search_weight = search_sorted_two_hop_label((*L)[nei.first], v);
-					if (abs(dx + nei.second - search_weight) < 1e-5) { 
-						q.push(pair<int, weightTYPE>(nei.first, dx + nei.second));
+				for (auto nei : instance_graph[x]) {
+					if (v < nei.first) {
+						weightTYPE search_weight = search_sorted_two_hop_label((*L)[nei.first], v);
+						if (abs(dx + nei.second - search_weight) < 1e-5) {
+							q.push(pair<int, weightTYPE>(nei.first, dx + nei.second));
+						}
 					}
 				}
 			}
@@ -38,11 +39,11 @@ void SPREAD1(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 	results_dynamic.clear();
 }
 
-void SPREAD2(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
+void SPREAD2(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
 	std::vector<pair_label>& al2, std::vector<affected_label>* al3, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	for (auto it : al2) {
-		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, al3, instance_graph] {
+		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, al3, &instance_graph] {
 
 			int v = it.first, u = it.second;
 			mtx_5952[v].lock();
@@ -52,8 +53,7 @@ void SPREAD2(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 			for (auto t : temp) {
 				if (v < t) {
 					weightTYPE d1 = MAX_VALUE;
-					auto neis = instance_graph->adj_v_and_ec(t);
-					for (auto nei : neis) {
+					for (auto nei : instance_graph[t]) {
 						d1 = min(d1, search_sorted_two_hop_label((*L)[nei.first], v) + (weightTYPE)nei.second);
 					}
 					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, t, v);
@@ -78,8 +78,7 @@ void SPREAD2(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 				}
 				else if (t < v) {
 					weightTYPE d1 = MAX_VALUE;
-					auto neis = instance_graph->adj_v_and_ec(v);
-					for (auto nei : neis) {
+					for (auto nei : instance_graph[v]) {
 						d1 = min(d1, search_sorted_two_hop_label((*L)[nei.first], t) + (weightTYPE)nei.second);
 					}
 					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, v, t);
@@ -112,12 +111,11 @@ void SPREAD2(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 	results_dynamic.clear();
 }
 
-void SPREAD3(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& al3,
+void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& al3,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	for (auto it : al3) {
-
-		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, instance_graph, PPR] {
+		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, &instance_graph, PPR] {
 
 			mtx_595_1.lock();
 			int current_tid = Qid_595.front();
@@ -127,9 +125,13 @@ void SPREAD3(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 			int u = it.first, v = it.second;
 			weightTYPE du = it.dis;
 
-			mtx_595[u].lock(), mtx_595[v].lock();
-			auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, u, v);
-			mtx_595[u].unlock(), mtx_595[v].unlock();
+			mtx_595[v].lock();
+			auto Lv = (*L)[v]; // to avoid interlocking
+			mtx_595[v].unlock();
+
+			mtx_595[u].lock();
+			auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[u], Lv);
+			mtx_595[u].unlock();
 
 			if (query_result.first < du + 1e-5) {
 				if (query_result.second != v) {
@@ -168,18 +170,20 @@ void SPREAD3(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 				Q_VALUE[x] = MAX_VALUE;
 
 				mtx_595[x].lock();
-				insert_sorted_two_hop_label((*L)[x], v, std::min(dx, search_sorted_two_hop_label((*L)[x], v)));
+				if (dx < search_sorted_two_hop_label((*L)[x], v)) {
+					insert_sorted_two_hop_label((*L)[x], v, dx);
+				}
 				mtx_595[x].unlock();
-				auto neis = instance_graph->adj_v_and_ec(x);
-				for (auto nei : neis) {
+
+				for (auto nei : instance_graph[x]) {
 					int xnei = nei.first;
 					weightTYPE d_new = dx + nei.second;
 
 					if (v < xnei) {
 						if (DIS[xnei].first == -1) {
-							mtx_595[xnei].lock(), mtx_595[v].lock(); // xnei != v here, otherwise you cannot lock the same lock twice!
-							DIS[xnei] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, xnei, v);
-							mtx_595[xnei].unlock(), mtx_595[v].unlock();
+							mtx_595[xnei].lock(); 
+							DIS[xnei] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[xnei], Lv);
+							mtx_595[xnei].unlock();
 							Dis_changed.push_back(xnei);
 						}
 						if (DIS[xnei].first > d_new - 1e-5) {
@@ -225,7 +229,7 @@ void SPREAD3(graph_hash_of_mixed_weighted* instance_graph, vector<vector<two_hop
 	results_dynamic.clear();
 }
 
-void WeightIncreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old,
+void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	std::vector<affected_label> al1, al3;
@@ -245,9 +249,9 @@ void WeightIncreaseMaintenance_improv(graph_hash_of_mixed_weighted& instance_gra
 
 	//cout << "al1.size() " << al1.size() << endl;
 
-	SPREAD1(&instance_graph, &mm.L, al1, &al2, pool_dynamic, results_dynamic);
-	SPREAD2(&instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic);
-	SPREAD3(&instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic);
+	SPREAD1(instance_graph, &mm.L, al1, &al2, pool_dynamic, results_dynamic);
+	SPREAD2(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic);
+	SPREAD3(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic);
 
 	//for (auto it : al2) {
 	//	cout << "al2 " << it.first << " " << it.second << endl;

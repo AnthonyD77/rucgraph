@@ -35,6 +35,18 @@ queue<int> Qid_595; // IDs of available elements of P T
 vector<vector<weightTYPE>> P_dij_595;
 vector<vector<weightTYPE>> T_dij_595;
 
+struct PLL_dynamic_node_for_sp {
+public:
+	int vertex;
+	weightTYPE priority_value;
+}; // define the node in the queue
+bool operator<(PLL_dynamic_node_for_sp const& x, PLL_dynamic_node_for_sp const& y) {
+	return x.priority_value > y.priority_value; // < is the max-heap; > is the min heap
+}
+typedef typename boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::handle_type graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp;
+
+vector<vector<graph_hash_of_mixed_weighted_HL_PLL_v1_handle_t_for_sp>> Q_handles_dij_595;
+
 void two_hop_clear_global_values() {
 
 	this_parallel_PLL_PSL_is_running_595 = false;
@@ -369,3 +381,34 @@ weightTYPE graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc3(ve
 
 }
 
+pair<weightTYPE, int> graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4(vector<two_hop_label_v1>& L_s, vector<two_hop_label_v1>& L_t) {
+
+	global_query_times++;
+
+	/*return std::numeric_limits<double>::max() is not connected*/
+
+	weightTYPE distance = std::numeric_limits<weightTYPE>::max(); // if disconnected, return this large value
+	int common_hub;
+
+	auto vector1_check_pointer = L_s.begin();
+	auto vector2_check_pointer = L_t.begin();
+	auto pointer_L_s_end = L_s.end(), pointer_L_t_end = L_t.end();
+	while (vector1_check_pointer != pointer_L_s_end && vector2_check_pointer != pointer_L_t_end) {
+		if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
+			weightTYPE dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
+			if (distance > dis) {
+				distance = dis;
+				common_hub = vector1_check_pointer->vertex;
+			}
+			vector1_check_pointer++;
+		}
+		else if (vector1_check_pointer->vertex > vector2_check_pointer->vertex) {
+			vector2_check_pointer++;
+		}
+		else {
+			vector1_check_pointer++;
+		}
+	}
+
+	return { distance , common_hub };
+}

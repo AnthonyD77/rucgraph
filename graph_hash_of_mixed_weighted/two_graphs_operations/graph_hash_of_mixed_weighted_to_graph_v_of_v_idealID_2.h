@@ -2,9 +2,9 @@
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 #include <graph_v_of_v_idealID/graph_v_of_v_idealID.h>
 
-graph_v_of_v_idealID graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(graph_hash_of_mixed_weighted& input_graph, int max_N_ID) {
+graph_v_of_v_idealID graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(graph_hash_of_mixed_weighted& input_graph, int max_N) {
 
-	graph_v_of_v_idealID output_graph(max_N_ID);
+	graph_v_of_v_idealID output_graph(max_N);
 
 	for (auto it1 = input_graph.hash_of_vectors.begin(); it1 != input_graph.hash_of_vectors.end(); it1++) {
 		int i = it1->first;

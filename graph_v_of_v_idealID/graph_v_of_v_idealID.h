@@ -1,4 +1,41 @@
 #pragma once
+
+/*the following codes are for testing
+
+---------------------------------------------------
+a cpp file (try.cpp) for running the following test code:
+----------------------------------------
+
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+// header files in the Boost library: https://www.boost.org/
+#include <boost/random.hpp>
+boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
+
+#include <graph_v_of_v_idealID/graph_v_of_v_idealID.h>
+
+
+int main()
+{
+	graph_v_of_v_idealID_example();
+}
+
+------------------------------------------------------------------------------------------
+Commends for running the above cpp file on Linux:
+
+g++ -std=c++17 -I/home/boost_1_75_0 -I/root/rucgraph try.cpp -lpthread -O3 -o A
+./A
+rm A
+
+(optional to put the above commends in run.sh, and then use the comment: sh run.sh)
+
+
+*/
+
+
+
 #include<vector>
 #include<iostream>
 

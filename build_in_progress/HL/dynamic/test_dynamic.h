@@ -36,9 +36,9 @@ rm A
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 #include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv_multiThread.h>
 #include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightIncrease2021.h>
-#include <build_in_progress/HL/dynamic/WeightDecrease2021.h>
-#include <build_in_progress/HL/dynamic/WeightDecrease2014.h>
+#include <build_in_progress/HL/dynamic/WeightIncrease2021_multiThread.h>
+#include <build_in_progress/HL/dynamic/WeightDecrease2021_multiThread.h>
+#include <build_in_progress/HL/dynamic/WeightDecrease2014_multiThread.h>
 #include <build_in_progress/HL/dynamic/WeightIncrease2019_multiThread.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
@@ -102,7 +102,7 @@ void check_correctness_dynamic(graph_hash_of_mixed_weighted_two_hop_case_info_v1
 	}
 }
 
-void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
+void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_hash_of_mixed_weighted& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm,
 	int V, int weightIncrease_time, int weightDecrease_time, double weightChange_ratio, int thread_num, double& avg_maintain_time) {
 
 	ThreadPool pool_dynamic(thread_num);
@@ -116,30 +116,12 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 		while (1) {
 			boost::random::uniform_int_distribution<> dist_v1{ static_cast<int>(0), static_cast<int>(V - 1) };
 			int v1 = dist_v1(boost_random_time_seed);
-			if (instance_graph.degree(v1) > 0) {
-				if (instance_graph.hash_of_vectors[v1].adj_vertices.size() > 0) {
-					boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors[v1].adj_vertices.size() - 1) };
-					int v2 = instance_graph.hash_of_vectors[v1].adj_vertices[dist_v2(boost_random_time_seed)].first;
-					selected_edge = { v1,v2 };
-					selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
-				}
-				else {
-					boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_hashs[v1].size() - 1) };
-					int r = dist_v2(boost_random_time_seed);
-					auto it = instance_graph.hash_of_hashs[v1].begin();
-					int id = 0;
-					while (1) {
-						if (id == r) {
-							int v2 = it->first;
-							selected_edge = { v1,v2 };
-							selected_edge_weight = graph_hash_of_mixed_weighted_edge_weight(instance_graph, v1, v2);
-							break;
-						}
-						else {
-							it++, id++;
-						}
-					}
-				}
+			if (ideal_g[v1].size() > 0) {
+				boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(ideal_g[v1].size() - 1) };
+				int rand = dist_v2(boost_random_time_seed);
+				int v2 = ideal_g[v1][rand].first;
+				selected_edge = { v1,v2 };
+				selected_edge_weight = ideal_g[v1][rand].second;
 				break;
 			}
 		}
@@ -196,14 +178,14 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 				continue;
 			}
 			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+			graph_v_of_v_idealID_add_edge(ideal_g, selected_edge.first, selected_edge.second, new_ec);
 
 			auto begin = std::chrono::high_resolution_clock::now();
 
 			/*maintain labels*/
-			//WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
-			//WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight);
-			WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, pool_dynamic, results_dynamic, 1e-1);
-			//WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, 1e2);
+			WeightIncrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			//WeightIncreaseMaintenance_improv(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			//WeightIncrease2019(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, 1e1);
 			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 + weightChange_ratio) << endl;
 			//mm.print_L();
 			//mm.print_PPR();
@@ -261,14 +243,15 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 				weightDecrease_time++;
 				continue;
 			}
-			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+			graph_hash_of_mixed_weighted_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+			graph_v_of_v_idealID_add_edge(ideal_g, selected_edge.first, selected_edge.second, new_ec);
 
 			auto begin = std::chrono::high_resolution_clock::now();
 
 			/*maintain labels*/
-			//WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec, pool_dynamic, results_dynamic);
-			//WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
-			WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, new_ec);
+			//WeightDecreaseMaintenance_improv(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			WeightDecrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			//WeightDecrease2014(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << selected_edge_weight * (1 - weightChange_ratio) << endl;
 			//mm.print_L();
 			//mm.print_PPR();
@@ -276,17 +259,20 @@ void graph_change_and_label_maintenance(graph_hash_of_mixed_weighted& instance_g
 			auto end = std::chrono::high_resolution_clock::now();
 			avg_maintain_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 		}
+
+		//clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+		//clean_PPR(ideal_g, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
 	}
 }
 
 void test_dynamic() {
 
 	/*parameters*/
-	int iteration_graph_times = 1e2, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 500, precision = 1, thread_num = 10;
+	int iteration_graph_times = 1e3, iteration_source_times = 10, iteration_terminal_times = 10;
+	int V = 1000, E = 5000, precision = 1, thread_num = 10;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 30, weightDecrease_time = 0;
+	int weightIncrease_time = 30, weightDecrease_time = 30;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_maintain_time = 0;
@@ -313,6 +299,7 @@ void test_dynamic() {
 			double lambda;
 			graph_hash_of_mixed_weighted_read_graph_with_weight("simple_iterative_tests.txt", instance_graph, lambda);
 		}
+		graph_v_of_v_idealID ideal_g = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph, V);
 
 		auto begin = std::chrono::high_resolution_clock::now();
 		try {
@@ -341,9 +328,9 @@ void test_dynamic() {
 		/*dynamic maintenance*/
 		ThreadPool pool_dynamic(thread_num);
 		std::vector<std::future<int>> results_dynamic;
-		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
+		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
 		initialize_global_values_dynamic(V, thread_num);
-		graph_change_and_label_maintenance(instance_graph, mm, V, weightIncrease_time, weightDecrease_time, weightChange_ratio, thread_num, avg_maintain_time);
+		graph_change_and_label_maintenance(ideal_g, instance_graph, mm, V, weightIncrease_time, weightDecrease_time, weightChange_ratio, thread_num, avg_maintain_time);
 		check_correctness_dynamic(mm, instance_graph, iteration_source_times, iteration_terminal_times);
 
 		long long int index_size = 0;
@@ -360,182 +347,7 @@ void test_dynamic() {
 
 
 
-
-
-
-
-
-
-/*
-compare_speed
-
-the speed of WeightDecreaseMaintenance_improv increases with thread_num when thread_num<10, and barely changes when thread_num>10
-*/
-
-void compare_speed() {
-
-	/*parameters*/
-	int iteration_graph_times = 5e0, weightChange_time = 50; 
-	double weightChange_ratio = 0.5;
-	vector<int> thread_nums = { 1, 5, 10, 20 };
-
-	int V = 5000, E = 20000, precision = 1;
-	double ec_min = 1, ec_max = 10;
-	
-	bool use_WeightIncreaseMaintenance = 1, use_WeightIncreaseMaintenance_improv = 1, 
-		use_WeightDecrease2014 = 1, use_WeightDecreaseMaintenance = 1, use_WeightDecreaseMaintenance_improv = 1;
-	
-	/*iteration*/
-	cout << "V = " << V << "	E =" << E << endl;
-	
-	for (int i = 0; i < iteration_graph_times; i++) {
-		cout << "iteration_graph_times = " << i << endl;
-
-		/*reduction method selection*/
-		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-
-		graph_hash_of_mixed_weighted instance_graph = graph_hash_of_mixed_weighted_generate_random_graph(V, E, 0, 0, ec_min, ec_max, precision, boost_random_time_seed);
-		instance_graph = graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees_large_to_small(instance_graph); // sort vertices
-		PLL_dynamic(instance_graph, V + 1, 20, mm);
-
-		for (int t_num : thread_nums) {
-			cout << "thread_num = " << t_num << endl;
-
-			double avg_time_WeightIncreaseMaintenance = 0, avg_time_WeightIncreaseMaintenance_improv = 0,
-				avg_time_WeightDecrease2014 = 0, avg_time_WeightDecreaseMaintenance = 0, avg_time_WeightDecreaseMaintenance_improv = 0;
-
-			initialize_global_values_dynamic(V, t_num);
-			ThreadPool pool_dynamic(t_num);
-			std::vector<std::future<int>> results_dynamic;
-
-			/*selected_edge*/
-			vector<pair<int, int>> selected_edges;
-			boost::random::uniform_int_distribution<> dist_v1{ static_cast<int>(0), static_cast<int>(V - 1) };
-			while (selected_edges.size() < weightChange_time) {
-				int v1 = dist_v1(boost_random_time_seed);
-				if (instance_graph.degree(v1) > 0) {
-					if (instance_graph.hash_of_vectors[v1].adj_vertices.size() > 0) {
-						boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_vectors[v1].adj_vertices.size() - 1) };
-						int v2 = instance_graph.hash_of_vectors[v1].adj_vertices[dist_v2(boost_random_time_seed)].first;
-						selected_edges.push_back({ v1, v2 });
-					}
-					else {
-						boost::random::uniform_int_distribution<> dist_v2{ static_cast<int>(0), static_cast<int>(instance_graph.hash_of_hashs[v1].size() - 1) };
-						int r = dist_v2(boost_random_time_seed);
-						auto it = instance_graph.hash_of_hashs[v1].begin();
-						int id = 0;
-						while (1) {
-							if (id == r) {
-								int v2 = it->first;
-								selected_edges.push_back({ v1, v2 });
-								break;
-							}
-							else {
-								it++, id++;
-							}
-						}
-					}
-				}
-			}
-
-			if (use_WeightIncreaseMaintenance) {
-				auto g = instance_graph;
-				auto mm2 = mm;
-				for (int j = 0; j < weightChange_time; j++) {
-					double old_ec = graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second);
-					double new_ec = min(old_ec * (1 + weightChange_ratio), 1e6);
-					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
-					auto begin = std::chrono::high_resolution_clock::now();
-					WeightIncrease2021(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec);
-					auto end = std::chrono::high_resolution_clock::now();
-					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-					avg_time_WeightIncreaseMaintenance += runningtime / iteration_graph_times / weightChange_time;
-				}
-			}
-
-			if (use_WeightIncreaseMaintenance_improv) {
-				auto g = instance_graph;
-				auto mm2 = mm;
-				for (int j = 0; j < weightChange_time; j++) {
-					double old_ec = graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second);
-					double new_ec = min(old_ec * (1 + weightChange_ratio), 1e6);
-					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
-					auto begin = std::chrono::high_resolution_clock::now();
-					WeightIncreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, old_ec, pool_dynamic, results_dynamic);
-					auto end = std::chrono::high_resolution_clock::now();
-					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-					avg_time_WeightIncreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;
-				}
-			}
-
-			if (use_WeightDecrease2014) {
-				auto g = instance_graph;
-				auto mm2 = mm;
-				for (int j = 0; j < weightChange_time; j++) {
-					double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
-					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
-					auto begin = std::chrono::high_resolution_clock::now();
-					WeightDecrease2014(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec);
-					auto end = std::chrono::high_resolution_clock::now();
-					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-					avg_time_WeightDecrease2014 += runningtime / iteration_graph_times / weightChange_time;
-					//cout << "WeightDecreaseMaintenance " << runningtime << "s" << endl;
-				}
-			}
-
-			if (use_WeightDecreaseMaintenance) {
-				auto g = instance_graph;
-				auto mm2 = mm;
-				for (int j = 0; j < weightChange_time; j++) {
-					double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
-					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
-					auto begin = std::chrono::high_resolution_clock::now();
-					WeightDecrease2021(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec);
-					auto end = std::chrono::high_resolution_clock::now();
-					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-					avg_time_WeightDecreaseMaintenance += runningtime / iteration_graph_times / weightChange_time;
-					//cout << "WeightDecreaseMaintenance " << runningtime << "s" << endl;
-				}
-			}
-
-			if (use_WeightDecreaseMaintenance_improv) {
-				auto g = instance_graph;
-				auto mm2 = mm;
-				for (int j = 0; j < weightChange_time; j++) {
-					double new_ec = max(graph_hash_of_mixed_weighted_edge_weight(g, selected_edges[j].first, selected_edges[j].second) * (1 - weightChange_ratio), 1e-2);
-					graph_hash_of_mixed_weighted_add_edge(g, selected_edges[j].first, selected_edges[j].second, new_ec);
-					auto begin = std::chrono::high_resolution_clock::now();
-					WeightDecreaseMaintenance_improv(g, mm2, selected_edges[j].first, selected_edges[j].second, new_ec, pool_dynamic, results_dynamic);
-					auto end = std::chrono::high_resolution_clock::now();
-					double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
-					avg_time_WeightDecreaseMaintenance_improv += runningtime / iteration_graph_times / weightChange_time;
-					//cout << "WeightDecreaseMaintenance_improv " << runningtime << "s" << endl;
-				}
-			}
-
-
-
-			cout << "avg_time_WeightIncreaseMaintenance = " << avg_time_WeightIncreaseMaintenance << "s" << endl
-				<< "avg_time_WeightIncreaseMaintenance_improv = " << avg_time_WeightIncreaseMaintenance_improv << "s" << endl
-				<< "avg_time_WeightDecrease2014 = " << avg_time_WeightDecrease2014 << "s" << endl
-				<< "avg_time_WeightDecreaseMaintenance = " << avg_time_WeightDecreaseMaintenance << "s" << endl
-				<< "avg_time_WeightDecreaseMaintenance_improv = " << avg_time_WeightDecreaseMaintenance_improv << "s" << endl;
-			cout << "avg_time_WeightIncreaseMaintenance / avg_time_WeightIncreaseMaintenance_improv = " << avg_time_WeightIncreaseMaintenance / avg_time_WeightIncreaseMaintenance_improv << endl
-				<< "avg_time_WeightDecreaseMaintenance / avg_time_WeightDecreaseMaintenance_improv = " << avg_time_WeightDecreaseMaintenance / avg_time_WeightDecreaseMaintenance_improv << endl << endl;
-		}
-	}
-}
-
-
-
-
-
-
-
-
-/*
-example
-*/
+/*example*/
 void PLL_PPR_example() {
 
 	graph_hash_of_mixed_weighted instance_graph;
@@ -550,6 +362,7 @@ void PLL_PPR_example() {
 	graph_hash_of_mixed_weighted_add_edge(instance_graph, 2, 6, 4);
 	graph_hash_of_mixed_weighted_add_edge(instance_graph, 3, 5, 15);
 	graph_hash_of_mixed_weighted_add_edge(instance_graph, 4, 5, 3);
+	graph_v_of_v_idealID ideal_g = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph, 7);
 
 	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 	PLL_dynamic(instance_graph, 7, 1, mm);
@@ -562,20 +375,21 @@ void PLL_PPR_example() {
 	mm.print_PPR();
 
 	/*IN*/
-	if (0) {
-		graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 4, 4); // increase weight
-		WeightIncreaseMaintenance_improv(instance_graph, mm, 0, 4, 2, pool_dynamic, results_dynamic);
+	if (1) {
+		graph_v_of_v_idealID_add_edge(ideal_g, 0, 4, 4); // increase weight
+		WeightIncreaseMaintenance_improv(ideal_g, mm, 0, 4, 2, 4, pool_dynamic, results_dynamic);
 		mm.print_L();
 		mm.print_PPR();
 	}
 
 	/*DE*/
-	if (1) {
-		graph_hash_of_mixed_weighted_add_edge(instance_graph, 0, 3, 3); // decrease weight
-		WeightDecreaseMaintenance_improv(instance_graph, mm, 0, 3, 3, pool_dynamic, results_dynamic);
+	if (0) {
+		graph_v_of_v_idealID_add_edge(ideal_g, 0, 3, 3); // decrease weight
+		//WeightDecreaseMaintenance_improv(ideal_g, mm, 0, 3, 5, 3, pool_dynamic, results_dynamic);
+		WeightDecrease2021(ideal_g, mm, 0, 3, 5, 3, pool_dynamic, results_dynamic);
 		mm.print_L();
 		mm.print_PPR();
-		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic);
+		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, 1);
 		mm.print_L();
 	}
 
