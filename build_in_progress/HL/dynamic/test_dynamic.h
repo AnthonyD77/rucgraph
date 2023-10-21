@@ -379,7 +379,7 @@ void PLL_PPR_example() {
 	mm.print_PPR();
 
 	/*full*/
-	if (0) {
+	if (1) {
 
 		graph_v_of_v_idealID_add_edge(ideal_g, 1, 4, 5.6); // decrease weight
 		WeightDecrease2021(ideal_g, mm, 1, 4, 7, 5.6, pool_dynamic, results_dynamic);
@@ -445,7 +445,7 @@ void PLL_PPR_example() {
 
 
 	/*DE*/
-	if (1) {
+	if (0) {
 		graph_v_of_v_idealID_add_edge(ideal_g, 0, 3, 3); // decrease weight
 		WeightDecreaseMaintenance_improv(ideal_g, mm, 0, 3, 5, 3, pool_dynamic, results_dynamic);
 		mm.print_L();
