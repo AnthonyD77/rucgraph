@@ -183,12 +183,12 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 			auto begin = std::chrono::high_resolution_clock::now();
 
 			/*maintain labels*/
-			//WeightIncrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-			WeightIncreaseMaintenance_improv(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			WeightIncrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			//WeightIncreaseMaintenance_improv(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 			//WeightIncrease2019(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, 1e1);
 			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << new_ec << endl;
-			mm.print_L();
-			mm.print_PPR();
+			//mm.print_L();
+			//mm.print_PPR();
 
 			auto end = std::chrono::high_resolution_clock::now();
 			avg_maintain_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
@@ -253,8 +253,8 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 			WeightDecrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 			//WeightDecrease2014(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << new_ec << endl;
-			mm.print_L();
-			mm.print_PPR();
+			//mm.print_L();
+			//mm.print_PPR();
 
 			auto end = std::chrono::high_resolution_clock::now();
 			avg_maintain_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
@@ -271,10 +271,10 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e4, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 10, E = 12, precision = 1, thread_num = 1;
+	int V = 100, E = 500, precision = 1, thread_num = 10;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 8, weightDecrease_time = 8;
+	int weightIncrease_time = 30, weightDecrease_time = 30;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_maintain_time = 0;
