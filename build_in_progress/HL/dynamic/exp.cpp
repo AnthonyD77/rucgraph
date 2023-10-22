@@ -654,7 +654,7 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 
 		/*mixed*/
 		if (1) {
-			double dummy_ec = 1e3, de_ec = 50;
+			double dummy_ec = 5e2, de_ec = 50;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -664,6 +664,9 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 			for (int i = 0; i < V; i++) {
 				for (auto adj : instance_graph[i]) {
 					if (i < adj.first) {
+						if (instance_graph[i].size() > 100 && instance_graph[adj.first].size() > 100) {
+							continue; // do not delete important edges
+						}
 						edge_pool.push_back({ i, adj.first });
 					}
 				}
@@ -678,6 +681,9 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 				else { // then decrease					
 					while (1) {
 						int v1 = dist(boost_random_time_seed), v2 = dist(boost_random_time_seed);
+						if (instance_graph[v1].size() > 100 && instance_graph[v2].size() > 100) {
+							continue; // do not add important edges
+						}
 						if (graph_v_of_v_idealID_contain_edge(instance_graph, v1, v2) && v1 == v2) {
 							continue;
 						}
