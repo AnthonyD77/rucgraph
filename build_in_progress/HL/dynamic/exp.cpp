@@ -246,11 +246,21 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
 					if (k % 2 == 0) { // increase
 						global_query_times = 0;
+						auto mm_temp = mm;
+						auto graph_temp = instance_graph;
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-						_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_2021IN_query_times[k / 2] = global_query_times;
+						try {
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightIncrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_2021IN_query_times[k / 2] = global_query_times;
+						}
+						catch (string s) {
+							instance_graph = graph_temp;
+							mm = mm_temp; // WeightIncrease2019 may leave too many incorrect labels 
+							_2021IN_time[k / 2] = INT_MAX;
+							_2021IN_query_times[k / 2] = global_query_times;
+						}
 					}
 					else {
 						global_query_times = 0;
