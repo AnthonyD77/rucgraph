@@ -821,7 +821,7 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 void exp() {
 
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "hyves", "skitter" };
-	int change_times = 120, thread_num = 80;
+	int change_times = 150, thread_num = 80;
 	double max_Maintain_time = 100;
 
 	/*weightChange_ratio 2*/
@@ -841,7 +841,7 @@ int main()
 	/*the two values below are for #include <graph_hash_of_mixed_weighted.h>*/
 	graph_hash_of_mixed_weighted_turn_on_value = 1e3;
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
-	//srand(time(NULL)); //  seed random number generator
+	srand(time(NULL)); //  seed random number generator
 
 	exp();
 
