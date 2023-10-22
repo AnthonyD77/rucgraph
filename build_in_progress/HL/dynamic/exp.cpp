@@ -101,7 +101,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 	string path = "dynamicHL//";
 
-	for (int type = 0; type < 3; type++) {
+	for (int type = 0; type < 2; type++) {
 
 		graph_v_of_v_idealID instance_graph;
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -453,7 +453,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 	string path = "dynamicHL//";
 
-	for (int type = 0; type < 3; type++) {
+	for (int type = 0; type < 2; type++) {
 
 		graph_v_of_v_idealID instance_graph;
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -620,7 +620,7 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 
 	string path = "dynamicHL//";
 
-	for (int type = 0; type < 3; type++) {
+	for (int type = 0; type < 2; type++) {
 
 		graph_v_of_v_idealID instance_graph;
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -819,41 +819,18 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 
 void exp() {
 
-	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "skitter" };
+	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "hyves", "skitter" };
 	int change_times = 100, thread_num = 80;
 	double max_Maintain_time = 100;
-
-	/*weightChange_ratio 1*/
-	if (0) {
-		double weightChange_ratio = 0.8;
-		for (auto data_name : data_names) {
-			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-		}
-	}
-
-	/*weightChange_ratio 2*/
-	if (0) {
-		double weightChange_ratio = 0.2;
-		for (auto data_name : data_names) {
-			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-		}
-	}
 
 	/*weightChange_ratio 2*/
 	if (1) {
 		double weightChange_ratio = 0;
 		for (auto data_name : data_names) {
 			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-		}
-	}
-
-	/*DeleteInsert*/
-	if (1) {
-		for (auto data_name : data_names) {
 			exp_element3(data_name, change_times, max_Maintain_time, thread_num);
 		}
 	}
-
 }
 
 int main()
