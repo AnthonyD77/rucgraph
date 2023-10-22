@@ -23,7 +23,7 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 						auto search_result = search_sorted_two_hop_label((*L)[v2], it.vertex);
 						if (search_result > it.distance + w_new && search_result != MAX_VALUE) {
 							mtx_595_1.lock();
-							CL->push_back(affected_label{ v2, it.vertex, query_result.first });
+							CL->push_back(affected_label{ v2, it.vertex, it.distance + w_new });
 							mtx_595_1.unlock();
 						}
 						if (query_result.second != it.vertex) {
@@ -117,6 +117,7 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 							auto search_result = search_sorted_two_hop_label2((*L)[xnei], v);
 							mtx_595[xnei].unlock();
 							if (search_result.second != -1 && std::min(search_result.first, Q_VALUE[xnei]) > d_new) {
+								//cout << "here " << Q_VALUE[xnei] << endl;
 								if (Q_VALUE[xnei] == MAX_VALUE) {
 									Q_HANDLES[xnei] = Q.push(node_for_DIFFUSE(xnei, d_new));
 								}
