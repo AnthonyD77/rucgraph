@@ -402,7 +402,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			}
 		}
 
-		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0,
+		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0, avg_DEratio = 0, avg_INratio = 0,
 			avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0,
 			avg_20142019_time = 0, avg_2021DE2021IN_time = 0, avg_2021DEnewIN_time = 0, avg_newDE2021IN_time = 0, avg_newDEnewIN_time = 0;
 		for (int k = 0; k < half_change_times; k++) {
@@ -428,9 +428,11 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			avg_2021DEnewIN_time += _2021DEnewIN_time[k] / half_change_times;
 			avg_newDE2021IN_time += _newDE2021IN_time[k] / half_change_times;
 			avg_newDEnewIN_time += _newDEnewIN_time[k] / half_change_times;
+			avg_DEratio += _newDE_time[k] / _2021DE_time[k] / half_change_times;
+			avg_INratio += _newIN_time[k] / _2021IN_time[k] / half_change_times;
 		}
-		outputFile << avg_2014DE_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_newDE_time << "," << avg_newDE_query_times << "," << avg_newDE_query_times / avg_2021DE_query_times << "," <<
-			avg_2019IN_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_newIN_query_times / avg_2021IN_query_times << "," <<
+		outputFile << avg_2014DE_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_newDE_time << "," << avg_newDE_query_times << "," << avg_DEratio << "," <<
+			avg_2019IN_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_INratio << "," <<
 			avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << "," <<
 			L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
 			L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
