@@ -126,7 +126,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		cout << file_name << endl;
 		outputFile.open(file_name);
 
-		outputFile << "2014DE_time,2019IN_time,2021DE_time,2021DE_query_times,2021IN_time,2021IN_query_times,newDE_time,newDE_query_times,newIN_time,newIN_query_times," <<
+		outputFile << "2014DE_time,2021DE_time,2021DE_query_times,newDE_time,newDE_query_times,2019IN_time,2021IN_time,2021IN_query_times,newIN_time,newIN_query_times," <<
 			"2014+2019_time,2021DE2021IN_time,2021DEnewIN_time,newDE2021IN_time,newDEnewIN_time," <<
 			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM1,PPR_bit_size_afterM1,L_bit_size_afterClean1,PPR_bit_size_afterClean1,cleanL_time1,cleanPPR_time1,rege_time1," <<
 			"L_bit_size_afterM2,PPR_bit_size_afterM2,L_bit_size_afterClean2,PPR_bit_size_afterClean2,cleanL_time2,cleanPPR_time2,rege_time2" << endl;
@@ -406,8 +406,8 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0,
 			avg_20142019_time = 0, avg_2021DE2021IN_time = 0, avg_2021DEnewIN_time = 0, avg_newDE2021IN_time = 0, avg_newDEnewIN_time = 0;
 		for (int k = 0; k < half_change_times; k++) {
-			outputFile << _2014DE_time[k] << "," << _2019IN_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," <<
-				_newDE_time[k] << "," << _newDE_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << ","
+			outputFile << _2014DE_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _newDE_time[k] << "," << _newDE_query_times[k] << "," <<
+				_2019IN_time[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << ","
 				<< _20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << "," <<
 				L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
 				L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
@@ -429,8 +429,8 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			avg_newDE2021IN_time += _newDE2021IN_time[k] / half_change_times;
 			avg_newDEnewIN_time += _newDEnewIN_time[k] / half_change_times;
 		}
-		outputFile << avg_2014DE_time << "," << avg_2019IN_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," <<
-			avg_newDE_time << "," << avg_newDE_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," <<
+		outputFile << avg_2014DE_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_newDE_time << "," << avg_newDE_query_times << "," <<
+			avg_2019IN_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," <<
 			avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << "," <<
 			L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
 			L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
@@ -654,7 +654,7 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 
 		/*mixed*/
 		if (1) {
-			double dummy_ec = 5e2, de_ec = 50;
+			double dummy_ec = 1e3, de_ec = 50;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -664,9 +664,6 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 			for (int i = 0; i < V; i++) {
 				for (auto adj : instance_graph[i]) {
 					if (i < adj.first) {
-						if (instance_graph[i].size() > 100 && instance_graph[adj.first].size() > 100) {
-							continue; // do not delete important edges
-						}
 						edge_pool.push_back({ i, adj.first });
 					}
 				}
@@ -681,9 +678,6 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 				else { // then decrease					
 					while (1) {
 						int v1 = dist(boost_random_time_seed), v2 = dist(boost_random_time_seed);
-						if (instance_graph[v1].size() > 100 && instance_graph[v2].size() > 100) {
-							continue; // do not add important edges
-						}
 						if (graph_v_of_v_idealID_contain_edge(instance_graph, v1, v2) && v1 == v2) {
 							continue;
 						}
@@ -822,11 +816,10 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 }
 
 
-
 void exp() {
 
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "hyves", "skitter" };
-	int change_times = 100, thread_num = 80;
+	int change_times = 120, thread_num = 80;
 	double max_Maintain_time = 100;
 
 	/*weightChange_ratio 2*/
