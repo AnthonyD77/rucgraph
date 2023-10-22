@@ -169,6 +169,10 @@ void PI22(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 void WeightIncrease2021(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
+	begin_time = std::chrono::high_resolution_clock::now();
+	double max_run_second = 100;
+	max_run_time_nanosec = max_run_second * 1e9;
+
 	std::vector<affected_label> al1_curr, al1_next;
 	std::vector<pair_label> al2_curr, al2_next;
 
@@ -184,6 +188,11 @@ void WeightIncrease2021(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 	}
 
 	while (al1_curr.size() || al2_curr.size()) {
+
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string;
+		}
+
 		PI11(instance_graph, &mm.L, al1_curr, &al1_next, pool_dynamic, results_dynamic);
 		PI12(instance_graph, &mm.L, &mm.PPR, al1_curr, &al2_next, pool_dynamic, results_dynamic);
 		PI22(instance_graph, &mm.L, &mm.PPR, al2_curr, &al2_next, pool_dynamic, results_dynamic);

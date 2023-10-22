@@ -6,10 +6,6 @@ using namespace std;
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
-auto begin_time = std::chrono::high_resolution_clock::now();
-double max_run_time_nanosec;
-string reach_limit_time_string_2019 = "reach limit time in WeightIncrease2019";
-
 void Distance_Dijsktra(graph_v_of_v_idealID& instance_graph, int s, vector<weightTYPE>& d) {
 	int n = instance_graph.size();
 	vector<bool> mark(n, false);
@@ -44,7 +40,7 @@ void FindAffectedNode(graph_v_of_v_idealID& instance_graph,
 	while (!Q.empty()) {
 
 		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-			throw reach_limit_time_string_2019;
+			throw reach_limit_time_string;
 		}
 
 		int v = Q.front();
@@ -322,13 +318,13 @@ void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 	AFF_y.erase(unique(AFF_y.begin(), AFF_y.end()), AFF_y.end());
 
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-		throw reach_limit_time_string_2019;
+		throw reach_limit_time_string;
 	}
 
 	RemoveAffectedHub(mm, AFF_x, AFF_y, ax, ay, pool_dynamic, results_dynamic);
 
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-		throw reach_limit_time_string_2019;
+		throw reach_limit_time_string;
 	}
 
 	double small_size = min(AFF_x.size(), AFF_y.size());
@@ -366,6 +362,6 @@ void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 	}
 
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
-		throw reach_limit_time_string_2019;
+		throw reach_limit_time_string;
 	}
 }

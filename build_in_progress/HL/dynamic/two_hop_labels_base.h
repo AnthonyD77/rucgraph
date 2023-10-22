@@ -124,7 +124,9 @@ public:
 
 
 
-
+auto begin_time = std::chrono::high_resolution_clock::now();
+double max_run_time_nanosec;
+string reach_limit_time_string = "reach limit time in WeightIncrease";
 
 /*common functions*/
 
