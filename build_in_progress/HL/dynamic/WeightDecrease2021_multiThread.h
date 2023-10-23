@@ -33,7 +33,7 @@ void ProDecreasep(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_la
 						mtx_595[vnei].lock();
 						auto search_result = search_sorted_two_hop_label2((*L)[vnei], u);
 						mtx_595[vnei].unlock();
-						if (search_result.first != MAX_VALUE && search_result.first > dnew) {
+						if (search_result.first != MAX_VALUE && search_result.first > dnew + 1e-5) {
 							mtx_595[vnei].lock();
 							(*L)[vnei][search_result.second].distance = dnew;
 							mtx_595[vnei].unlock();
@@ -91,7 +91,7 @@ void WeightDecrease2021(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 				}
 				else {
 					auto search_result = search_sorted_two_hop_label2(L[v2], v);
-					if (search_result.first != MAX_VALUE && search_result.first > dis) {
+					if (search_result.first != MAX_VALUE && search_result.first > dis + 1e-5) {
 						L[v2][search_result.second].distance = dis;
 						CL_curr.push_back(affected_label(v2, v, dis));
 					}
