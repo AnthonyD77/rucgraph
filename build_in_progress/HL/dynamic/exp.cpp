@@ -201,11 +201,10 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				initialize_global_values_dynamic(V, thread_num);
 
 				for (int k = 0; k < change_times; k++) {
-					cout << "k " << k << endl;
+					cout << "2014+2019 k " << k << endl;
 					auto selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
 					if (k % 2 == 0) { // increase
-						cout << "step 1.1" << endl;
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
 						try {
 							auto begin = std::chrono::high_resolution_clock::now();
@@ -219,16 +218,13 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
 							_2019IN_time[k / 2] = INT_MAX;
 						}
-						cout << "step 1.2" << endl;
 					}
 					else {
-						cout << "step 1.3" << endl;
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
 						WeightDecrease2014(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
 						_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
-						cout << "step 1.4" << endl;
 					}
 				}
 			}
@@ -458,7 +454,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 	}
 }
 
-void exp_element3(string data_name, int change_times, double max_Maintain_time, int thread_num) {
+void exp_element2(string data_name, int change_times, double max_Maintain_time, int thread_num) {
 
 	ThreadPool pool_dynamic(thread_num);
 	std::vector<std::future<int>> results_dynamic;
@@ -547,11 +543,10 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 				initialize_global_values_dynamic(V, thread_num);
 
 				for (int k = 0; k < change_times; k++) {
-					cout << "k " << k << endl;
+					cout << "2014+2019 k " << k << endl;
 					pair<int, int> selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 					if (k % 2 == 0) { // increase
-						cout << "step 1.1" << endl;
 						double new_ec = dummy_ec;
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
 						try {
@@ -566,17 +561,14 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
 							_2019IN_time[k / 2] = INT_MAX;
 						}
-						cout << "step 1.2" << endl;
 					}
 					else {
-						cout << "step 1.3" << endl;
 						double new_ec = de_ec;
 						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 						auto begin = std::chrono::high_resolution_clock::now();
 						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 						_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 						_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
-						cout << "step 1.4" << endl;
 					}
 				}
 			}
@@ -592,6 +584,7 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 				initialize_global_values_dynamic(V, thread_num);
 
 				for (int k = 0; k < change_times; k++) {
+					cout << "2021DE2021IN k " << k << endl;
 					pair<int, int> selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 					if (k % 2 == 0) { // increase
@@ -637,6 +630,7 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 				initialize_global_values_dynamic(V, thread_num);
 
 				for (int k = 0; k < change_times; k++) {
+					cout << "new k " << k << endl;
 					pair<int, int> selected_edge = selected_edges[k];
 					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
 					if (k % 2 == 0) { // increase
@@ -679,20 +673,17 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 	}
 }
 
-
 void exp() {
 
-	vector<string> data_names = { "astro", "condmat", "github",
-		"google", "youtube", "hyves", "skitter" };
+	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "hyves", "skitter" };
 	int change_times = 150, thread_num = 80;
 	double max_Maintain_time = 100;
 
-	/*weightChange_ratio 2*/
 	if (1) {
 		double weightChange_ratio = 0;
 		for (auto data_name : data_names) {
 			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_element3(data_name, change_times, max_Maintain_time, thread_num);
+			exp_element2(data_name, change_times, max_Maintain_time, thread_num);
 		}
 	}
 }
