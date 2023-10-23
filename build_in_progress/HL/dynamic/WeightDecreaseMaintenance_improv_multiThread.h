@@ -57,6 +57,10 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 	for (auto it : CL) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, &instance_graph, PPR] {
 
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
 			mtx_595_1.lock();
 			int current_tid = Qid_595.front();
 			Qid_595.pop();
@@ -162,8 +166,16 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 void WeightDecreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
+	begin_time = std::chrono::high_resolution_clock::now();
+	double max_run_second = 10;
+	max_run_time_nanosec = max_run_second * 1e9;
+
 	std::vector<affected_label> CL;
 	WeightDecreaseMaintenance_improv_step1(v1, v2, w_new, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic);
 
 	DIFFUSE(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic);
+
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+		throw reach_limit_time_string;
+	}
 }

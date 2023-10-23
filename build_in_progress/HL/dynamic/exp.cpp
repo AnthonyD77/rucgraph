@@ -314,14 +314,27 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					}
 					else {
 						global_query_times = 0;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-						_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_newDE_query_times[(k - 1) / 2] = global_query_times;
-						_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
-						_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
-						_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
+						try {
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_newDE_query_times[(k - 1) / 2] = global_query_times;
+							_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+							_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						}
+						catch (string s) {
+							instance_graph = instance_graph_initial;
+							mm.clear_labels();
+							binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+							_newDE_time[k / 2] = INT_MAX;
+							_newDE_query_times[(k - 1) / 2] = global_query_times;
+							_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+							_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						}
 					}
 				}
 
@@ -391,20 +404,24 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						auto selected_edge = selected_edges[k];
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
 						if (k % 2 == 0) { // increase
-							auto mm_temp = mm;
-							auto graph_temp = instance_graph;
+							//auto mm_temp = mm;
+							//auto graph_temp = instance_graph;
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
 							try {
 								WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
 							}
 							catch (string s) {
-								instance_graph = graph_temp;
-								mm = mm_temp; // WeightIncrease2019 may leave too many incorrect labels 
+								//instance_graph = graph_temp;
+								//mm = mm_temp; // WeightIncrease2019 may leave too many incorrect labels 
 							}
 						}
 						else {
-							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
-							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
+							try {
+								WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							}
+							catch (string s) {
+							}
 						}
 					}
 
@@ -679,14 +696,27 @@ void exp_element3(string data_name, int change_times, double max_Maintain_time, 
 					else {
 						global_query_times = 0;
 						double new_ec = de_ec;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-						_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_newDE_query_times[(k - 1) / 2] = global_query_times;
-						_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
-						_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
-						_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec);
+						try {
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+							_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_newDE_query_times[(k - 1) / 2] = global_query_times;
+							_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+							_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						}
+						catch (string s) {
+							instance_graph = instance_graph_initial;
+							mm.clear_labels();
+							binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+							_newDE_time[k / 2] = INT_MAX;
+							_newDE_query_times[(k - 1) / 2] = global_query_times;
+							_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+							_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						}
 					}
 				}
 			}
