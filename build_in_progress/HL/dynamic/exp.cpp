@@ -670,7 +670,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 void exp() {
 
 	vector<string> data_names = { "astro", "condmat", "github", "google", "youtube", "hyves", "skitter" };
-	int change_times = 150, thread_num = 80;
+	int change_times = 200, thread_num = 80;
 	double max_Maintain_time = 100;
 
 	if (1) {
