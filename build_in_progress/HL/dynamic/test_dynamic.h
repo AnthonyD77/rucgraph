@@ -239,7 +239,7 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 			//}
 
 			double new_ec = selected_edge_weight * (1 - weightChange_ratio);
-			if (new_ec < 1e-2) {
+			if (new_ec < 1e-1) {
 				weightDecrease_time++;
 				continue;
 			}
@@ -274,7 +274,7 @@ void test_dynamic() {
 	int V = 100, E = 500, precision = 1, thread_num = 10;
 	double ec_min = 1, ec_max = 10;
 
-	int weightIncrease_time = 30, weightDecrease_time = 30;
+	int weightIncrease_time = 50, weightDecrease_time = 50;
 	double weightChange_ratio = 0.2;
 
 	double avg_index_time = 0, avg_index_size_per_v = 0, avg_maintain_time = 0;
