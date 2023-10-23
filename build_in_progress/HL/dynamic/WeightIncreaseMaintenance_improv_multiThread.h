@@ -137,7 +137,7 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[u], Lv);
 			mtx_595[u].unlock();
 
-			if (query_result.first < du + 1e-5) {
+			if (query_result.first + 1e-5 < du) {
 				if (query_result.second != v) {
 					mtx_5952[u].lock();
 					PPR_insert(*PPR, u, query_result.second, v);
@@ -190,7 +190,7 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 							mtx_595[xnei].unlock();
 							Dis_changed.push_back(xnei);
 						}
-						if (DIS[xnei].first > d_new - 1e-5) {
+						if (DIS[xnei].first > d_new + 1e-5) {
 							DIS[xnei] = { d_new, v };
 							if (Q_VALUE[xnei] == MAX_VALUE) {
 								Q_HANDLES[xnei] = pq.push(node_for_DIFFUSE(xnei, d_new));
