@@ -237,7 +237,7 @@ void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, grap
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	begin_time = std::chrono::high_resolution_clock::now();
-	double max_run_second = 100;
+	double max_run_second = 10;
 	max_run_time_nanosec = max_run_second * 1e9;
 
 	std::vector<affected_label> al1, al3;
