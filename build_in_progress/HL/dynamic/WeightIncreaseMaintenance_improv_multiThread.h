@@ -117,6 +117,10 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 	for (auto it : al3) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, &instance_graph, PPR] {
 
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+				return 1;
+			}
+
 			mtx_595_1.lock();
 			int current_tid = Qid_595.front();
 			Qid_595.pop();
@@ -232,6 +236,10 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
+	begin_time = std::chrono::high_resolution_clock::now();
+	double max_run_second = 100;
+	max_run_time_nanosec = max_run_second * 1e9;
+
 	std::vector<affected_label> al1, al3;
 	std::vector<pair_label> al2;
 
@@ -252,6 +260,10 @@ void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, grap
 	SPREAD1(instance_graph, &mm.L, al1, &al2, pool_dynamic, results_dynamic);
 	SPREAD2(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic);
 	SPREAD3(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic);
+
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+		throw reach_limit_time_string;
+	}
 
 	//for (auto it : al2) {
 	//	cout << "al2 " << it.first << " " << it.second << endl;
