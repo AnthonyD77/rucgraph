@@ -515,7 +515,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 		/*mixed*/
 		if (1) {
 			double dummy_ec = 1e4, de_ec = 10;
-			int div = 10;
+			int div = 30;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
