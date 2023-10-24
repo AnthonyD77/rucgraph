@@ -194,7 +194,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			if (1) {
 				for (int k = 0; k < change_times; k++) {
 					cout << "2014+2019 k " << k << endl;
-					if (k % 30 == 0) {
+					if (k % 10 == 0) {
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -234,7 +234,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			if (1) {
 				for (int k = 0; k < change_times; k++) {
 					cout << "2021DE2021IN k " << k << endl;
-					if (k % 30 == 0) {
+					if (k % 10 == 0) {
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -279,7 +279,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			if (1) {
 				for (int k = 0; k < change_times; k++) {
 					cout << "new k " << k << endl;
-					if (k % 30 == 0) {
+					if (k % 10 == 0) {
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -536,7 +536,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			if (1) {
 				for (int k = 0; k < change_times; k++) {
 					cout << "2014+2019 k " << k << endl;
-					if (k % 30 == 0) {
+					if (k % 10 == 0) {
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -578,7 +578,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			if (1) {
 				for (int k = 0; k < change_times; k++) {
 					cout << "2021DE2021IN k " << k << endl;
-					if (k % 30 == 0) {
+					if (k % 10 == 0) {
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -625,7 +625,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			if (1) {
 				for (int k = 0; k < change_times; k++) {
 					cout << "new k " << k << endl;
-					if (k % 30 == 0) {
+					if (k % 10 == 0) {
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
