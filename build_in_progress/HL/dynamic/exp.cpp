@@ -722,7 +722,6 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 	srand(time(NULL)); //  seed random number generator
 
-	generate_L_PPR();
 	exp();
 
 	auto end = std::chrono::high_resolution_clock::now();
