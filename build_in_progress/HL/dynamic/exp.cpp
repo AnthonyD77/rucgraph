@@ -135,6 +135,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		/*mixed*/
 		if (1) {
 			double precision = std::pow(10, 3);
+			int div = 10;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -190,40 +191,43 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 			/*2014+2019*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-				for (int k = 0; k < change_times; k++) {
-					cout << "2014+2019 k " << k << endl;
-					if (k % 10 == 0) {
-						cout << "initialize L PPR" << endl;
-						instance_graph = instance_graph_initial;
-						mm.clear_labels();
-						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-						initialize_global_values_dynamic(V, thread_num);
-					}
-					auto selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
-					if (k % 2 == 0) { // increase
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
-						try {
+				for (int j = 0; j < change_times / div; j++) {
+
+					cout << "initialize L PPR" << endl;
+					instance_graph = instance_graph_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+					initialize_global_values_dynamic(V, thread_num);
+
+					for (int q = 0; q < div; q++) {
+						int k = j * div + q;
+						cout << "2014+2019 k " << k << endl;
+
+						auto selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
+						if (k % 2 == 0) { // increase
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
+							try {
+								auto begin = std::chrono::high_resolution_clock::now();
+								WeightIncrease2019(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic, max_Maintain_time);
+								_2019IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							}
+							catch (string s) {
+								instance_graph = instance_graph_initial;
+								mm.clear_labels();
+								binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+								binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+								_2019IN_time[k / 2] = INT_MAX;
+							}
+						}
+						else {
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
 							auto begin = std::chrono::high_resolution_clock::now();
-							WeightIncrease2019(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic, max_Maintain_time);
-							_2019IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							WeightDecrease2014(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
 						}
-						catch (string s) {
-							instance_graph = instance_graph_initial;
-							mm.clear_labels();
-							binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-							_2019IN_time[k / 2] = INT_MAX;
-						}
-					}
-					else {
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecrease2014(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-						_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
 					}
 				}
 			}
@@ -232,45 +236,48 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 			/*2021DE2021IN*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-				for (int k = 0; k < change_times; k++) {
-					cout << "2021DE2021IN k " << k << endl;
-					if (k % 10 == 0) {
-						cout << "initialize L PPR" << endl;
-						instance_graph = instance_graph_initial;
-						mm.clear_labels();
-						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-						initialize_global_values_dynamic(V, thread_num);
-					}
-					auto selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
-					if (k % 2 == 0) { // increase
-						global_query_times = 0;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
-						try {
+				for (int j = 0; j < change_times / div; j++) {
+
+					cout << "initialize L PPR" << endl;
+					instance_graph = instance_graph_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+					initialize_global_values_dynamic(V, thread_num);
+
+					for (int q = 0; q < div; q++) {
+						int k = j * div + q;
+						cout << "2021DE2021IN k " << k << endl;
+
+						auto selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
+						if (k % 2 == 0) { // increase
+							global_query_times = 0;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
+							try {
+								auto begin = std::chrono::high_resolution_clock::now();
+								WeightIncrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+								_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+								_2021IN_query_times[k / 2] = global_query_times;
+							}
+							catch (string s) {
+								instance_graph = instance_graph_initial;
+								mm.clear_labels();
+								binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+								binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+								_2021IN_time[k / 2] = INT_MAX;
+								_2021IN_query_times[k / 2] = global_query_times;
+							}
+						}
+						else {
+							global_query_times = 0;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
 							auto begin = std::chrono::high_resolution_clock::now();
-							WeightIncrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-							_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-							_2021IN_query_times[k / 2] = global_query_times;
+							WeightDecrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_2021DE_query_times[(k - 1) / 2] = global_query_times;
+							_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
 						}
-						catch (string s) {
-							instance_graph = instance_graph_initial;
-							mm.clear_labels();
-							binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-							_2021IN_time[k / 2] = INT_MAX;
-							_2021IN_query_times[k / 2] = global_query_times;
-						}
-					}
-					else {
-						global_query_times = 0;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-						_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_2021DE_query_times[(k - 1) / 2] = global_query_times;
-						_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
 					}
 				}
 			}
@@ -279,41 +286,40 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 			/*new*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-				for (int k = 0; k < change_times; k++) {
-					cout << "new k " << k << endl;
-					if (k % 10 == 0) {
-						cout << "initialize L PPR" << endl;
-						instance_graph = instance_graph_initial;
-						mm.clear_labels();
-						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-						initialize_global_values_dynamic(V, thread_num);
-						if (k == 0) {
-							L_bit_size_initial = mm.compute_L_bit_size();
-							PPR_bit_size_initial = mm.compute_PPR_bit_size();
+				for (int j = 0; j < change_times / div; j++) {
+
+					cout << "initialize L PPR" << endl;
+					instance_graph = instance_graph_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+					initialize_global_values_dynamic(V, thread_num);
+
+					for (int q = 0; q < div; q++) {
+						int k = j * div + q;
+						cout << "new k " << k << endl;
+
+						auto selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
+						if (k % 2 == 0) { // increase
+							global_query_times = 0;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							_newIN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_newIN_query_times[k / 2] = global_query_times;
 						}
-					}
-					auto selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
-					if (k % 2 == 0) { // increase
-						global_query_times = 0;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-						_newIN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_newIN_query_times[k / 2] = global_query_times;
-					}
-					else {
-						global_query_times = 0;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-						_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_newDE_query_times[(k - 1) / 2] = global_query_times;
-						_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
-						_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
-						_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						else {
+							global_query_times = 0;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_newDE_query_times[(k - 1) / 2] = global_query_times;
+							_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+							_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						}
 					}
 				}
 
@@ -373,7 +379,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					}
 
 					instance_graph = instance_graph_initial;
-					mm.clear_labels();
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
 					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
 					initialize_global_values_dynamic(V, thread_num);
@@ -414,7 +420,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
 
-				mm.clear_labels();
 				cout << "step 5" << endl;
 			}
 		}
@@ -499,6 +504,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 		/*mixed*/
 		if (1) {
 			double dummy_ec = 1e4, de_ec = 10;
+			int div = 10;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -536,42 +542,45 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			/*2014+2019*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-				for (int k = 0; k < change_times; k++) {
-					cout << "2014+2019 k " << k << endl;
-					if (k % 10 == 0) {
-						cout << "initialize L PPR" << endl;
-						instance_graph = instance_graph_initial;
-						mm.clear_labels();
-						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-						initialize_global_values_dynamic(V, thread_num);
-					}
-					pair<int, int> selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
-					if (k % 2 == 0) { // increase
-						double new_ec = dummy_ec;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-						try {
+				for (int j = 0; j < change_times / div; j++) {
+
+					cout << "initialize L PPR" << endl;
+					instance_graph = instance_graph_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+					initialize_global_values_dynamic(V, thread_num);
+
+					for (int q = 0; q < div; q++) {
+						int k = j * div + q;
+						cout << "2014+2019 k " << k << endl;
+
+						pair<int, int> selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+						if (k % 2 == 0) { // increase
+							double new_ec = dummy_ec;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+							try {
+								auto begin = std::chrono::high_resolution_clock::now();
+								WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, max_Maintain_time);
+								_2019IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							}
+							catch (string s) {
+								instance_graph = instance_graph_initial;
+								mm.clear_labels();
+								binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+								binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+								_2019IN_time[k / 2] = INT_MAX;
+							}
+						}
+						else {
+							double new_ec = de_ec;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 							auto begin = std::chrono::high_resolution_clock::now();
-							WeightIncrease2019(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, max_Maintain_time);
-							_2019IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+							_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
 						}
-						catch (string s) {
-							instance_graph = instance_graph_initial;
-							mm.clear_labels();
-							binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-							_2019IN_time[k / 2] = INT_MAX;
-						}
-					}
-					else {
-						double new_ec = de_ec;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecrease2014(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-						_2014DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_20142019_time[(k - 1) / 2] = (_2019IN_time[(k - 1) / 2] + _2014DE_time[(k - 1) / 2]) / 2;
 					}
 				}
 			}
@@ -580,47 +589,50 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			/*2021DE2021IN*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-				for (int k = 0; k < change_times; k++) {
-					cout << "2021DE2021IN k " << k << endl;
-					if (k % 10 == 0) {
-						cout << "initialize L PPR" << endl;
-						instance_graph = instance_graph_initial;
-						mm.clear_labels();
-						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-						initialize_global_values_dynamic(V, thread_num);
-					}
-					pair<int, int> selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
-					if (k % 2 == 0) { // increase
-						global_query_times = 0;
-						double new_ec = dummy_ec;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-						try {
+				for (int j = 0; j < change_times / div; j++) {
+
+					cout << "initialize L PPR" << endl;
+					instance_graph = instance_graph_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+					initialize_global_values_dynamic(V, thread_num);
+
+					for (int q = 0; q < div; q++) {
+						int k = j * div + q;
+						cout << "2021DE2021IN k " << k << endl;
+
+						pair<int, int> selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+						if (k % 2 == 0) { // increase
+							global_query_times = 0;
+							double new_ec = dummy_ec;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+							try {
+								auto begin = std::chrono::high_resolution_clock::now();
+								WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+								_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+								_2021IN_query_times[k / 2] = global_query_times;
+							}
+							catch (string s) {
+								instance_graph = instance_graph_initial;
+								mm.clear_labels();
+								binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+								binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+								_2021IN_time[k / 2] = INT_MAX;
+								_2021IN_query_times[k / 2] = global_query_times;
+							}
+						}
+						else {
+							global_query_times = 0;
+							double new_ec = de_ec;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
 							auto begin = std::chrono::high_resolution_clock::now();
-							WeightIncrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-							_2021IN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-							_2021IN_query_times[k / 2] = global_query_times;
+							WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+							_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_2021DE_query_times[(k - 1) / 2] = global_query_times;
+							_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
 						}
-						catch (string s) {
-							instance_graph = instance_graph_initial;
-							mm.clear_labels();
-							binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-							binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-							_2021IN_time[k / 2] = INT_MAX;
-							_2021IN_query_times[k / 2] = global_query_times;
-						}
-					}
-					else {
-						global_query_times = 0;
-						double new_ec = de_ec;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-						_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_2021DE_query_times[(k - 1) / 2] = global_query_times;
-						_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
 					}
 				}
 			}
@@ -629,39 +641,42 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			/*new*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-				for (int k = 0; k < change_times; k++) {
-					cout << "new k " << k << endl;
-					if (k % 10 == 0) {
-						cout << "initialize L PPR" << endl;
-						instance_graph = instance_graph_initial;
-						mm.clear_labels();
-						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
-						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
-						initialize_global_values_dynamic(V, thread_num);
-					}
-					pair<int, int> selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
-					if (k % 2 == 0) { // increase
-						global_query_times = 0;
-						double new_ec = dummy_ec;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-						_newIN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_newIN_query_times[k / 2] = global_query_times;
-					}
-					else {
-						global_query_times = 0;
-						double new_ec = de_ec;
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec);
-						auto begin = std::chrono::high_resolution_clock::now();
-						WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-						_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-						_newDE_query_times[(k - 1) / 2] = global_query_times;
-						_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
-						_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
-						_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+				for (int j = 0; j < change_times / div; j++) {
+
+					cout << "initialize L PPR" << endl;
+					instance_graph = instance_graph_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
+					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+					initialize_global_values_dynamic(V, thread_num);
+
+					for (int q = 0; q < div; q++) {
+						int k = j * div + q;
+						cout << "new k " << k << endl;
+
+						pair<int, int> selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+						if (k % 2 == 0) { // increase
+							global_query_times = 0;
+							double new_ec = dummy_ec;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+							_newIN_time[k / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_newIN_query_times[k / 2] = global_query_times;
+						}
+						else {
+							global_query_times = 0;
+							double new_ec = de_ec;
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec);
+							auto begin = std::chrono::high_resolution_clock::now();
+							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+							_newDE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							_newDE_query_times[(k - 1) / 2] = global_query_times;
+							_newDEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+							_2021DEnewIN_time[(k - 1) / 2] = (_newIN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							_newDE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _newDE_time[(k - 1) / 2]) / 2;
+						}
 					}
 				}
 			}
