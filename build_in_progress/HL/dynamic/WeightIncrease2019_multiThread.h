@@ -101,7 +101,7 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, ve
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 	for (auto v : AFF_y) {
 		results_dynamic.emplace_back(pool_dynamic.enqueue([v, &mm, &ax] {
 
@@ -133,7 +133,7 @@ void RemoveAffectedHub(graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, ve
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x,
@@ -215,7 +215,7 @@ void GreedyRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_wei
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, vector<int>& AFF_x, vector<int>& AFF_y,
@@ -295,7 +295,7 @@ void OrderRestore(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weig
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void WeightIncrease2019(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int x, int y, weightTYPE w_old, weightTYPE w_new,

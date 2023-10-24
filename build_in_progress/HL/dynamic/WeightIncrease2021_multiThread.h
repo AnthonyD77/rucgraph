@@ -23,7 +23,7 @@ void PI11(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void PI12(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
@@ -113,7 +113,7 @@ void PI12(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void PI22(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
@@ -163,7 +163,7 @@ void PI22(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void WeightIncrease2021(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,

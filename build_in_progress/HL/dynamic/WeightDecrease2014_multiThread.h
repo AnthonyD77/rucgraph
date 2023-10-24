@@ -99,6 +99,6 @@ void WeightDecrease2014(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 		for (auto&& result : results_dynamic) {
 			result.get();
 		}
-		results_dynamic.clear();
+		std::vector<std::future<int>>().swap(results_dynamic);
 	}
 }

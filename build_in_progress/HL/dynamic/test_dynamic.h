@@ -183,9 +183,9 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 			auto begin = std::chrono::high_resolution_clock::now();
 
 			/*maintain labels*/
-			WeightIncrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			//WeightIncrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 			//WeightIncreaseMaintenance_improv(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-			//WeightIncrease2019(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, 1e1);
+			WeightIncrease2019(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic, 1e1);
 			//cout << "1ec change " << selected_edge.first << " " << selected_edge.second << " " << new_ec << endl;
 			//mm.print_L();
 			//mm.print_PPR();
@@ -250,8 +250,8 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 
 			/*maintain labels*/
 			//WeightDecreaseMaintenance_improv(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-			WeightDecrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-			//WeightDecrease2014(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			//WeightDecrease2021(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+			WeightDecrease2014(ideal_g, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
 			//cout << "2ec change " << selected_edge.first << " " << selected_edge.second << " " << new_ec << endl;
 			//mm.print_L();
 			//mm.print_PPR();

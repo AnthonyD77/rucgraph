@@ -61,7 +61,7 @@ void ProDecreasep(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_la
 	for (auto&& result : results_dynamic) {
 		result.get();
 	}
-	results_dynamic.clear();
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 
