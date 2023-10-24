@@ -132,7 +132,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		/*mixed*/
 		if (1) {
 			double precision = std::pow(10, 3);
-			int div = 10;
+			int div = 30;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -300,6 +300,11 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
 					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
 					initialize_global_values_dynamic(V, thread_num);
+
+					if (j == 0) {
+						L_bit_size_initial = mm.compute_L_bit_size();
+						PPR_bit_size_initial = mm.compute_PPR_bit_size();
+					}
 
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
