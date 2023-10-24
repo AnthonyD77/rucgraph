@@ -132,8 +132,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			_20142019_time(half_change_times, 0), _2021DE2021IN_time(half_change_times, 0), _2021DEnewIN_time(half_change_times, 0), _newDE2021IN_time(half_change_times, 0), _newDEnewIN_time(half_change_times, 0);
 		double L_bit_size_initial = 0, PPR_bit_size_initial = 0, L_bit_size_afterM1 = 0, PPR_bit_size_afterM1 = 0, L_bit_size_afterClean1 = 0, PPR_bit_size_afterClean1 = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, rege_time1 = 0;
 
-		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-
 		/*mixed*/
 		if (1) {
 			double precision = std::pow(10, 3);
@@ -192,9 +190,11 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 			/*2014+2019*/
 			if (1) {
+				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 				for (int k = 0; k < change_times; k++) {
 					cout << "2014+2019 k " << k << endl;
 					if (k % 10 == 0) {
+						cout << "initialize L PPR" << endl;
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -232,9 +232,11 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 			/*2021DE2021IN*/
 			if (1) {
+				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 				for (int k = 0; k < change_times; k++) {
 					cout << "2021DE2021IN k " << k << endl;
 					if (k % 10 == 0) {
+						cout << "initialize L PPR" << endl;
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -277,9 +279,11 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 			/*new*/
 			if (1) {
+				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 				for (int k = 0; k < change_times; k++) {
 					cout << "new k " << k << endl;
 					if (k % 10 == 0) {
+						cout << "initialize L PPR" << endl;
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -492,8 +496,6 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			_newDE_time(half_change_times, 0), _newDE_query_times(half_change_times, 0), _newIN_time(half_change_times, 0), _newIN_query_times(half_change_times, 0),
 			_20142019_time(half_change_times, 0), _2021DE2021IN_time(half_change_times, 0), _2021DEnewIN_time(half_change_times, 0), _newDE2021IN_time(half_change_times, 0), _newDEnewIN_time(half_change_times, 0);
 
-		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
-
 		/*mixed*/
 		if (1) {
 			double dummy_ec = 1e4, de_ec = 10;
@@ -534,9 +536,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			/*2014+2019*/
 			if (1) {
+				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 				for (int k = 0; k < change_times; k++) {
 					cout << "2014+2019 k " << k << endl;
 					if (k % 10 == 0) {
+						cout << "initialize L PPR" << endl;
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -576,9 +580,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			/*2021DE2021IN*/
 			if (1) {
+				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 				for (int k = 0; k < change_times; k++) {
 					cout << "2021DE2021IN k " << k << endl;
 					if (k % 10 == 0) {
+						cout << "initialize L PPR" << endl;
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
@@ -623,9 +629,11 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			/*new*/
 			if (1) {
+				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
 				for (int k = 0; k < change_times; k++) {
 					cout << "new k " << k << endl;
 					if (k % 10 == 0) {
+						cout << "initialize L PPR" << endl;
 						instance_graph = instance_graph_initial;
 						mm.clear_labels();
 						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
