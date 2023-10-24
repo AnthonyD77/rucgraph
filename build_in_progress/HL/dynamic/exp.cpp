@@ -91,9 +91,6 @@ public:
 
 void exp_element1(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
 
-	ThreadPool pool_dynamic(thread_num);
-	std::vector<std::future<int>> results_dynamic;
-
 	ofstream outputFile;
 	outputFile.precision(6);
 	outputFile.setf(ios::fixed);
@@ -193,6 +190,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
+
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -237,6 +237,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			/*2021DE2021IN*/
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
+
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
@@ -287,6 +290,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			/*new*/
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
+
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
@@ -384,6 +390,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
 					initialize_global_values_dynamic(V, thread_num);
 
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
+
 					for (int k = 0; k < total_change_times; k++) {
 						cout << "new large k " << k << endl;
 						auto selected_edge = selected_edges[k];
@@ -463,9 +472,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 void exp_element2(string data_name, int change_times, double max_Maintain_time, int thread_num) {
 
-	ThreadPool pool_dynamic(thread_num);
-	std::vector<std::future<int>> results_dynamic;
-
 	ofstream outputFile;
 	outputFile.precision(6);
 	outputFile.setf(ios::fixed);
@@ -544,6 +550,9 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
+
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -590,6 +599,9 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			/*2021DE2021IN*/
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
+
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
@@ -642,6 +654,9 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			/*new*/
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
+
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
