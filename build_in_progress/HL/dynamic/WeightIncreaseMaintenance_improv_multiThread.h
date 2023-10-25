@@ -46,9 +46,9 @@ void SPREAD2(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 		results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, al3, &instance_graph] {
 
 			int v = it.first, u = it.second;
-			mtx_5952[v].lock();
+			mtx_5952[v].lock_shared();
 			std::vector<int> temp = PPR_retrieve(*PPR, v, u);
-			mtx_5952[v].unlock();
+			mtx_5952[v].unlock_shared();
 			PPR_binary_operations_insert(temp, u);
 			for (auto t : temp) {
 				if (v < t) {
@@ -125,13 +125,13 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			int u = it.first, v = it.second;
 			weightTYPE du = it.dis;
 
-			mtx_595[v].lock();
+			mtx_595[v].lock_shared();
 			auto Lv = (*L)[v]; // to avoid interlocking
-			mtx_595[v].unlock();
+			mtx_595[v].unlock_shared();
 
-			mtx_595[u].lock();
+			mtx_595[u].lock_shared();
 			auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[u], Lv);
-			mtx_595[u].unlock();
+			mtx_595[u].unlock_shared();
 
 			if (query_result.first + 1e-5 < du) {
 				if (query_result.second != v) {
@@ -181,9 +181,9 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 
 					if (v < xnei) {
 						if (DIS[xnei].first == -1) {
-							mtx_595[xnei].lock(); 
+							mtx_595[xnei].lock_shared();
 							DIS[xnei] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[xnei], Lv);
-							mtx_595[xnei].unlock();
+							mtx_595[xnei].unlock_shared();
 							Dis_changed.push_back(xnei);
 						}
 						if (DIS[xnei].first > d_new + 1e-5) {

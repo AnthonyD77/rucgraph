@@ -68,6 +68,10 @@ void ProDecreasep(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_la
 void WeightDecrease2021(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
+	begin_time = std::chrono::high_resolution_clock::now();
+	double max_run_second = 100;
+	max_run_time_nanosec = max_run_second * 1e9;
+
 	std::vector<affected_label> CL_curr, CL_next;
 
 	auto& L = mm.L;
@@ -108,6 +112,11 @@ void WeightDecrease2021(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixe
 
 
 	while (CL_curr.size()) {
+
+		if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin_time).count() > max_run_time_nanosec) {
+			throw reach_limit_time_string;
+		}
+
 		ProDecreasep(instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic);
 		CL_curr = CL_next;
 		std::vector<affected_label>().swap(CL_next);	

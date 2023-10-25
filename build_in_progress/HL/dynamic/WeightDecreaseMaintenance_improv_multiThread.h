@@ -65,9 +65,9 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			int u = it.first, v = it.second;
 			weightTYPE du = it.dis;
 
-			mtx_595[v].lock();
+			mtx_595[v].lock_shared();
 			auto Lv = (*L)[v]; // to avoid interlocking
-			mtx_595[v].unlock();
+			mtx_595[v].unlock_shared();
 
 			vector<int> Dis_changed;
 			auto& DIS = Dis[current_tid];
@@ -98,9 +98,9 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 
 					if (v < xnei) {
 						if (DIS[xnei].first == -1) {
-							mtx_595[xnei].lock();
+							mtx_595[xnei].lock_shared();
 							DIS[xnei] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[xnei], Lv);
-							mtx_595[xnei].unlock();
+							mtx_595[xnei].unlock_shared();
 							Dis_changed.push_back(xnei);
 						}
 						if (DIS[xnei].first > d_new + 1e-5) {
@@ -114,9 +114,9 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 							Q_VALUE[xnei] = d_new;
 						}
 						else {
-							mtx_595[xnei].lock();
+							mtx_595[xnei].lock_shared();
 							auto search_result = search_sorted_two_hop_label2((*L)[xnei], v);
-							mtx_595[xnei].unlock();
+							mtx_595[xnei].unlock_shared();
 							if (search_result.second != -1 && std::min(search_result.first, Q_VALUE[xnei]) > d_new + 1e-5) {
 								//cout << "here " << Q_VALUE[xnei] << endl;
 								if (Q_VALUE[xnei] == MAX_VALUE) {
