@@ -271,7 +271,7 @@ void test_dynamic() {
 
 	/*parameters*/
 	int iteration_graph_times = 1e4, iteration_source_times = 10, iteration_terminal_times = 10;
-	int V = 100, E = 150, precision = 1, thread_num = 10;
+	int V = 100, E = 500, precision = 1, thread_num = 10;
 	double ec_min = 1, ec_max = 10;
 
 	int weightIncrease_time = 30, weightDecrease_time = 30;

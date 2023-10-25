@@ -275,11 +275,22 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						else {
 							global_query_times = 0;
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // decrease weight
-							auto begin = std::chrono::high_resolution_clock::now();
-							WeightDecrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-							_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-							_2021DE_query_times[(k - 1) / 2] = global_query_times;
-							_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							try {
+								auto begin = std::chrono::high_resolution_clock::now();
+								WeightDecrease2021(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+								_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+								_2021DE_query_times[(k - 1) / 2] = global_query_times;
+								_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							}
+							catch (string s) {
+								instance_graph = instance_graph_initial;
+								mm.clear_labels();
+								binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+								binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+								_2021DE_time[(k - 1) / 2] = INT_MAX; // s
+								_2021DE_query_times[(k - 1) / 2] = global_query_times;
+								_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							}
 						}
 					}
 				}
@@ -644,11 +655,22 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 							global_query_times = 0;
 							double new_ec = de_ec;
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
-							auto begin = std::chrono::high_resolution_clock::now();
-							WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
-							_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-							_2021DE_query_times[(k - 1) / 2] = global_query_times;
-							_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							try {
+								auto begin = std::chrono::high_resolution_clock::now();
+								WeightDecrease2021(instance_graph, mm, selected_edge.first, selected_edge.second, selected_edge_weight, new_ec, pool_dynamic, results_dynamic);
+								_2021DE_time[(k - 1) / 2] = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+								_2021DE_query_times[(k - 1) / 2] = global_query_times;
+								_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							}
+							catch (string s) {
+								instance_graph = instance_graph_initial;
+								mm.clear_labels();
+								binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm.PPR);
+								binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm.L);
+								_2021DE_time[(k - 1) / 2] = INT_MAX; // s
+								_2021DE_query_times[(k - 1) / 2] = global_query_times;
+								_2021DE2021IN_time[(k - 1) / 2] = (_2021IN_time[(k - 1) / 2] + _2021DE_time[(k - 1) / 2]) / 2;
+							}
 						}
 					}
 				}
@@ -719,8 +741,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 void exp() {
 
-	vector<string> data_names = { //"astro", "condmat", "github", 
-		"gnutella", "google", "youtube", "hyves", "skitter" };
+	vector<string> data_names = { "astro", "condmat", "gnutella", "google", "youtube", "hyves", "skitter" };
 	int change_times = 300, thread_num = 80;
 	double max_Maintain_time = 100;
 
