@@ -145,8 +145,8 @@ void graph_v_of_v_idealID_HB_v2(graph_v_of_v_idealID &input_graph, int max_N_ID 
     //----------------------------------------------- step 3: transfer_labels---------------------------------------------------------------
     cout << "step 3: transfer_labels" << endl;
 
-    L2_599 = graph_v_of_v_idealID_HB_v2_transfer_labels(N, max_N_ID, num_of_threads, case_info.value_M);
-    case_info.L2 = L2_599;
+    L2_temp_599 = graph_v_of_v_idealID_HB_v2_transfer_labels(N, max_N_ID, num_of_threads, case_info.value_M);
+    case_info.L2 = L2_temp_599;
 
     graph_v_of_v_idealID_two_hop_clear_global_values();
 }

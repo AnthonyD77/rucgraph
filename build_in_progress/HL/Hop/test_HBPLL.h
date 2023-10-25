@@ -35,29 +35,29 @@ rm A
 
 void test_HBPLL() {
     /* graph parameters */
-    int iteration_graph_times = 1e2, iteration_source_times = 100, iteration_terminal_times = 100;
-    int V = 20, E = 50, precision = 1, thread_num = 5;
+    int iteration_graph_times = 1e2, iteration_source_times = 1000, iteration_terminal_times = 1000;
+    int V = 20, E = 50, precision = 1, thread_num = 1;
     double ec_min = 0.1, ec_max = 1;
 
     /* test parameters */
-    bool generate_new_graph = 1;
-    bool use_2019R2 = false, use_enhanced2019R2 = false, use_non_adj_reduc_degree = true;
+    bool generate_new_graph = true;
+    bool use_2019R2 = false, use_enhanced2019R2 = false, use_non_adj_reduc_degree = false;
     bool use_rank_pruning = true;
     bool use_canonical_repair = true;
-    bool use_M = true;
+    bool use_M = false;
     int upper_k = 10;
 
-    bool print_time_details = 1;
-    bool print_label_before_canonical_fix = 0;
-    bool print_L = 0;
-    bool check_correctness = 1;
-    check_path = 1;
+    bool print_time_details = true;
+    bool print_label_before_canonical_fix = false;
+    bool print_L = false;
+    bool check_correctness = true;
+    check_path = true;
 
     debug = 0;
     if (debug) {
-        source_debug = 15;
-        terminal_debug = 2;
-        hop_cst_debug = 8;
+        source_debug = 0;
+        terminal_debug = 5;
+        hop_cst_debug = 2;
         generate_new_graph = 0;
         iteration_graph_times = 1;
         iteration_source_times = 1;
@@ -141,12 +141,13 @@ void test_HBPLL() {
         cout << "avg_MG_num: " << avg_MG_num << endl;
     if (mm.use_canonical_repair)
         cout << "avg_canonical_repair_remove_label_ratio: " << avg_canonical_repair_remove_label_ratio << endl;
+    if (check_correctness)
+        cout << "avg_query_time: " << avg_query_time / (iteration_graph_times) << endl;
     if (print_time_details) {
-        cout << "total_time_initialization: " << total_time_initialization << endl;
-        cout << "total_time_reduction: " << total_time_reduction << endl;
-        cout << "total_time_generate_labels: " << total_time_generate_labels << endl;
-        cout << "total_time_update_predecessors: " << total_time_update_predecessors << endl;
-        cout << "total_time_canonical_repair: " << total_time_canonical_repair << endl;
+        cout << "\t total_time_initialization: " << total_time_initialization << endl;
+        cout << "\t total_time_reduction: " << total_time_reduction << endl;
+        cout << "\t total_time_generate_labels: " << total_time_generate_labels << endl;
+        cout << "\t total_time_update_predecessors: " << total_time_update_predecessors << endl;
+        cout << "\t total_time_canonical_repair: " << total_time_canonical_repair << endl;
     }
-    cout << "avg_query_time: " << avg_query_time / (iteration_graph_times) << endl;
 }

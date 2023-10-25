@@ -40,18 +40,23 @@ graph_v_of_v_idealID ideal_graph_599;
 map<pair<int, int>, int> new_edges_with_middle_v_599;
 map<pair<int, int>, double> new_edges_with_origin_ec_599;
 vector<vector<two_hop_label_v1>> L_temp_599;
-vector<vector<two_hop_label_v1>> incremental_label_vectors_599;
-vector<vector<two_hop_label_v2>> L2_599;
+vector<vector<two_hop_label_v2>> L2_temp_599;
 vector<int> reduction_measures_2019R2;
+
+vector<vector<vector<pair<double, int>>>> Temp_L_vk_599;
+vector<vector<pair<double, int>>> dist_hop_599;
+queue<int> Qid_599;
 
 void graph_v_of_v_idealID_two_hop_clear_global_values() {
     vector<vector<two_hop_label_v1>>().swap(L_temp_599);
     ideal_graph_599.clear();
     vector<int>().swap(reduction_measures_2019R2);
-    vector<vector<two_hop_label_v1>>().swap(incremental_label_vectors_599);
     map<pair<int, int>, int>().swap(new_edges_with_middle_v_599);
     map<pair<int, int>, double>().swap(new_edges_with_origin_ec_599);
-    vector<vector<two_hop_label_v2>>().swap(L2_599);
+    vector<vector<two_hop_label_v2>>().swap(L2_temp_599);
+    vector<vector<vector<pair<double, int>>>>().swap(Temp_L_vk_599);
+    vector<vector<pair<double, int>>>().swap(dist_hop_599);
+    queue<int>().swap(Qid_599);
 }
 
 /* global querying values, used in the query func */
@@ -159,7 +164,9 @@ public:
 bool compare_two_hop_label_small_to_large(two_hop_label_v1 &i, two_hop_label_v1 &j) {
     if (i.vertex != j.vertex) {
         return i.vertex < j.vertex;
-    } else {
+    } else if (i.hop != j.hop) {
         return i.hop < j.hop;
+    } else {
+        return i.distance > j.distance;
     }
 }
