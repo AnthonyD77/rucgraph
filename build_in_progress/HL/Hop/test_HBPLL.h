@@ -44,7 +44,7 @@ int terminal_debug = 0;
 int hop_cst_debug = 0;
 
 void graph_v_of_v_idealID_HB_v2_check_correctness(graph_v_of_v_idealID_two_hop_case_info_v1& case_info, graph_v_of_v_idealID& instance_graph,
-    int iteration_source_times, int iteration_terminal_times, int hop_cst, bool check_path) {
+    int iteration_source_times, int iteration_terminal_times, bool check_path) {
     /*
     below is for checking whether the above labels are right (by randomly computing shortest paths)
 
@@ -61,7 +61,7 @@ void graph_v_of_v_idealID_HB_v2_check_correctness(graph_v_of_v_idealID_two_hop_c
         std::vector<int> predecessors;
         predecessors.resize(instance_graph.size());
 
-        hop_cst = hop_range(boost_random_time_seed);
+        int hop_cst = hop_range(boost_random_time_seed);
 
         if (debug) {
             source = source_debug;
@@ -195,7 +195,6 @@ void test_HBPLL() {
 
     /* hop bounded info */
     graph_v_of_v_idealID_two_hop_case_info_v1 mm;
-    int query_hop_cst = 5;
     mm.use_rank_pruning = use_rank_pruning;
     mm.value_M = use_M ? ec_max * E : 0;
     mm.upper_k = upper_k;
@@ -252,7 +251,7 @@ void test_HBPLL() {
             mm.print_L();
 
         if (check_correctness) {
-            graph_v_of_v_idealID_HB_v2_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times, query_hop_cst, check_path);
+            graph_v_of_v_idealID_HB_v2_check_correctness(mm, instance_graph, iteration_source_times, iteration_terminal_times, check_path);
         }
 
         avg_query_time += mm.time_query;
