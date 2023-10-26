@@ -53,7 +53,7 @@ void PI12(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 					mtx_595[t].lock();
 					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[t], Lv);
 					mtx_595[t].unlock();
-					if (query_result.first + 1e-5 > d1) {
+					if (query_result.first > d1 + 1e-5) {
 						mtx_595[t].lock();
 						insert_sorted_two_hop_label((*L)[t], v, d1);
 						mtx_595[t].unlock();
@@ -84,7 +84,7 @@ void PI12(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>
 					mtx_595[t].lock();
 					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc4((*L)[t], Lv);
 					mtx_595[t].unlock();
-					if (query_result.first + 1e-5 > d1) {
+					if (query_result.first > d1 + 1e-5) {
 						mtx_595[v].lock();
 						insert_sorted_two_hop_label((*L)[v], t, d1);
 						mtx_595[v].unlock();
