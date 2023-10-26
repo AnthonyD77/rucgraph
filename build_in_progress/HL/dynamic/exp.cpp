@@ -142,7 +142,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				vector<pair<int, int>> edge_pool;
 				for (int i = 0; i < V; i++) {
 					for (auto adj : instance_graph[i]) {
-						if (i < adj.first && adj.second >= 0.1 && adj.second <= 1e4 && instance_graph[i].size() > 5 && instance_graph[adj.first].size() > 5) {
+						if (i < adj.first && adj.second >= 0.1 && adj.second <= 1e4 && instance_graph[i].size() > 1 && instance_graph[adj.first].size() > 1) {
 							edge_pool.push_back({ i, adj.first });
 						}
 					}
@@ -535,7 +535,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			vector<pair<int, int>> edge_pool;
 			for (int i = 0; i < V; i++) {
 				for (auto adj : instance_graph[i]) {
-					if (i < adj.first && instance_graph[i].size() > 5 && instance_graph[adj.first].size() > 5) {
+					if (i < adj.first && instance_graph[i].size() > 1 && instance_graph[adj.first].size() > 1) {
 						edge_pool.push_back({ i, adj.first });
 					}
 				}
