@@ -190,9 +190,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
-					ThreadPool pool_dynamic(thread_num);
-					std::vector<std::future<int>> results_dynamic;
-
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -203,6 +200,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "2014+2019 k " << k << endl;
+
+						ThreadPool pool_dynamic(thread_num);
+						std::vector<std::future<int>> results_dynamic;
 
 						auto selected_edge = selected_edges[k];
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
@@ -238,9 +238,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
-					ThreadPool pool_dynamic(thread_num);
-					std::vector<std::future<int>> results_dynamic;
-
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -251,6 +248,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "2021DE2021IN k " << k << endl;
+
+						ThreadPool pool_dynamic(thread_num);
+						std::vector<std::future<int>> results_dynamic;
 
 						auto selected_edge = selected_edges[k];
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
@@ -302,9 +302,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
-					ThreadPool pool_dynamic(thread_num);
-					std::vector<std::future<int>> results_dynamic;
-
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -320,6 +317,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "new k " << k << endl;
+
+						ThreadPool pool_dynamic(thread_num);
+						std::vector<std::future<int>> results_dynamic;
 
 						auto selected_edge = selected_edges[k];
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
@@ -566,9 +566,6 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
-					ThreadPool pool_dynamic(thread_num);
-					std::vector<std::future<int>> results_dynamic;
-
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -579,6 +576,9 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "2014+2019 k " << k << endl;
+
+						ThreadPool pool_dynamic(thread_num);
+						std::vector<std::future<int>> results_dynamic;
 
 						pair<int, int> selected_edge = selected_edges[k];
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
@@ -616,9 +616,6 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
-					ThreadPool pool_dynamic(thread_num);
-					std::vector<std::future<int>> results_dynamic;
-
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -629,6 +626,9 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "2021DE2021IN k " << k << endl;
+
+						ThreadPool pool_dynamic(thread_num);
+						std::vector<std::future<int>> results_dynamic;
 
 						pair<int, int> selected_edge = selected_edges[k];
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
@@ -682,9 +682,6 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
-					ThreadPool pool_dynamic(thread_num);
-					std::vector<std::future<int>> results_dynamic;
-
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm;
@@ -695,6 +692,9 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "new k " << k << endl;
+
+						ThreadPool pool_dynamic(thread_num);
+						std::vector<std::future<int>> results_dynamic;
 
 						pair<int, int> selected_edge = selected_edges[k];
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
