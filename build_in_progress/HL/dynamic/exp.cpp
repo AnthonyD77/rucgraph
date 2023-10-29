@@ -28,8 +28,7 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 
 void generate_L_PPR() {
 
-	vector<string> data_names = { //"astro", "condmat", "github", "google", "youtube", "skitter" 
-	"gnutella" };
+	vector<string> data_names = { "amazon", "book" };
 	string path = "dynamicHL//";
 	int thread_num = 50;
 	ThreadPool pool_dynamic(thread_num);
@@ -115,7 +114,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		}
 		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
-		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial, mm;
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
 		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
 		string file_name = "exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv";
@@ -135,7 +134,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		/*mixed*/
 		if (1) {
 			double precision = std::pow(10, 3);
-			int div = 30;
+			int div = 20;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -195,7 +194,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
-					mm = mm_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					for (int q = 0; q < div; q++) {
@@ -240,7 +239,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
-					mm = mm_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					for (int q = 0; q < div; q++) {
@@ -300,7 +299,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
-					mm = mm_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					if (j == 0) {
@@ -395,7 +394,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					}
 
 					instance_graph = instance_graph_initial;
-					mm = mm_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					ThreadPool pool_dynamic(thread_num);
@@ -504,7 +503,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 		}
 		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
-		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial, mm;
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
 		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
 		string file_name = "exp_" + data_name + "_T_" + to_string(thread_num) + "_DeleteInsert_" + weight_type + ".csv";
@@ -521,7 +520,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 		/*mixed*/
 		if (1) {
 			double dummy_ec = 1e4, de_ec = 10;
-			int div = 30;
+			int div = 20;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -563,7 +562,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
-					mm = mm_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					for (int q = 0; q < div; q++) {
@@ -610,7 +609,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
-					mm = mm_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					for (int q = 0; q < div; q++) {
@@ -672,7 +671,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 					cout << "initialize L PPR" << endl;
 					instance_graph = instance_graph_initial;
-					mm = mm_initial;
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					for (int q = 0; q < div; q++) {
@@ -1400,7 +1399,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 	srand(time(NULL)); //  seed random number generator
 
-	exp();
+	generate_L_PPR();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
