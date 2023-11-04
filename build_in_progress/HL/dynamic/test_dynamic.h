@@ -417,33 +417,6 @@ void PLL_PPR_example() {
 		mm.print_PPR();
 	}
 
-
-	/*full incorrect*/
-	if (0) {
-
-		graph_v_of_v_idealID_add_edge(ideal_g, 1, 0, 0.5); // decrease weight
-		WeightDecrease2021(ideal_g, mm, 1, 0, 4, 0.5, pool_dynamic, results_dynamic);
-
-		cout << 1 << endl;
-		mm.print_L();
-		mm.print_PPR();
-
-		graph_v_of_v_idealID_add_edge(ideal_g, 1, 2, 5); // decrease weight
-		WeightDecrease2021(ideal_g, mm, 1, 2, 6, 5, pool_dynamic, results_dynamic);
-
-		cout << 2 << endl;
-		mm.print_L();
-		mm.print_PPR();
-
-		graph_v_of_v_idealID_add_edge(ideal_g, 0, 1, 4); // increase weight
-		WeightIncreaseMaintenance_improv(ideal_g, mm, 0, 1, 0.5, 4, pool_dynamic, results_dynamic);
-
-		cout << 3 << endl;
-		mm.print_L();
-		mm.print_PPR();
-	}
-
-
 	/*DE*/
 	if (0) {
 		graph_v_of_v_idealID_add_edge(ideal_g, 0, 3, 3); // decrease weight
@@ -451,7 +424,6 @@ void PLL_PPR_example() {
 		mm.print_L();
 		mm.print_PPR();
 	}
-
 
 	/*IN*/
 	if (0) {
