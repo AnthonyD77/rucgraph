@@ -430,9 +430,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					mm.clear_labels();
 					graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
 					begin = std::chrono::high_resolution_clock::now();
-					PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm);
-					clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
-					clean_PPR(instance_graph, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+					//PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm);
+					//clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+					//clean_PPR(instance_graph, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
 					rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
 
