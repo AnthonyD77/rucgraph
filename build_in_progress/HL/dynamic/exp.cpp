@@ -340,6 +340,19 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 				cout << "step 4" << endl;
 
+				ofstream outputFile2;
+				outputFile2.precision(6);
+				outputFile2.setf(ios::fixed);
+				outputFile2.setf(ios::showpoint);
+				outputFile2.open("temp_" + file_name);
+				for (int k = 0; k < half_change_times; k++) {
+					outputFile2 << _2014DE_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _newDE_time[k] << "," << _newDE_query_times[k] << "," << _newDE_time[k] / _2021DE_time[k] << "," <<
+						_2019IN_time[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _newIN_time[k] / _2021IN_time[k] << "," <<
+						_20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << "," <<
+						L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
+						L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << endl;
+				}
+
 				if (1) {
 					int total_change_times = 1e4;
 
