@@ -407,7 +407,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					}
 
 					instance_graph = instance_graph_initial;
-					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
 					ThreadPool pool_dynamic(thread_num);
@@ -419,39 +418,39 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
 						if (k % 2 == 0) { // increase
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
-							WeightIncreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							WeightIncreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
 						}
 						else {
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
-							WeightDecreaseMaintenance_improv(instance_graph, mm, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+							WeightDecreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
 						}
 					}
 
-					L_bit_size_afterM1 = mm.compute_L_bit_size();
-					PPR_bit_size_afterM1 = mm.compute_PPR_bit_size();
+					L_bit_size_afterM1 = mm_initial.compute_L_bit_size();
+					PPR_bit_size_afterM1 = mm_initial.compute_PPR_bit_size();
 
 					cout << "step 5" << endl;
 
 					auto begin = std::chrono::high_resolution_clock::now();
-					clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+					clean_L_dynamic(mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
 					cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-					L_bit_size_afterClean1 = mm.compute_L_bit_size();
+					L_bit_size_afterClean1 = mm_initial.compute_L_bit_size();
 
 					cout << "step 6" << endl;
 
 					begin = std::chrono::high_resolution_clock::now();
-					clean_PPR(instance_graph, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
 					cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-					PPR_bit_size_afterClean1 = mm.compute_PPR_bit_size();
+					PPR_bit_size_afterClean1 = mm_initial.compute_PPR_bit_size();
 
 					cout << "step 7" << endl;
 
-					mm.clear_labels();
+					mm_initial.clear_labels();
 					graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
 					begin = std::chrono::high_resolution_clock::now();
-					//PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm);
-					//clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
-					//clean_PPR(instance_graph, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+					//PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
+					//clean_L_dynamic(mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
+					//clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
 					rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 
 					cout << "step 8" << endl;
