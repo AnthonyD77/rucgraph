@@ -73,24 +73,25 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, ThreadP
 						Lv_final.push_back(Lv[i]);
 						T[Lv[i].vertex] = Lv[i].distance;
 					}
-					else {
-						if (min_dis_v != u) {
-							mtx_5952[v].lock();
-							PPR_insert(PPR, v, min_dis_v, u);
-							mtx_5952[v].unlock();
-						}
-						if (min_dis_v != v) {
-							mtx_5952[u].lock();
-							PPR_insert(PPR, u, min_dis_v, v);
-							mtx_5952[u].unlock();
-						}
-					}
+					//else { // with the following clean_PPR, this is not required (otherwise there will be errors)
+					//	if (min_dis_v != u) {
+					//		mtx_5952[v].lock();
+					//		PPR_insert(PPR, v, min_dis_v, u);
+					//		mtx_5952[v].unlock();
+					//	}
+					//	if (min_dis_v != v) {
+					//		mtx_5952[u].lock();
+					//		PPR_insert(PPR, u, min_dis_v, v);
+					//		mtx_5952[u].unlock();
+					//	}
+					//}
 				}
 
 				for (auto label : Lv_final) {
 					T[label.vertex] = std::numeric_limits<weightTYPE>::max();
 				}
 
+				vector<two_hop_label_v1>(Lv_final).swap(Lv_final);
 				mtx_595[v].lock();
 				vector<two_hop_label_v1>(Lv_final).swap(L[v]);
 				mtx_595[v].unlock();
