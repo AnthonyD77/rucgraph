@@ -302,11 +302,6 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm = mm_initial;
 					initialize_global_values_dynamic(V, thread_num);
 
-					if (j == 0) {
-						L_bit_size_initial = mm.compute_L_bit_size();
-						PPR_bit_size_initial = mm.compute_PPR_bit_size();
-					}
-
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "new k " << k << endl;
@@ -439,6 +434,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 				instance_graph = instance_graph_initial;
 				initialize_global_values_dynamic(V, thread_num);
+
+				L_bit_size_initial = mm_initial.compute_L_bit_size();
+				PPR_bit_size_initial = mm_initial.compute_PPR_bit_size();
 
 				for (int j = 0; j < total_change_times / div; j++) {
 					ThreadPool pool_dynamic(thread_num);
