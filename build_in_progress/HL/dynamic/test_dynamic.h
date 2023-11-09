@@ -330,7 +330,7 @@ void test_dynamic() {
 		/*dynamic maintenance*/
 		ThreadPool pool_dynamic(thread_num);
 		std::vector<std::future<int>> results_dynamic;
-		clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+		clean_L_dynamic(mm.L, mm.PPR, thread_num);
 		clean_PPR(ideal_g, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
 		initialize_global_values_dynamic(V, thread_num);
 		graph_change_and_label_maintenance(ideal_g, instance_graph, mm, V, weightIncrease_time, weightDecrease_time, weightChange_ratio, thread_num, avg_maintain_time);
