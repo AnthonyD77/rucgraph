@@ -440,20 +440,22 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				instance_graph = instance_graph_initial;
 				initialize_global_values_dynamic(V, thread_num);
 
-				ThreadPool pool_dynamic(thread_num);
-				std::vector<std::future<int>> results_dynamic;
-
-				for (int k = 0; k < total_change_times; k++) {
-					cout << "new large k " << k << endl;
-					auto selected_edge = selected_edges[k];
-					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
-					if (k % 2 == 0) { // increase
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
-						WeightIncreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
-					}
-					else {
-						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
-						WeightDecreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+				for (int j = 0; j < total_change_times / div; j++) {
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
+					for (int q = 0; q < div; q++) {
+						int k = j * div + q;
+						cout << "new large k " << k << endl;
+						auto selected_edge = selected_edges[k];
+						double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
+						if (k % 2 == 0) { // increase
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
+							WeightIncreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+						}
+						else {
+							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
+							WeightDecreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+						}
 					}
 				}
 
@@ -463,14 +465,14 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				cout << "step 5" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
-				clean_L_dynamic(mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
+				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				L_bit_size_afterClean1 = mm_initial.compute_L_bit_size();
 
 				cout << "step 6" << endl;
 
 				begin = std::chrono::high_resolution_clock::now();
-				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
+				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				PPR_bit_size_afterClean1 = mm_initial.compute_PPR_bit_size();
 
@@ -480,8 +482,8 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
 				begin = std::chrono::high_resolution_clock::now();
 				//PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
-				//clean_L_dynamic(mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
-				//clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, pool_dynamic, results_dynamic, thread_num);
+				//clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
+				//clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 
 				cout << "step 8" << endl;
