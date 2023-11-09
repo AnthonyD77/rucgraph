@@ -123,7 +123,7 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, int thr
 	int div = 1e3;
 	for (int jj = 0; jj < N / div; jj++) { // to save RAM of ThreadPool
 
-		cout << "initialize ThreadPool " << jj << endl;
+		cout << "initialize clean_L_dynamic ThreadPool " << jj << endl;
 		ThreadPool pool_dynamic(thread_num);
 		std::vector<std::future<int>> results_dynamic;
 
@@ -363,7 +363,7 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 	int div = 1e3;
 	for (int jj = 0; jj < N / div; jj++) { // to save RAM of ThreadPool
 
-		cout << "initialize ThreadPool " << jj << endl;
+		cout << "initialize clean_PPR ThreadPool " << jj << endl;
 		ThreadPool pool_dynamic(thread_num);
 		std::vector<std::future<int>> results_dynamic;
 
