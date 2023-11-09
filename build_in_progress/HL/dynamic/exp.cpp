@@ -345,13 +345,42 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				outputFile2.setf(ios::fixed);
 				outputFile2.setf(ios::showpoint);
 				outputFile2.open("temp_" + file_name);
+				outputFile2 << "2014DE_time,2021DE_time,2021DE_query_times,newDE_time,newDE_query_times,DE_ratio,2019IN_time,2021IN_time,2021IN_query_times,newIN_time,newIN_query_times,IN_ratio," <<
+					"2014+2019_time,2021DE2021IN_time,2021DEnewIN_time,newDE2021IN_time,newDEnewIN_time," <<
+					"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM1,PPR_bit_size_afterM1,L_bit_size_afterClean1,PPR_bit_size_afterClean1,cleanL_time1,cleanPPR_time1,rege_time1" << endl;
+				double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0, avg_DEratio = 0, avg_INratio = 0,
+					avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0,
+					avg_20142019_time = 0, avg_2021DE2021IN_time = 0, avg_2021DEnewIN_time = 0, avg_newDE2021IN_time = 0, avg_newDEnewIN_time = 0;
 				for (int k = 0; k < half_change_times; k++) {
 					outputFile2 << _2014DE_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _newDE_time[k] << "," << _newDE_query_times[k] << "," << _newDE_time[k] / _2021DE_time[k] << "," <<
 						_2019IN_time[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _newIN_time[k] / _2021IN_time[k] << "," <<
 						_20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << "," <<
 						L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
 						L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << endl;
+					avg_2014DE_time += _2014DE_time[k] / half_change_times;
+					avg_2019IN_time += _2019IN_time[k] / half_change_times;
+					avg_2021DE_time += _2021DE_time[k] / half_change_times;
+					avg_2021DE_query_times += _2021DE_query_times[k] / half_change_times;
+					avg_2021IN_time += _2021IN_time[k] / half_change_times;
+					avg_2021IN_query_times += _2021IN_query_times[k] / half_change_times;
+					avg_newDE_time += _newDE_time[k] / half_change_times;
+					avg_newDE_query_times += _newDE_query_times[k] / half_change_times;
+					avg_newIN_time += _newIN_time[k] / half_change_times;
+					avg_newIN_query_times += _newIN_query_times[k] / half_change_times;
+					avg_20142019_time += _20142019_time[k] / half_change_times;
+					avg_2021DE2021IN_time += _2021DE2021IN_time[k] / half_change_times;
+					avg_2021DEnewIN_time += _2021DEnewIN_time[k] / half_change_times;
+					avg_newDE2021IN_time += _newDE2021IN_time[k] / half_change_times;
+					avg_newDEnewIN_time += _newDEnewIN_time[k] / half_change_times;
+					avg_DEratio += _newDE_time[k] / _2021DE_time[k] / half_change_times;
+					avg_INratio += _newIN_time[k] / _2021IN_time[k] / half_change_times;
 				}
+				outputFile2 << avg_2014DE_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_newDE_time << "," << avg_newDE_query_times << "," << avg_DEratio << "," <<
+					avg_2019IN_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_INratio << "," <<
+					avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << "," <<
+					L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
+					L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << endl;
+				outputFile2.close(); // without this, multiple files cannot be successfully created
 
 				if (1) {
 					int total_change_times = 1e4;
