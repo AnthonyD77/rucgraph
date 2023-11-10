@@ -10,7 +10,10 @@ there are imbalances between workloads of vectors of vertices, and most threads 
 */
 
 
-/*clean L*/
+/*
+clean L
+下面的代码貌似因为内存碎片化导致L占用的内存越来越多
+*/
 
 vector<vector<double>> T_clean_L_dynamic;
 queue<int> Qid_clean_PPR;
