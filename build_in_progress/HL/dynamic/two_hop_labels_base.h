@@ -91,7 +91,7 @@ public:
 		long long int size = 0;
 		for (auto& item1 : PPR) {
 			for (auto& item2 : item1) {
-				size = size + (item2.second.size() + 1) * sizeof(int);
+				size = size + (item2.second.size() + 1) * sizeof(int); // + 1 ¶ÔÓ¦ PPR[v,u]µÄu
 			}
 		}
 		return size;

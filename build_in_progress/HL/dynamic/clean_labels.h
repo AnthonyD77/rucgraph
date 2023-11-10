@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <build_in_progress/HL/dynamic/two_hop_labels_base.h>
-
+#include <text_mining/binary_save_read_vector_of_vectors.h>
 
 /*
 in the following codes, it is faster to make each vertex a task in the thread pool, not a fixed vector of vertices as a task.
@@ -129,7 +129,139 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, int thr
 	}	
 }
 
+void clean_L_dynamic_with_SaveRead(vector<vector<two_hop_label_v1>>& L, int thread_num) {
 
+	int N = L.size();
+
+	std::string path = "tempL.bin";
+	std::ofstream FILE(path, std::ios::out | std::ofstream::binary);
+	// Store size of the outer vector
+	FILE.write(reinterpret_cast<const char*>(&N), sizeof(N));
+
+	vector<vector<double>>().swap(T_clean_L_dynamic);
+	T_clean_L_dynamic.resize(thread_num);
+	queue<int>().swap(Qid_clean_PPR);
+	for (int i = 0; i < thread_num; i++) {
+		T_clean_L_dynamic[i].resize(N, std::numeric_limits<weightTYPE>::max());
+		Qid_clean_PPR.push(i);
+	}
+
+	int div = 1e3;
+	if (N < div) {
+		div = N;
+	}
+	for (int jj = 0; jj < N / div; jj++) { // to save RAM of ThreadPool
+
+		cout << "initialize clean_L_dynamic ThreadPool " << jj << endl;
+		ThreadPool pool_dynamic(thread_num);
+		std::vector<std::future<int>> results_dynamic;
+
+		for (int q = 0; q < div; q++) {
+			int v = jj * div + q;
+
+			results_dynamic.emplace_back(
+				pool_dynamic.enqueue([v, &L] { // pass const type value j to thread; [] can be empty
+
+					mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+					int used_id = Qid_clean_PPR.front();
+					Qid_clean_PPR.pop();
+					mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+
+					vector<two_hop_label_v1> Lv_final;
+
+					mtx_595[v].lock_shared();
+					vector<two_hop_label_v1> Lv = L[v];
+					mtx_595[v].unlock_shared();
+
+					auto& T = T_clean_L_dynamic[used_id];
+
+					int size = Lv.size();
+					for (int i = 0; i < size; i++) {
+						int u = Lv[i].vertex;
+						if (Lv[i].distance == std::numeric_limits<weightTYPE>::max()) {
+							continue;
+						}
+						if (v == u) {
+							Lv_final.push_back(Lv[i]);
+							T[Lv[i].vertex] = Lv[i].distance;
+							continue;
+						}
+						mtx_595[u].lock_shared();
+						auto Lu = L[u];
+						mtx_595[u].unlock_shared();
+
+						double min_dis = std::numeric_limits<weightTYPE>::max();
+						int min_dis_v;
+						for (auto label : Lu) {
+							double query_dis = label.distance + T[label.vertex];
+							if (query_dis < min_dis) {
+								min_dis = query_dis;
+								min_dis_v = label.vertex;
+							}
+						}
+
+						if (min_dis > Lv[i].distance + 1e-5) {
+							Lv_final.push_back(Lv[i]);
+							T[Lv[i].vertex] = Lv[i].distance;
+						}
+						//else { // with the following clean_PPR, this is not required (otherwise there will be errors)
+						//	if (min_dis_v != u) {
+						//		mtx_5952[v].lock();
+						//		PPR_insert(PPR, v, min_dis_v, u);
+						//		mtx_5952[v].unlock();
+						//	}
+						//	if (min_dis_v != v) {
+						//		mtx_5952[u].lock();
+						//		PPR_insert(PPR, u, min_dis_v, v);
+						//		mtx_5952[u].unlock();
+						//	}
+						//}
+					}
+
+					for (auto label : Lv_final) {
+						T[label.vertex] = std::numeric_limits<weightTYPE>::max();
+					}
+
+					mtx_595[v].lock();
+					L[v] = Lv_final;
+					L[v].shrink_to_fit();
+					//if (L[v].size() != L[v].capacity()) {
+					//	cout << "ssssssssssssss" << endl;
+					//	getchar();
+					//}
+					mtx_595[v].unlock();
+
+					mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+					Qid_clean_PPR.push(used_id);
+					mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+
+					return 1; // return to results; the return type must be the same with results
+					}));
+		}
+
+		for (auto&& result : results_dynamic)
+			result.get(); // all threads finish here
+		results_dynamic.clear();
+
+		for (int q = 0; q < div; q++) {
+			int i = jj * div + q;
+			auto& v = L[i];
+			// Store its size
+			int size = v.size();
+			FILE.write(reinterpret_cast<const char*>(&size), sizeof(size));
+			if (size == 0)
+			{
+				continue;
+			}
+			// Store its contents
+			FILE.write(reinterpret_cast<const char*>(&v[0]), v.size() * sizeof(two_hop_label_v1));
+			vector<two_hop_label_v1>().swap(L[i]);
+		}
+	}
+	FILE.close();
+	vector<vector<two_hop_label_v1>>().swap(L);
+	binary_read_vector_of_vectors(path, L);
+}
 
 /*
 clean PPR
