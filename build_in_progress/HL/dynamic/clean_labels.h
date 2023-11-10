@@ -103,9 +103,9 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, int thr
 						T[label.vertex] = std::numeric_limits<weightTYPE>::max();
 					}
 
-					vector<two_hop_label_v1>(Lv_final).swap(Lv_final);
 					mtx_595[v].lock();
-					vector<two_hop_label_v1>(Lv_final).swap(L[v]);
+					L[v] = Lv_final;
+					L[v].shrink_to_fit();
 					//if (L[v].size() != L[v].capacity()) {
 					//	cout << "ssssssssssssss" << endl;
 					//	getchar();
