@@ -2,6 +2,7 @@
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 #include <build_in_progress/HL/batch/WeightChangeMaintenance_batch_base.h>
 #include <algorithm>
+#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv_multiThread.h>
 
 bool Sort_Affected_Label(const affected_label& al1, const affected_label& al2) {
     if (al1.second != al2.second) {
