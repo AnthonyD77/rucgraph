@@ -28,6 +28,9 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, int thr
 	}
 
 	int div = 1e3;
+	if (N < div) {
+		div = N;
+	}
 	for (int jj = 0; jj < N / div; jj++) { // to save RAM of ThreadPool
 
 		cout << "initialize clean_L_dynamic ThreadPool " << jj << endl;
@@ -103,6 +106,10 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, int thr
 					vector<two_hop_label_v1>(Lv_final).swap(Lv_final);
 					mtx_595[v].lock();
 					vector<two_hop_label_v1>(Lv_final).swap(L[v]);
+					//if (L[v].size() != L[v].capacity()) {
+					//	cout << "ssssssssssssss" << endl;
+					//	getchar();
+					//}
 					mtx_595[v].unlock();
 
 					mtx_595[max_N_ID_for_mtx_595 - 1].lock();
@@ -268,6 +275,9 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 	}
 
 	int div = 1e3;
+	if (N < div) {
+		div = N;
+	}
 	for (int jj = 0; jj < N / div; jj++) { // to save RAM of ThreadPool
 
 		cout << "initialize clean_PPR ThreadPool " << jj << endl;

@@ -260,8 +260,8 @@ void graph_change_and_label_maintenance(graph_v_of_v_idealID& ideal_g, graph_has
 			avg_maintain_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
 		}
 
-		//clean_L_dynamic(mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
-		//clean_PPR(ideal_g, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
+		clean_L_dynamic(mm.L, mm.PPR, thread_num);
+		clean_PPR(ideal_g, mm.L, mm.PPR, pool_dynamic, results_dynamic, thread_num);
 	}
 }
 
