@@ -134,7 +134,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		/*mixed*/
 		if (1) {
 			double precision = std::pow(10, 3);
-			int div = 10;
+			int div = 4;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -568,7 +568,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 		/*mixed*/
 		if (1) {
 			double dummy_ec = 1e4, de_ec = 10;
-			int div = 10;
+			int div = 4;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
