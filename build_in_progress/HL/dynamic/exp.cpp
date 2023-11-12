@@ -134,7 +134,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		/*mixed*/
 		if (1) {
 			double precision = std::pow(10, 3);
-			int div = 4;
+			int div = 50;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -187,6 +187,13 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			}
 
 			cout << "step 1" << endl;
+
+			if (data_name == "hyves") {
+				div = 10;
+			}
+			else if (data_name == "skitter") {
+				div = 6;
+			}
 
 			/*2014+2019*/
 			if (1) {
@@ -289,6 +296,10 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 						}
 					}
 				}
+			}
+
+			if (data_name == "hyves" || data_name == "skitter") {
+				div = 50;
 			}
 
 			cout << "step 3" << endl;
@@ -568,7 +579,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 		/*mixed*/
 		if (1) {
 			double dummy_ec = 1e4, de_ec = 10;
-			int div = 4;
+			int div = 50;
 
 			instance_graph = instance_graph_initial;
 			int V = instance_graph.size();
@@ -603,6 +614,13 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			}
 
 			cout << "step 1" << endl;
+
+			if (data_name == "hyves") {
+				div = 10;
+			}
+			else if (data_name == "skitter") {
+				div = 6;
+			}
 
 			/*2014+2019*/
 			if (1) {
@@ -712,6 +730,10 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 			}
 
 			cout << "step 3" << endl;
+
+			if (data_name == "hyves" || data_name == "skitter") {
+				div = 50;
+			}
 
 			/*new*/
 			if (1) {
