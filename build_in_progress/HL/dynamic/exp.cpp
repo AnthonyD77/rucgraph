@@ -99,6 +99,10 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 	for (int type = 0; type < 2; type++) {
 
+		//if (data_name == "skitter" && type == 0) {
+		//	continue;
+		//}
+
 		graph_v_of_v_idealID instance_graph;
 		vector<_edge> selected_edges;
 
@@ -474,7 +478,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				cout << "step 5" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
-				clean_L_dynamic_with_SaveRead(mm_initial.L, thread_num);
+				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				L_bit_size_afterClean1 = mm_initial.compute_L_bit_size();
 
@@ -490,9 +494,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				mm_initial.clear_labels();
 				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
 				begin = std::chrono::high_resolution_clock::now();
-				//PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
-				//clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
-				//clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
+				PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
+				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
+				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 
 				cout << "step 8" << endl;
