@@ -192,10 +192,10 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 			cout << "step 1" << endl;
 
-			if (data_name == "hyves") {
+			if (data_name == "hyves" && type == 0) {
 				div = 10;
 			}
-			else if (data_name == "skitter") {
+			else if (data_name == "skitter" && type == 0) {
 				div = 6;
 			}
 
@@ -302,9 +302,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				}
 			}
 
-			if (data_name == "hyves" || data_name == "skitter") {
-				div = 50;
-			}
+			div = 50;
 
 			cout << "step 3" << endl;
 
@@ -619,10 +617,10 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			cout << "step 1" << endl;
 
-			if (data_name == "hyves") {
+			if (data_name == "hyves" && type == 0) {
 				div = 10;
 			}
-			else if (data_name == "skitter") {
+			else if (data_name == "skitter" && type == 0) {
 				div = 6;
 			}
 
@@ -735,9 +733,7 @@ void exp_element2(string data_name, int change_times, double max_Maintain_time, 
 
 			cout << "step 3" << endl;
 
-			if (data_name == "hyves" || data_name == "skitter") {
-				div = 50;
-			}
+			div = 50;
 
 			/*new*/
 			if (1) {
