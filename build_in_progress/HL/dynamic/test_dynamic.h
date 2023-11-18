@@ -403,17 +403,31 @@ void PLL_PPR_example() {
 		mm.print_L();
 		mm.print_PPR();
 
+		graph_v_of_v_idealID_add_edge(ideal_g, 0, 5, 3); // decrease weight
+		WeightDecrease2021(ideal_g, mm, 0, 5, 9, 3, pool_dynamic, results_dynamic);
+
+		cout << 4 << endl;
+		mm.print_L();
+		mm.print_PPR();
+
 		graph_v_of_v_idealID_add_edge(ideal_g, 4, 5, 1); // decrease weight
 		WeightDecrease2021(ideal_g, mm, 4, 5, 2, 1, pool_dynamic, results_dynamic);
 
-		cout << 4 << endl;
+		cout << 5 << endl;
+		mm.print_L();
+		mm.print_PPR();
+
+		graph_v_of_v_idealID_add_edge(ideal_g, 0, 5, 9); // increase weight
+		WeightIncreaseMaintenance_improv(ideal_g, mm, 0, 5, 3, 9, pool_dynamic, results_dynamic);
+
+		cout << 6 << endl;
 		mm.print_L();
 		mm.print_PPR();
 
 		graph_v_of_v_idealID_add_edge(ideal_g, 4, 5, 3); // increase weight
 		WeightIncreaseMaintenance_improv(ideal_g, mm, 4, 5, 1, 3, pool_dynamic, results_dynamic);
 
-		cout << 5 << endl;
+		cout << 7 << endl;
 		mm.print_L();
 		mm.print_PPR();
 	}
