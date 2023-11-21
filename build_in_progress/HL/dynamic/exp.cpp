@@ -127,13 +127,14 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 
 		outputFile << "2014DE_time,2021DE_time,2021DE_query_times,newDE_time,newDE_query_times,DE_ratio,2019IN_time,2021IN_time,2021IN_query_times,newIN_time,newIN_query_times,IN_ratio," <<
 			"2014+2019_time,2021DE2021IN_time,2021DEnewIN_time,newDE2021IN_time,newDEnewIN_time," <<
-			"L_bit_size_initial(1),PPR_bit_size_initial,L_bit_size_afterM1,PPR_bit_size_afterM1,L_bit_size_afterClean1,PPR_bit_size_afterClean1,cleanL_time1,cleanPPR_time1,rege_time1" << endl;
+			"L_bit_size_0(1),PPR_size_0,L_size_1,PPR_size_1,L_size_1clean,PPR_size_1clean,cleanL_time1,cleanPPR_time1,rege_time1,L_size_2,PPR_size_2,L_size_2clean,PPR_size_2clean,cleanL_time2,cleanPPR_time2,rege_time2" << endl;
 
 		int half_change_times = change_times / 2;
 		vector<double> _2014DE_time(half_change_times, 0), _2019IN_time(half_change_times, 0), _2021DE_time(half_change_times, 0), _2021DE_query_times(half_change_times, 0), _2021IN_time(half_change_times, 0), _2021IN_query_times(half_change_times, 0),
 			_newDE_time(half_change_times, 0), _newDE_query_times(half_change_times, 0), _newIN_time(half_change_times, 0), _newIN_query_times(half_change_times, 0),
 			_20142019_time(half_change_times, 0), _2021DE2021IN_time(half_change_times, 0), _2021DEnewIN_time(half_change_times, 0), _newDE2021IN_time(half_change_times, 0), _newDEnewIN_time(half_change_times, 0);
-		double L_bit_size_initial = 0, PPR_bit_size_initial = 0, L_bit_size_afterM1 = 0, PPR_bit_size_afterM1 = 0, L_bit_size_afterClean1 = 0, PPR_bit_size_afterClean1 = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, rege_time1 = 0;
+		double L_size_0 = 0, PPR_size_0 = 0, L_size_1 = 0, PPR_size_1 = 0, L_size_1clean = 0, PPR_size_1clean = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, rege_time1 = 0,
+			L_size_2 = 0, PPR_size_2 = 0, L_size_2clean = 0, PPR_size_2clean = 0, cleanL_time2 = 0, cleanPPR_time2 = 0, rege_time2 = 0;
 
 		/*mixed*/
 		if (1) {
@@ -200,7 +201,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			}
 
 			/*2014+2019*/
-			if (1) {
+			if (0) {
 				for (int j = 0; j < change_times / div; j++) {
 
 					cout << "initialize L PPR" << endl;
@@ -245,7 +246,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			cout << "step 2" << endl;
 
 			/*2021DE2021IN*/
-			if (1) {
+			if (0) {
 				for (int j = 0; j < change_times / div; j++) {
 
 					cout << "initialize L PPR" << endl;
@@ -307,7 +308,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			cout << "step 3" << endl;
 
 			/*new*/
-			if (1) {
+			if (0) {
 				for (int j = 0; j < change_times / div; j++) {
 
 					cout << "initialize L PPR" << endl;
@@ -362,9 +363,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				for (int k = 0; k < half_change_times; k++) {
 					outputFile2 << _2014DE_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _newDE_time[k] << "," << _newDE_query_times[k] << "," << _newDE_time[k] / _2021DE_time[k] << "," <<
 						_2019IN_time[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _newIN_time[k] / _2021IN_time[k] << "," <<
-						_20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << "," <<
-						L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
-						L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << endl;
+						_20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << endl;
 					avg_2014DE_time += _2014DE_time[k] / half_change_times;
 					avg_2019IN_time += _2019IN_time[k] / half_change_times;
 					avg_2021DE_time += _2021DE_time[k] / half_change_times;
@@ -385,20 +384,18 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				}
 				outputFile2 << avg_2014DE_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_newDE_time << "," << avg_newDE_query_times << "," << avg_DEratio << "," <<
 					avg_2019IN_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_INratio << "," <<
-					avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << "," <<
-					L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
-					L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << endl;
+					avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << endl;
 				outputFile2.close(); // without this, multiple files cannot be successfully created	
 			}
 
 			/*new large*/
 			if (1) {
-				int total_change_times = 1e4;
+				int total_change_times1 = 1e3, total_change_times2 = 5e3;
 
 				/*total_change_times-change_times changes*/
 				instance_graph = instance_graph_initial;
 				vector<_edge>().swap(selected_edges);
-				int left_change_times = total_change_times;
+				int left_change_times = total_change_times2;
 				while (left_change_times) {
 					vector<pair<int, int>> edge_pool;
 					for (int i = 0; i < V; i++) {
@@ -448,10 +445,10 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				instance_graph = instance_graph_initial;
 				initialize_global_values_dynamic(V, thread_num);
 
-				L_bit_size_initial = mm_initial.compute_L_bit_size();
-				PPR_bit_size_initial = mm_initial.compute_PPR_bit_size();
+				L_size_0 = mm_initial.compute_L_bit_size();
+				PPR_size_0 = mm_initial.compute_PPR_bit_size();
 
-				for (int j = 0; j < total_change_times / div; j++) {
+				for (int j = 0; j < total_change_times2 / div; j++) {
 					ThreadPool pool_dynamic(thread_num);
 					std::vector<std::future<int>> results_dynamic;
 					for (int q = 0; q < div; q++) {
@@ -467,27 +464,57 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 							graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
 							WeightDecreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
 						}
+
+						if (k == total_change_times1) {
+
+							cout << "step 5" << endl;
+
+							L_size_1 = mm_initial.compute_L_bit_size();
+							PPR_size_1 = mm_initial.compute_PPR_bit_size();
+
+							auto begin = std::chrono::high_resolution_clock::now();
+							clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
+							cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							L_size_1clean = mm_initial.compute_L_bit_size();
+
+							cout << "step 6" << endl;
+
+							begin = std::chrono::high_resolution_clock::now();
+							clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
+							cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							PPR_size_1clean = mm_initial.compute_PPR_bit_size();
+
+							cout << "step 7" << endl;
+
+							mm_initial.clear_labels();
+							graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
+							begin = std::chrono::high_resolution_clock::now();
+							PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
+							clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
+							clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
+							rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+						}
 					}
 				}
 
-				L_bit_size_afterM1 = mm_initial.compute_L_bit_size();
-				PPR_bit_size_afterM1 = mm_initial.compute_PPR_bit_size();
+				cout << "step 8" << endl;
 
-				cout << "step 5" << endl;
+				L_size_2 = mm_initial.compute_L_bit_size();
+				PPR_size_2 = mm_initial.compute_PPR_bit_size();
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
-				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-				L_bit_size_afterClean1 = mm_initial.compute_L_bit_size();
+				cleanL_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				L_size_2clean = mm_initial.compute_L_bit_size();
 
-				cout << "step 6" << endl;
+				cout << "step 9" << endl;
 
 				begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
-				cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-				PPR_bit_size_afterClean1 = mm_initial.compute_PPR_bit_size();
+				cleanPPR_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				PPR_size_2clean = mm_initial.compute_PPR_bit_size();
 
-				cout << "step 7" << endl;
+				cout << "step 10" << endl;
 
 				mm_initial.clear_labels();
 				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
@@ -495,9 +522,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 				PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
-				rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				rege_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 
-				cout << "step 8" << endl;
+				cout << "step 11" << endl;
 			}
 		}
 
@@ -508,8 +535,10 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			outputFile << _2014DE_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _newDE_time[k] << "," << _newDE_query_times[k] << "," << _newDE_time[k] / _2021DE_time[k] << "," <<
 				_2019IN_time[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _newIN_time[k] / _2021IN_time[k] << "," <<
 				_20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << "," <<
-				L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
-				L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << endl;
+				L_size_0 << "," << PPR_size_0 / L_size_0 << "," << L_size_1 / L_size_0 << "," << PPR_size_1 / L_size_0 << "," <<
+				L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
+				L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," << cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << endl;
+
 			avg_2014DE_time += _2014DE_time[k] / half_change_times;
 			avg_2019IN_time += _2019IN_time[k] / half_change_times;
 			avg_2021DE_time += _2021DE_time[k] / half_change_times;
@@ -531,8 +560,9 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 		outputFile << avg_2014DE_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_newDE_time << "," << avg_newDE_query_times << "," << avg_DEratio << "," <<
 			avg_2019IN_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_INratio << "," <<
 			avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << "," <<
-			L_bit_size_initial << "," << PPR_bit_size_initial / L_bit_size_initial << "," << L_bit_size_afterM1 / L_bit_size_initial << "," << PPR_bit_size_afterM1 / L_bit_size_initial << "," <<
-			L_bit_size_afterClean1 / L_bit_size_initial << "," << PPR_bit_size_afterClean1 / L_bit_size_initial << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << endl;
+			L_size_0 << "," << PPR_size_0 / L_size_0 << "," << L_size_1 / L_size_0 << "," << PPR_size_1 / L_size_0 << "," <<
+			L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
+			L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," << cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << endl;
 
 		outputFile.close(); // without this, multiple files cannot be successfully created
 	}
@@ -804,7 +834,7 @@ void exp() {
 		double weightChange_ratio = 0;
 		for (auto data_name : data_names) {
 			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_element2(data_name, change_times, max_Maintain_time, thread_num);
+			//exp_element2(data_name, change_times, max_Maintain_time, thread_num);
 		}
 	}
 }
