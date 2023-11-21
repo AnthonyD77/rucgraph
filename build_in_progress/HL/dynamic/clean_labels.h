@@ -146,7 +146,7 @@ void clean_L_dynamic_with_SaveRead(vector<vector<two_hop_label_v1>>& L, int thre
 		Qid_clean_PPR.push(i);
 	}
 
-	int div = 1e3;
+	int div = 1e4;
 	if (N < div) {
 		div = N;
 	}
@@ -409,7 +409,7 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 		Qid_clean_PPR.push(i);
 	}
 
-	int div = 1e3;
+	int div = 1e4;
 	if (N < div) {
 		div = N;
 	}
