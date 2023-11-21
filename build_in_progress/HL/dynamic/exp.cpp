@@ -493,6 +493,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 							clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 							clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 							rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+							initialize_global_values_dynamic(V, thread_num); // Qid_595 needs to be initialized
 						}
 					}
 				}
