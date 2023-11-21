@@ -30,7 +30,7 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, int thr
 		Qid_clean_PPR.push(i);
 	}
 
-	int div = 1e3;
+	int div = 1e4;
 	if (N < div) {
 		div = N;
 	}
