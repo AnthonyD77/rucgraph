@@ -201,7 +201,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			}
 
 			/*2014+2019*/
-			if (0) {
+			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
 					cout << "initialize L PPR" << endl;
@@ -246,7 +246,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			cout << "step 2" << endl;
 
 			/*2021DE2021IN*/
-			if (0) {
+			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
 					cout << "initialize L PPR" << endl;
@@ -308,7 +308,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 			cout << "step 3" << endl;
 
 			/*new*/
-			if (0) {
+			if (1) {
 				for (int j = 0; j < change_times / div; j++) {
 
 					cout << "initialize L PPR" << endl;
@@ -834,7 +834,7 @@ void exp() {
 		double weightChange_ratio = 0;
 		for (auto data_name : data_names) {
 			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			//exp_element2(data_name, change_times, max_Maintain_time, thread_num);
+			exp_element2(data_name, change_times, max_Maintain_time, thread_num);
 		}
 	}
 }
