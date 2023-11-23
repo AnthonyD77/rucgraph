@@ -564,13 +564,13 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 				L_size_1 = mm_initial.compute_L_bit_size();
 				PPR_size_1 = mm_initial.compute_PPR_bit_size();
 
-				binary_save_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 			}
 
 			/*clean L*/
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 
 				cout << "step 4" << endl;
 
@@ -579,7 +579,7 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				L_size_1clean = mm_initial.compute_L_bit_size();
 
-				binary_save_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
 				cout << "step 5" << endl;
 			}
@@ -587,7 +587,7 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 			/*re-ge PPR*/
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 
 				cout << "step 6" << endl;
 
@@ -613,8 +613,8 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 
 				initialize_global_values_dynamic(V, thread_num); // Qid_595 needs to be initialized
 
-				binary_save_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
-				binary_save_PPR("temp_PPR_" + file_name + ".bin", mm_initial.PPR);
+				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+				binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
 
 				cout << "step 9" << endl;
 			}
@@ -622,8 +622,8 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 			/*changes 2*/
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_PPR("temp_PPR_" + file_name + ".bin", mm_initial.PPR);
-				binary_read_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
+				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 
 				/*total_change_times-change_times changes*/
 				vector<_edge>().swap(selected_edges);
@@ -696,13 +696,13 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 				L_size_2 = mm_initial.compute_L_bit_size();
 				PPR_size_2 = mm_initial.compute_PPR_bit_size();
 
-				binary_save_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 			}
 
 			/*clean L*/
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 
 				cout << "step 8" << endl;
 
@@ -711,7 +711,7 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 				cleanL_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				L_size_2clean = mm_initial.compute_L_bit_size();
 
-				binary_save_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
 				cout << "step 9" << endl;
 			}
@@ -719,7 +719,7 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 			/*re-ge PPR*/
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
+				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 
 				cout << "step 10" << endl;
 
@@ -743,6 +743,9 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 
 				cout << "step 12" << endl;
 			}
+
+			std::remove("temp_L.bin");
+			std::remove("temp_PPR.bin");
 		}
 
 		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0, avg_DEratio = 0, avg_INratio = 0,
