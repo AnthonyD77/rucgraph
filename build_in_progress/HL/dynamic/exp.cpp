@@ -613,7 +613,6 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 
 				initialize_global_values_dynamic(V, thread_num); // Qid_595 needs to be initialized
 
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 				binary_save_vector_of_vectors("temp_L_" + file_name + ".bin", mm_initial.L);
 				binary_save_PPR("temp_PPR_" + file_name + ".bin", mm_initial.PPR);
 
