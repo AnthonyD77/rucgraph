@@ -601,22 +601,46 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 
 			/*re-ge*/
 			if (1) {
-				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
-				auto begin = std::chrono::high_resolution_clock::now();
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
-				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
-				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
-				rege_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+
+				double time_rege = 0, time_cleanL = 0, time_clean_PPR = 0;
+
+				if (1) {
+					graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
+					auto begin = std::chrono::high_resolution_clock::now();
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
+					time_rege = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+				}
 
 				cout << "step 8" << endl;
 
-				initialize_global_values_dynamic(V, thread_num); // Qid_595 needs to be initialized
-
-				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
-				binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
+				if (1) {
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					auto begin = std::chrono::high_resolution_clock::now();
+					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
+					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+				}
 
 				cout << "step 9" << endl;
+
+				if (1) {
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					auto begin = std::chrono::high_resolution_clock::now();
+					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
+					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+					binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
+				}
+
+				rege_time1 = time_rege + time_cleanL + time_clean_PPR; // s
+
+				initialize_global_values_dynamic(V, thread_num); // Qid_595 needs to be initialized
+
+				cout << "step 10" << endl;
 			}
 
 			/*changes 2*/
@@ -704,7 +728,7 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 
-				cout << "step 8" << endl;
+				cout << "step 11" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
@@ -713,7 +737,7 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 
 				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
-				cout << "step 9" << endl;
+				cout << "step 12" << endl;
 			}
 
 			/*re-ge PPR*/
@@ -721,27 +745,54 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 
-				cout << "step 10" << endl;
+				cout << "step 13" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				PPR_size_2clean = mm_initial.compute_PPR_bit_size();
 
-				cout << "step 11" << endl;
+				cout << "step 14" << endl;
 			}
 
 			/*re-ge*/
 			if (1) {
-				graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
-				auto begin = std::chrono::high_resolution_clock::now();
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
-				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
-				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
-				rege_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 
-				cout << "step 12" << endl;
+				double time_rege = 0, time_cleanL = 0, time_clean_PPR = 0;
+
+				if (1) {
+					graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
+					auto begin = std::chrono::high_resolution_clock::now();
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
+					time_rege = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+				}
+
+				cout << "step 15" << endl;
+
+				if (1) {
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					auto begin = std::chrono::high_resolution_clock::now();
+					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
+					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+				}
+
+				cout << "step 16" << endl;
+
+				if (1) {
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					auto begin = std::chrono::high_resolution_clock::now();
+					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
+					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				}
+
+				rege_time2 = time_rege + time_cleanL + time_clean_PPR; // s
+
+				cout << "step 17" << endl;
 			}
 
 			std::remove("temp_L.bin");
