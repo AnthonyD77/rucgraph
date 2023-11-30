@@ -636,6 +636,14 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 					binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
 				}
 
+				/*
+				just parallel PLL_dynamic generates redundant 2-hop labels, and clean_L_dynamic is required to remove redundant 2-hop labels, and
+				clean_PPR is further required to produce the correcponding PPR;
+
+				the strategy of parallelizing PLL with clean_L_dynamic: K. Lakhotia, R. Kannan, Q. Dong, and V. Prasanna, ¡°Planting trees for scalable
+				and efficient canonical hub labeling,¡± Proc. VLDB Endow. 13 (2019).
+				*/
+
 				rege_time1 = time_rege + time_cleanL + time_clean_PPR; // s
 
 				initialize_global_values_dynamic(V, thread_num); // Qid_595 needs to be initialized
