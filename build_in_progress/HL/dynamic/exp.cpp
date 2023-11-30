@@ -790,6 +790,14 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 				}
 
+				/*
+				just parallel PLL_dynamic generates redundant 2-hop labels, and clean_L_dynamic is required to remove redundant 2-hop labels, and 
+				clean_PPR is further required to produce the correcponding PPR;
+
+				the strategy of parallelizing PLL with clean_L_dynamic: K. Lakhotia, R. Kannan, Q. Dong, and V. Prasanna, ¡°Planting trees for scalable 
+				and efficient canonical hub labeling,¡± Proc. VLDB Endow. 13 (2019).
+				*/
+
 				rege_time2 = time_rege + time_cleanL + time_clean_PPR; // s
 
 				cout << "step 17" << endl;
