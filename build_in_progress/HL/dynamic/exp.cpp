@@ -88,7 +88,7 @@ public:
 	double ec;
 };
 
-void exp_element1(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
+void exp_main(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
 
 	ofstream outputFile;
 	outputFile.precision(6);
@@ -429,7 +429,7 @@ void exp_element1(string data_name, double weightChange_ratio, int change_times,
 	}
 }
 
-void exp_element11(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
+void exp_insert_delete(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
 
 	ofstream outputFile;
 	outputFile.precision(6);
@@ -799,10 +799,10 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 				}
 
 				/*
-				just parallel PLL_dynamic generates redundant 2-hop labels, and clean_L_dynamic is required to remove redundant 2-hop labels, and 
+				just parallel PLL_dynamic generates redundant 2-hop labels, and clean_L_dynamic is required to remove redundant 2-hop labels, and
 				clean_PPR is further required to produce the correcponding PPR;
 
-				the strategy of parallelizing PLL with clean_L_dynamic: K. Lakhotia, R. Kannan, Q. Dong, and V. Prasanna, ¡°Planting trees for scalable 
+				the strategy of parallelizing PLL with clean_L_dynamic: K. Lakhotia, R. Kannan, Q. Dong, and V. Prasanna, ¡°Planting trees for scalable
 				and efficient canonical hub labeling,¡± Proc. VLDB Endow. 13 (2019).
 				*/
 
@@ -855,7 +855,7 @@ void exp_element11(string data_name, double weightChange_ratio, int change_times
 	}
 }
 
-void exp_element2(string data_name, int change_times, double max_Maintain_time, int thread_num) {
+void exp_clean(string data_name, int change_times, double max_Maintain_time, int thread_num) {
 
 	ofstream outputFile;
 	outputFile.precision(6);
@@ -1120,12 +1120,133 @@ void exp() {
 	if (1) {
 		double weightChange_ratio = 0;
 		for (auto data_name : data_names) {
-			exp_element1(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_element11(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_element2(data_name, change_times, max_Maintain_time, thread_num);
+			exp_main(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
+			exp_insert_delete(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
+			exp_clean(data_name, change_times, max_Maintain_time, thread_num);
 		}
 	}
 }
+
+
+
+void exp_case() {
+
+	vector<string> data_names = { "condmat", "gnutella" };
+	int change_times = 100, thread_num = 80;
+
+	for (auto data_name : data_names) {
+
+		ofstream outputFile;
+		outputFile.precision(6);
+		outputFile.setf(ios::fixed);
+		outputFile.setf(ios::showpoint);
+
+		string path = "dynamicHL//";
+
+		graph_v_of_v_idealID instance_graph;
+		vector<_edge> selected_edges;
+
+		string weight_type = "Jaccard";
+
+		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
+		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
+		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
+		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
+		string file_name = "exp_case_" + data_name + ".csv";
+		cout << file_name << endl;
+		outputFile.open(file_name);
+
+		outputFile << "change_v1,change_v2,change_w0,change_w1,change_time,query_v1,query_v2,query_time" << endl;
+
+		double change_time, query_v1, query_v2, query_time;
+
+		/*mixed*/
+		if (1) {
+			double precision = std::pow(10, 3);
+			instance_graph = instance_graph_initial;
+			int V = instance_graph.size();
+
+			int left_change_times = change_times;
+			while (left_change_times) {
+				vector<pair<int, int>> edge_pool;
+				for (int i = 0; i < V; i++) {
+					for (auto adj : instance_graph[i]) {
+						if (i < adj.first && adj.second >= 0.1 && adj.second <= 1e4 && instance_graph[i].size() > 1 && instance_graph[adj.first].size() > 1) {
+							edge_pool.push_back({ i, adj.first });
+						}
+					}
+				}
+				boost::range::random_shuffle(edge_pool);
+				for (auto e : edge_pool) {
+					pair<int, int> selected_edge = e;
+					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.first, selected_edge.second);
+					if (left_change_times % 2 == 0) { // first increase
+						boost::random::uniform_int_distribution<> dist{ static_cast<int>(selected_edge_weight * 2 * precision), static_cast<int>(selected_edge_weight * 10 * precision) };
+						double new_ec = dist(boost_random_time_seed) / precision;
+						selected_edges.push_back({ selected_edge.first, selected_edge.second, new_ec });
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // increase weight
+					}
+					else { // then decrease
+						boost::random::uniform_int_distribution<> dist{ static_cast<int>(selected_edge_weight * 0.1 * precision), static_cast<int>(selected_edge_weight * 0.5 * precision) };
+						double new_ec = dist(boost_random_time_seed) / precision;
+						selected_edges.push_back({ selected_edge.first, selected_edge.second, new_ec });
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.first, selected_edge.second, new_ec); // decrease weight
+					}
+					left_change_times--;
+					if (left_change_times == 0) {
+						break;
+					}
+				}
+			}
+
+			cout << "step 1" << endl;
+
+			/*new*/
+			if (1) {
+				initialize_global_values_dynamic(V, thread_num);
+
+				for (int k = 0; k < change_times; k++) {
+
+					ThreadPool pool_dynamic(thread_num);
+					std::vector<std::future<int>> results_dynamic;
+
+					auto selected_edge = selected_edges[k];
+					double selected_edge_weight = graph_v_of_v_idealID_edge_weight(instance_graph, selected_edge.v1, selected_edge.v2);
+
+					if (k % 2 == 0) { // increase
+						auto begin = std::chrono::high_resolution_clock::now();
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec); // increase weight
+						WeightIncreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+						change_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					}
+					else {
+						auto begin = std::chrono::high_resolution_clock::now();
+						graph_v_of_v_idealID_add_edge(instance_graph, selected_edge.v1, selected_edge.v2, selected_edge.ec);
+						WeightDecreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
+						change_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					}
+
+					/*query*/
+					if (1) {
+						boost::random::uniform_int_distribution<> dist{ 0, V - 1 };
+						int query_v1 = dist(boost_random_time_seed), query_v2 = dist(boost_random_time_seed);
+						auto begin = std::chrono::high_resolution_clock::now();
+						double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm_initial.L, query_v1, query_v2);
+						query_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					}
+
+					outputFile << selected_edge.v1 << "," << selected_edge.v2 << "," << selected_edge_weight << "," << selected_edge.ec
+						<< "," << change_time << "," << query_v1 << "," << query_v2 << "," << query_time << endl;
+				}
+			}
+		}
+		outputFile.close(); // without this, multiple files cannot be successfully created
+	}
+}
+
+
+
 
 int main()
 {
@@ -1136,7 +1257,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 	srand(time(NULL)); //  seed random number generator
 
-	exp();
+	exp_case();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
