@@ -1159,7 +1159,7 @@ void exp_case() {
 
 		outputFile << "change_v1,change_v2,change_w0,change_w1,change_time,query_v1,query_v2,query_time" << endl;
 
-		double change_time, query_v1, query_v2, query_time;
+		double change_time = 0, query_v1 = 0, query_v2 = 0, query_time = 0;
 
 		/*mixed*/
 		if (1) {
@@ -1204,6 +1204,7 @@ void exp_case() {
 
 			/*new*/
 			if (1) {
+				instance_graph = instance_graph_initial;
 				initialize_global_values_dynamic(V, thread_num);
 
 				for (int k = 0; k < change_times; k++) {
@@ -1229,8 +1230,8 @@ void exp_case() {
 
 					/*query*/
 					if (1) {
-						boost::random::uniform_int_distribution<> dist{ 0, V - 1 };
-						int query_v1 = dist(boost_random_time_seed), query_v2 = dist(boost_random_time_seed);
+						boost::random::uniform_int_distribution<> dist{ static_cast <int>(0), static_cast<int>(V - 1) };
+						query_v1 = dist(boost_random_time_seed), query_v2 = dist(boost_random_time_seed);
 						auto begin = std::chrono::high_resolution_clock::now();
 						double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(mm_initial.L, query_v1, query_v2);
 						query_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
