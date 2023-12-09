@@ -429,7 +429,7 @@ void exp_main(string data_name, double weightChange_ratio, int change_times, dou
 	}
 }
 
-void exp_insert_delete(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
+void exp_clean(string data_name, double weightChange_ratio, int change_times, double max_Maintain_time, int thread_num) {
 
 	ofstream outputFile;
 	outputFile.precision(6);
@@ -855,7 +855,7 @@ void exp_insert_delete(string data_name, double weightChange_ratio, int change_t
 	}
 }
 
-void exp_clean(string data_name, int change_times, double max_Maintain_time, int thread_num) {
+void exp_insert_delete(string data_name, int change_times, double max_Maintain_time, int thread_num) {
 
 	ofstream outputFile;
 	outputFile.precision(6);
@@ -1121,8 +1121,8 @@ void exp() {
 		double weightChange_ratio = 0;
 		for (auto data_name : data_names) {
 			exp_main(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_insert_delete(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
-			exp_clean(data_name, change_times, max_Maintain_time, thread_num);
+			exp_clean(data_name, weightChange_ratio, change_times, max_Maintain_time, thread_num);
+			exp_insert_delete(data_name, change_times, max_Maintain_time, thread_num);
 		}
 	}
 }
