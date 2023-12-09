@@ -577,7 +577,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-				L_size_1clean = mm_initial.compute_L_bit_size();
 
 				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
@@ -594,7 +593,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-				PPR_size_1clean = mm_initial.compute_PPR_bit_size();
 
 				cout << "step 7" << endl;
 			}
@@ -621,6 +619,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					L_size_1clean = mm_initial.compute_L_bit_size();
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 				}
 
@@ -632,6 +631,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					PPR_size_1clean = mm_initial.compute_PPR_bit_size();
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 					binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
 				}
@@ -741,7 +741,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-				L_size_2clean = mm_initial.compute_L_bit_size();
 
 				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
@@ -758,7 +757,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-				PPR_size_2clean = mm_initial.compute_PPR_bit_size();
 
 				cout << "step 14" << endl;
 			}
@@ -785,6 +783,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					L_size_2clean = mm_initial.compute_L_bit_size();
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 				}
 
@@ -796,6 +795,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+					PPR_size_2clean = mm_initial.compute_PPR_bit_size();
 				}
 
 				/*
