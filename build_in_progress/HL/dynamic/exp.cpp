@@ -769,7 +769,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 					binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
 
-					if (j == total_change_times1 / div - 1) {
+					if (j == total_change_times2 / div - 1) {
 						L_size_2 = mm_initial.compute_L_bit_size();
 						PPR_size_2 = mm_initial.compute_PPR_bit_size();
 					}
