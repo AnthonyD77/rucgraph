@@ -868,9 +868,9 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
 			L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," <<
 			cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << "," <<
-			temp_size_1 << "," << temp_size_2 << "," << temp_size_3 << "," << temp_size_4 << "," << temp_size_5 << "," << temp_size_6 << "," << temp_size_7 << "," <<
-			temp_size_8 << "," << temp_size_9 << "," << temp_size_10 << "," << temp_size_11 << "," << temp_size_12 << "," << temp_size_13 << "," << temp_size_14 << "," <<
-			temp_size_15 << "," << temp_size_16 << "," << temp_size_17 << "," << temp_size_18 << endl;
+			temp_size_1 / L_size_0 << "," << temp_size_2 / L_size_0 << "," << temp_size_3 / L_size_0 << "," << temp_size_4 / L_size_0 << "," << temp_size_5 / L_size_0 << "," << temp_size_6 / L_size_0 << "," << temp_size_7 / L_size_0 << "," <<
+			temp_size_8 / L_size_0 << "," << temp_size_9 / L_size_0 << "," << temp_size_10 / L_size_0 << "," << temp_size_11 / L_size_0 << "," << temp_size_12 / L_size_0 << "," << temp_size_13 / L_size_0 << "," << temp_size_14 / L_size_0 << "," <<
+			temp_size_15 / L_size_0 << "," << temp_size_16 / L_size_0 << "," << temp_size_17 / L_size_0 << "," << temp_size_18 / L_size_0 << endl;
 
 		outputFile.close(); // without this, multiple files cannot be successfully created
 	}
