@@ -449,25 +449,23 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 		else if (type == 1) {
 			weight_type = "random";
 		}
-		else {
-			weight_type = "unique";
-		}
 		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 		graph_v_of_v_idealID instance_graph = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
 		string file_name = "clean_exp_" + data_name + "_T_" + to_string(thread_num) + "_changeRatio_" + to_string((int)(weightChange_ratio * 100)) + "_" + weight_type + ".csv";
 		cout << file_name << endl;
 		outputFile.open(file_name);
 
-		outputFile << "2014DE_time,2021DE_time,2021DE_query_times,newDE_time,newDE_query_times,DE_ratio,2019IN_time,2021IN_time,2021IN_query_times,newIN_time,newIN_query_times,IN_ratio," <<
-			"2014+2019_time,2021DE2021IN_time,2021DEnewIN_time,newDE2021IN_time,newDEnewIN_time," <<
-			"L_bit_size_0(1),PPR_size_0,L_size_1,PPR_size_1,L_size_1clean,PPR_size_1clean,cleanL_time1,cleanPPR_time1,rege_time1,L_size_2,PPR_size_2,L_size_2clean,PPR_size_2clean,cleanL_time2,cleanPPR_time2,rege_time2" << endl;
+		outputFile << "L_bit_size_0(1),PPR_size_0,L_size_1,PPR_size_1,L_size_1clean,PPR_size_1clean,cleanL_time1,cleanPPR_time1," <<
+			"rege_time1,L_size_2,PPR_size_2,L_size_2clean,PPR_size_2clean,cleanL_time2,cleanPPR_time2,rege_time2,"
+			"temp_size_1,temp_size_2,temp_size_3,temp_size_4,temp_size_5,temp_size_6,temp_size_7,temp_size_8,temp_size_9,"
+			"temp_size_10,temp_size_11,temp_size_12,temp_size_13,temp_size_14,temp_size_15,temp_size_16,temp_size_17,temp_size_18" << endl;
 
-		int half_change_times = change_times / 2;
-		vector<double> _2014DE_time(half_change_times, 0), _2019IN_time(half_change_times, 0), _2021DE_time(half_change_times, 0), _2021DE_query_times(half_change_times, 0), _2021IN_time(half_change_times, 0), _2021IN_query_times(half_change_times, 0),
-			_newDE_time(half_change_times, 0), _newDE_query_times(half_change_times, 0), _newIN_time(half_change_times, 0), _newIN_query_times(half_change_times, 0),
-			_20142019_time(half_change_times, 0), _2021DE2021IN_time(half_change_times, 0), _2021DEnewIN_time(half_change_times, 0), _newDE2021IN_time(half_change_times, 0), _newDEnewIN_time(half_change_times, 0);
 		double L_size_0 = 0, PPR_size_0 = 0, L_size_1 = 0, PPR_size_1 = 0, L_size_1clean = 0, PPR_size_1clean = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, rege_time1 = 0,
 			L_size_2 = 0, PPR_size_2 = 0, L_size_2clean = 0, PPR_size_2clean = 0, cleanL_time2 = 0, cleanPPR_time2 = 0, rege_time2 = 0;
+
+
+		double temp_size_1 = 0, temp_size_2 = 0, temp_size_3 = 0, temp_size_4 = 0, temp_size_5 = 0, temp_size_6 = 0, temp_size_7 = 0, temp_size_8 = 0,
+			temp_size_9 = 0, temp_size_10 = 0, temp_size_11 = 0, temp_size_12 = 0, temp_size_13 = 0, temp_size_14 = 0, temp_size_15 = 0, temp_size_16 = 0, temp_size_17 = 0, temp_size_18 = 0;
 
 		/*mixed*/
 		if (1) {
@@ -489,7 +487,9 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				L_size_0 = mm_initial.compute_L_bit_size();
 				PPR_size_0 = mm_initial.compute_PPR_bit_size();
 
+
 				/*total_change_times-change_times changes*/
+				auto gg = instance_graph;
 				vector<_edge>().swap(selected_edges);
 				int left_change_times = total_change_times1;
 				while (left_change_times) {
@@ -537,6 +537,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 						}
 					}
 				}
+				instance_graph = gg;
 
 				cout << "step 2" << endl;
 
@@ -571,12 +572,17 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+				std::remove("temp_L.bin");
+
+				temp_size_1 = mm_initial.compute_L_bit_size();
 
 				cout << "step 4" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+
+				temp_size_2 = mm_initial.compute_L_bit_size();
 
 				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
@@ -587,6 +593,9 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+				std::remove("temp_L.bin");
+
+				temp_size_3 = mm_initial.compute_L_bit_size();
 
 				cout << "step 6" << endl;
 
@@ -594,12 +603,13 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 
+				temp_size_4 = mm_initial.compute_PPR_bit_size();
+
 				cout << "step 7" << endl;
 			}
 
 			/*re-ge*/
 			if (1) {
-
 				double time_rege = 0, time_cleanL = 0, time_clean_PPR = 0;
 
 				if (1) {
@@ -609,6 +619,9 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
 					time_rege = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+
+					temp_size_5 = mm_initial.compute_L_bit_size();
+					temp_size_6 = mm_initial.compute_PPR_bit_size();
 				}
 
 				cout << "step 8" << endl;
@@ -616,6 +629,10 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				if (1) {
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					std::remove("temp_L.bin");
+
+					temp_size_7 = mm_initial.compute_L_bit_size();
+
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -628,6 +645,10 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				if (1) {
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					std::remove("temp_L.bin");
+
+					temp_size_8 = mm_initial.compute_L_bit_size();
+
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -654,10 +675,16 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			/*changes 2*/
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+				binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
+				std::remove("temp_L.bin");
+				std::remove("temp_PPR.bin");
+
+				temp_size_9 = mm_initial.compute_L_bit_size();
+				temp_size_10 = mm_initial.compute_PPR_bit_size();
 
 				/*total_change_times-change_times changes*/
+				auto gg = instance_graph;
 				vector<_edge>().swap(selected_edges);
 				int left_change_times = total_change_times2;
 				while (left_change_times) {
@@ -705,6 +732,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 						}
 					}
 				}
+				instance_graph = gg;
 
 				for (int j = 0; j < total_change_times2 / div; j++) {
 					ThreadPool pool_dynamic(thread_num);
@@ -735,12 +763,17 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+				std::remove("temp_L.bin");
+
+				temp_size_11 = mm_initial.compute_L_bit_size();
 
 				cout << "step 11" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+
+				temp_size_12 = mm_initial.compute_L_bit_size();
 
 				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
@@ -751,12 +784,17 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			if (1) {
 				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+				std::remove("temp_L.bin");
+
+				temp_size_13 = mm_initial.compute_L_bit_size();
 
 				cout << "step 13" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+
+				temp_size_14 = mm_initial.compute_PPR_bit_size();
 
 				cout << "step 14" << endl;
 			}
@@ -773,6 +811,9 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					PLL_dynamic(g, instance_graph.size() + 1, thread_num, mm_initial);
 					time_rege = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+
+					temp_size_15 = mm_initial.compute_L_bit_size();
+					temp_size_16 = mm_initial.compute_PPR_bit_size();
 				}
 
 				cout << "step 15" << endl;
@@ -780,6 +821,10 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				if (1) {
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					std::remove("temp_L.bin");
+
+					temp_size_17 = mm_initial.compute_L_bit_size();
+
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -792,6 +837,10 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				if (1) {
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					std::remove("temp_L.bin");
+
+					temp_size_18 = mm_initial.compute_L_bit_size();
+
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -815,41 +864,13 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			std::remove("temp_PPR.bin");
 		}
 
-		double avg_2014DE_time = 0, avg_2019IN_time = 0, avg_2021DE_time = 0, avg_2021DE_query_times = 0, avg_2021IN_time = 0, avg_2021IN_query_times = 0, avg_DEratio = 0, avg_INratio = 0,
-			avg_newDE_time = 0, avg_newDE_query_times = 0, avg_newIN_time = 0, avg_newIN_query_times = 0,
-			avg_20142019_time = 0, avg_2021DE2021IN_time = 0, avg_2021DEnewIN_time = 0, avg_newDE2021IN_time = 0, avg_newDEnewIN_time = 0;
-		for (int k = 0; k < half_change_times; k++) {
-			outputFile << _2014DE_time[k] << "," << _2021DE_time[k] << "," << _2021DE_query_times[k] << "," << _newDE_time[k] << "," << _newDE_query_times[k] << "," << _newDE_time[k] / _2021DE_time[k] << "," <<
-				_2019IN_time[k] << "," << _2021IN_time[k] << "," << _2021IN_query_times[k] << "," << _newIN_time[k] << "," << _newIN_query_times[k] << "," << _newIN_time[k] / _2021IN_time[k] << "," <<
-				_20142019_time[k] << "," << _2021DE2021IN_time[k] << "," << _2021DEnewIN_time[k] << "," << _newDE2021IN_time[k] << "," << _newDEnewIN_time[k] << "," <<
-				L_size_0 << "," << PPR_size_0 / L_size_0 << "," << L_size_1 / L_size_0 << "," << PPR_size_1 / L_size_0 << "," <<
-				L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
-				L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," << cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << endl;
-
-			avg_2014DE_time += _2014DE_time[k] / half_change_times;
-			avg_2019IN_time += _2019IN_time[k] / half_change_times;
-			avg_2021DE_time += _2021DE_time[k] / half_change_times;
-			avg_2021DE_query_times += _2021DE_query_times[k] / half_change_times;
-			avg_2021IN_time += _2021IN_time[k] / half_change_times;
-			avg_2021IN_query_times += _2021IN_query_times[k] / half_change_times;
-			avg_newDE_time += _newDE_time[k] / half_change_times;
-			avg_newDE_query_times += _newDE_query_times[k] / half_change_times;
-			avg_newIN_time += _newIN_time[k] / half_change_times;
-			avg_newIN_query_times += _newIN_query_times[k] / half_change_times;
-			avg_20142019_time += _20142019_time[k] / half_change_times;
-			avg_2021DE2021IN_time += _2021DE2021IN_time[k] / half_change_times;
-			avg_2021DEnewIN_time += _2021DEnewIN_time[k] / half_change_times;
-			avg_newDE2021IN_time += _newDE2021IN_time[k] / half_change_times;
-			avg_newDEnewIN_time += _newDEnewIN_time[k] / half_change_times;
-			avg_DEratio += _newDE_time[k] / _2021DE_time[k] / half_change_times;
-			avg_INratio += _newIN_time[k] / _2021IN_time[k] / half_change_times;
-		}
-		outputFile << avg_2014DE_time << "," << avg_2021DE_time << "," << avg_2021DE_query_times << "," << avg_newDE_time << "," << avg_newDE_query_times << "," << avg_DEratio << "," <<
-			avg_2019IN_time << "," << avg_2021IN_time << "," << avg_2021IN_query_times << "," << avg_newIN_time << "," << avg_newIN_query_times << "," << avg_INratio << "," <<
-			avg_20142019_time << "," << avg_2021DE2021IN_time << "," << avg_2021DEnewIN_time << "," << avg_newDE2021IN_time << "," << avg_newDEnewIN_time << "," <<
-			L_size_0 << "," << PPR_size_0 / L_size_0 << "," << L_size_1 / L_size_0 << "," << PPR_size_1 / L_size_0 << "," <<
+		outputFile << L_size_0 << "," << PPR_size_0 / L_size_0 << "," << L_size_1 / L_size_0 << "," << PPR_size_1 / L_size_0 << "," <<
 			L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
-			L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," << cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << endl;
+			L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," <<
+			cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << "," <<
+			temp_size_1 << "," << temp_size_2 << "," << temp_size_3 << "," << temp_size_4 << "," << temp_size_5 << "," << temp_size_6 << "," << temp_size_7 << "," <<
+			temp_size_8 << "," << temp_size_9 << "," << temp_size_10 << "," << temp_size_11 << "," << temp_size_12 << "," << temp_size_13 << "," << temp_size_14 << "," <<
+			temp_size_15 << "," << temp_size_16 << "," << temp_size_17 << "," << temp_size_18 << endl;
 
 		outputFile.close(); // without this, multiple files cannot be successfully created
 	}
@@ -1258,7 +1279,7 @@ int main()
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
 	srand(time(NULL)); //  seed random number generator
 
-	exp_case();
+	exp();
 
 	auto end = std::chrono::high_resolution_clock::now();
 	double runningtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1e9; // s
