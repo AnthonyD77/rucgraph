@@ -470,7 +470,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 		/*mixed*/
 		if (1) {
 			double precision = std::pow(10, 3);
-			int div = 50;
+			int div = 500;
 			int V = instance_graph.size();
 			initialize_global_values_dynamic(V, thread_num);
 
@@ -480,13 +480,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 
 			/*changes 1*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
-				binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
-
-				L_size_0 = mm_initial.compute_L_bit_size();
-				PPR_size_0 = mm_initial.compute_PPR_bit_size();
-
 
 				/*total_change_times-change_times changes*/
 				auto gg = instance_graph;
@@ -544,6 +537,21 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				for (int j = 0; j < total_change_times1 / div; j++) {
 					ThreadPool pool_dynamic(thread_num);
 					std::vector<std::future<int>> results_dynamic;
+
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					if (j == 0) {
+						binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
+						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
+						L_size_0 = mm_initial.compute_L_bit_size();
+						PPR_size_0 = mm_initial.compute_PPR_bit_size();
+					}
+					else {
+						binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+						binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
+						std::remove("temp_L.bin");
+						std::remove("temp_PPR.bin");
+					}
+
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "new large k " << k << endl;
@@ -558,14 +566,17 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 							WeightDecreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
 						}
 					}
+
+					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+					binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
+
+					if (j == total_change_times1 / div - 1) {
+						L_size_1 = mm_initial.compute_L_bit_size();
+						PPR_size_1 = mm_initial.compute_PPR_bit_size();
+					}
 				}
 
 				cout << "step 3" << endl;
-
-				L_size_1 = mm_initial.compute_L_bit_size();
-				PPR_size_1 = mm_initial.compute_PPR_bit_size();
-
-				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 			}
 
 			/*clean L*/
@@ -674,14 +685,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 
 			/*changes 2*/
 			if (1) {
-				graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
-				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
-				binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
-				std::remove("temp_L.bin");
-				std::remove("temp_PPR.bin");
-
-				temp_size_9 = mm_initial.compute_L_bit_size();
-				temp_size_10 = mm_initial.compute_PPR_bit_size();
 
 				/*total_change_times-change_times changes*/
 				auto gg = instance_graph;
@@ -737,6 +740,17 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				for (int j = 0; j < total_change_times2 / div; j++) {
 					ThreadPool pool_dynamic(thread_num);
 					std::vector<std::future<int>> results_dynamic;
+
+					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
+					binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
+					std::remove("temp_L.bin");
+					std::remove("temp_PPR.bin");
+					if (j == 0) {
+						temp_size_9 = mm_initial.compute_L_bit_size();
+						temp_size_10 = mm_initial.compute_PPR_bit_size();
+					}
+
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
 						cout << "new large k " << k << endl;
@@ -751,12 +765,15 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 							WeightDecreaseMaintenance_improv(instance_graph, mm_initial, selected_edge.v1, selected_edge.v2, selected_edge_weight, selected_edge.ec, pool_dynamic, results_dynamic);
 						}
 					}
+
+					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+					binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
+
+					if (j == total_change_times1 / div - 1) {
+						L_size_2 = mm_initial.compute_L_bit_size();
+						PPR_size_2 = mm_initial.compute_PPR_bit_size();
+					}
 				}
-
-				L_size_2 = mm_initial.compute_L_bit_size();
-				PPR_size_2 = mm_initial.compute_PPR_bit_size();
-
-				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 			}
 
 			/*clean L*/
