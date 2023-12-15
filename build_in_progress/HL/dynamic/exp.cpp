@@ -544,6 +544,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 						binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
 						L_size_0 = mm_initial.compute_L_bit_size();
 						PPR_size_0 = mm_initial.compute_PPR_bit_size();
+						outputFile << "L_size_0 " << L_size_0 << " PPR_size_0 " << PPR_size_0 << endl;
 					}
 					else {
 						binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
@@ -573,6 +574,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					if (j == total_change_times1 / div - 1) {
 						L_size_1 = mm_initial.compute_L_bit_size();
 						PPR_size_1 = mm_initial.compute_PPR_bit_size();
+						outputFile << "L_size_1 " << L_size_1 << " PPR_size_1 " << PPR_size_1 << endl;
 					}
 				}
 
@@ -649,6 +651,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 					L_size_1clean = mm_initial.compute_L_bit_size();
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
+					outputFile << "L_size_1clean " << L_size_1clean << endl;
 				}
 
 				cout << "step 9" << endl;
@@ -666,6 +669,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					PPR_size_1clean = mm_initial.compute_PPR_bit_size();
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 					binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
+					outputFile << "PPR_size_1clean " << PPR_size_1clean << endl;
 				}
 
 				/*
@@ -749,6 +753,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					if (j == 0) {
 						temp_size_9 = mm_initial.compute_L_bit_size();
 						temp_size_10 = mm_initial.compute_PPR_bit_size();
+						outputFile << "temp_size_9 " << temp_size_9 << " temp_size_10 " << temp_size_10 << endl;
 					}
 
 					for (int q = 0; q < div; q++) {
@@ -772,6 +777,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					if (j == total_change_times2 / div - 1) {
 						L_size_2 = mm_initial.compute_L_bit_size();
 						PPR_size_2 = mm_initial.compute_PPR_bit_size();
+						outputFile << "L_size_2 " << L_size_2 << " PPR_size_2 " << PPR_size_2 << endl;
 					}
 				}
 			}
@@ -1284,6 +1290,25 @@ void exp_case() {
 	}
 }
 
+
+void exp_check() {
+	string data_name = "skitter";
+
+	string path = "dynamicHL//";
+
+	graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
+	binary_read_PPR(path + data_name + "_PPR_Jaccard.bin", mm_initial.PPR);
+
+	double PPR_size_1 = mm_initial.compute_PPR_bit_size();
+
+	binary_save_PPR("temp_PPR.bin", mm_initial.PPR);
+
+	binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
+
+	double PPR_size_2 = mm_initial.compute_PPR_bit_size();
+
+	cout << PPR_size_1 << "   " << PPR_size_2 << endl;
+}
 
 
 
