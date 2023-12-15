@@ -89,9 +89,9 @@ public:
 
 	long long int compute_PPR_bit_size() {
 		long long int size = 0;
-		for (auto& item1 : PPR) {
-			for (auto& item2 : item1) {
-				size = size + (item2.second.size() + 1) * sizeof(int); // + 1 对应 PPR[v,u]的u
+		for (int i = 0; i < PPR.size(); i++) {
+			for (int j = 0; j < PPR[i].size(); j++) {
+				size = size + (PPR[i][j].second.size() + 1) * sizeof(int); // + 1 对应 PPR[i][j].first
 			}
 		}
 		return size;
