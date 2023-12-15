@@ -142,6 +142,10 @@ void binary_read_PPR(std::string path, PPR_type& PPR)
 		FILE.read(reinterpret_cast<char*>(&size2), sizeof(size2));
 		PPR[n].resize(size2);
 
+		if (size2 == 0) {
+			continue;
+		}
+
 		for (int k = 0; k < size2; ++k) {
 			// read pair_value.first
 			int pair_first_value = 0;
@@ -151,6 +155,11 @@ void binary_read_PPR(std::string path, PPR_type& PPR)
 			int size3 = 0;
 			FILE.read(reinterpret_cast<char*>(&size3), sizeof(size3));
 			PPR[n][k].second.resize(size3);
+
+			if (size3 == 0) {
+				continue;
+			}
+
 			int value = 0;
 			for (int j = 0; j < size3; ++j) {
 				FILE.read(reinterpret_cast<char*>(&value), sizeof(value));
