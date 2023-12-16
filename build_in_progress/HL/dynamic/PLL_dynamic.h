@@ -6,6 +6,8 @@
 #include <build_in_progress/HL/dynamic/two_hop_labels_base.h>
 
 
+bool PLL_dynamic_generate_PPR = true;
+
 void PLL_thread_function_dij_mixed(int v_k, int N)
 {
 	/*Pruned Dijkstra from vertex v_k; see Algorithm 1 in 2013 Japan SIGMOD paper*/
@@ -125,7 +127,7 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 					}
 				}
 			}	
-			else {
+			else if (PLL_dynamic_generate_PPR) {
 				/* add v_k into PPR(u,common_hub_for_query_v_k_u), and add u into PPR(v_k,common_hub_for_query_v_k_u)*/
 				if (common_hub_for_query_v_k_u != v_k) {
 					mtx_595[u].lock();
