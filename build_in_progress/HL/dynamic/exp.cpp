@@ -1205,7 +1205,7 @@ void exp_case() {
 		cout << file_name << endl;
 		outputFile.open(file_name);
 
-		outputFile << "change_v1,change_v2,change_w0,change_w1,change_time,query_v1,query_v2,query_time" << endl;
+		outputFile << "change_v1,change_v2,change_w0,change_w1,query_v1,query_v2,query_time" << endl;
 
 		double change_time = 0, query_v1 = 0, query_v2 = 0, query_time = 0;
 
@@ -1286,7 +1286,7 @@ void exp_case() {
 					}
 
 					outputFile << selected_edge.v1 << "," << selected_edge.v2 << "," << selected_edge_weight << "," << selected_edge.ec
-						<< "," << change_time << "," << query_v1 << "," << query_v2 << "," << query_time << endl;
+						<< "," << query_v1 << "," << query_v2 << "," << query_time << endl;
 				}
 			}
 		}
