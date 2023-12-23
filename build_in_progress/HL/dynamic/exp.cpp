@@ -1179,7 +1179,7 @@ void exp() {
 
 void exp_case() {
 
-	vector<string> data_names = { "condmat", "gnutella" };
+	vector<string> data_names = { "condmat", "gnutella", "amazon", "book", "hyves", "skitter" };
 	int change_times = 100, thread_num = 80;
 
 	for (auto data_name : data_names) {
@@ -1194,7 +1194,7 @@ void exp_case() {
 		graph_v_of_v_idealID instance_graph;
 		vector<_edge> selected_edges;
 
-		string weight_type = "Jaccard";
+		string weight_type = "random";
 
 		graph_hash_of_mixed_weighted instance_graph_initial_hash = graph_hash_of_mixed_weighted_binary_read(path + data_name + "_" + weight_type + ".bin");
 		graph_v_of_v_idealID instance_graph_initial = graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2(instance_graph_initial_hash, instance_graph_initial_hash.hash_of_vectors.size());
