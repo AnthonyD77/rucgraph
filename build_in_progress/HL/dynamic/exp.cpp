@@ -1201,7 +1201,7 @@ void exp_case() {
 		graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 		binary_read_PPR(path + data_name + "_PPR_" + weight_type + ".bin", mm_initial.PPR);
 		binary_read_vector_of_vectors(path + data_name + "_L_" + weight_type + ".bin", mm_initial.L);
-		string file_name = "exp_case_" + data_name + ".csv";
+		string file_name = "exp_case_" + weight_type + "_" + data_name + ".csv";
 		cout << file_name << endl;
 		outputFile.open(file_name);
 
