@@ -8,12 +8,12 @@ using namespace std;
 boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::time(0)) };
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
-#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightIncrease2021_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightDecrease2021_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightDecrease2014_multiThread.h>
-#include <build_in_progress/HL/dynamic/WeightIncrease2019_multiThread.h>
+#include <build_in_progress/HL/dynamic/WeightIncreaseMaintenance_improv.h>
+#include <build_in_progress/HL/dynamic/WeightDecreaseMaintenance_improv.h>
+#include <build_in_progress/HL/dynamic/WeightIncrease2021.h>
+#include <build_in_progress/HL/dynamic/WeightDecrease2021.h>
+#include <build_in_progress/HL/dynamic/WeightDecrease2014.h>
+#include <build_in_progress/HL/dynamic/WeightIncrease2019.h>
 #include <build_in_progress/HL/sort_v/graph_hash_of_mixed_weighted_update_vertexIDs_by_degrees.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID_2.h>
 #include <graph_hash_of_mixed_weighted/random_graph/graph_hash_of_mixed_weighted_generate_random_graph.h>
@@ -28,7 +28,7 @@ boost::random::mt19937 boost_random_time_seed{ static_cast<std::uint32_t>(std::t
 
 void generate_L_PPR() {
 
-	vector<string> data_names = { "amazon", "book" };
+	vector<string> data_names = { "condmat", "gnutella", "amazon", "book", "hyves", "skitter" };
 	string path = "dynamicHL//";
 	int thread_num = 50;
 	ThreadPool pool_dynamic(thread_num);
@@ -1176,7 +1176,6 @@ void exp() {
 }
 
 
-
 void exp_case() {
 
 	vector<string> data_names = { "condmat", "gnutella", "amazon", "book", "hyves", "skitter" };
@@ -1313,7 +1312,6 @@ void exp_check() {
 
 	cout << PPR_size_1 << "   " << PPR_size_2 << endl;
 }
-
 
 
 int main()
