@@ -456,16 +456,10 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 		outputFile.open(file_name);
 
 		outputFile << "L_bit_size_0(1),PPR_size_0,L_size_1,PPR_size_1,L_size_1clean,PPR_size_1clean,cleanL_time1,cleanPPR_time1," <<
-			"rege_time1,L_size_2,PPR_size_2,L_size_2clean,PPR_size_2clean,cleanL_time2,cleanPPR_time2,rege_time2,"
-			"temp_size_1,temp_size_2,temp_size_3,temp_size_4,temp_size_5,temp_size_6,temp_size_7,temp_size_8,temp_size_9,"
-			"temp_size_10,temp_size_11,temp_size_12,temp_size_13,temp_size_14,temp_size_15,temp_size_16,temp_size_17,temp_size_18" << endl;
+			"rege_time1,L_size_2,PPR_size_2,L_size_2clean,PPR_size_2clean,cleanL_time2,cleanPPR_time2,rege_time2" << endl;
 
 		double L_size_0 = 0, PPR_size_0 = 0, L_size_1 = 0, PPR_size_1 = 0, L_size_1clean = 0, PPR_size_1clean = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, rege_time1 = 0,
 			L_size_2 = 0, PPR_size_2 = 0, L_size_2clean = 0, PPR_size_2clean = 0, cleanL_time2 = 0, cleanPPR_time2 = 0, rege_time2 = 0;
-
-
-		double temp_size_1 = 0, temp_size_2 = 0, temp_size_3 = 0, temp_size_4 = 0, temp_size_5 = 0, temp_size_6 = 0, temp_size_7 = 0, temp_size_8 = 0,
-			temp_size_9 = 0, temp_size_10 = 0, temp_size_11 = 0, temp_size_12 = 0, temp_size_13 = 0, temp_size_14 = 0, temp_size_15 = 0, temp_size_16 = 0, temp_size_17 = 0, temp_size_18 = 0;
 
 		/*mixed*/
 		if (1) {
@@ -587,15 +581,11 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 				std::remove("temp_L.bin");
 
-				temp_size_1 = mm_initial.compute_L_bit_size();
-
 				cout << "step 4" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-
-				temp_size_2 = mm_initial.compute_L_bit_size();
 
 				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
@@ -608,15 +598,11 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 				std::remove("temp_L.bin");
 
-				temp_size_3 = mm_initial.compute_L_bit_size();
-
 				cout << "step 6" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-
-				temp_size_4 = mm_initial.compute_PPR_bit_size();
 
 				cout << "step 7" << endl;
 			}
@@ -634,9 +620,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					PLL_dynamic_generate_PPR = true;
 					time_rege = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
-
-					temp_size_5 = mm_initial.compute_L_bit_size();
-					temp_size_6 = mm_initial.compute_PPR_bit_size();
 				}
 
 				cout << "step 8" << endl;
@@ -645,9 +628,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 					std::remove("temp_L.bin");
-
-					temp_size_7 = mm_initial.compute_L_bit_size();
-
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -662,9 +642,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 					std::remove("temp_L.bin");
-
-					temp_size_8 = mm_initial.compute_L_bit_size();
-
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -752,11 +729,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					binary_read_PPR("temp_PPR.bin", mm_initial.PPR);
 					std::remove("temp_L.bin");
 					std::remove("temp_PPR.bin");
-					if (j == 0) {
-						temp_size_9 = mm_initial.compute_L_bit_size();
-						temp_size_10 = mm_initial.compute_PPR_bit_size();
-						//outputFile << "temp_size_9 " << temp_size_9 << " temp_size_10 " << temp_size_10 << endl;
-					}
 
 					for (int q = 0; q < div; q++) {
 						int k = j * div + q;
@@ -790,15 +762,11 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 				std::remove("temp_L.bin");
 
-				temp_size_11 = mm_initial.compute_L_bit_size();
-
 				cout << "step 11" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-
-				temp_size_12 = mm_initial.compute_L_bit_size();
 
 				binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
 
@@ -811,15 +779,11 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 				std::remove("temp_L.bin");
 
-				temp_size_13 = mm_initial.compute_L_bit_size();
-
 				cout << "step 13" << endl;
 
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
-
-				temp_size_14 = mm_initial.compute_PPR_bit_size();
 
 				cout << "step 14" << endl;
 			}
@@ -838,9 +802,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					PLL_dynamic_generate_PPR = true;
 					time_rege = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
 					binary_save_vector_of_vectors("temp_L.bin", mm_initial.L);
-
-					temp_size_15 = mm_initial.compute_L_bit_size();
-					temp_size_16 = mm_initial.compute_PPR_bit_size();
 				}
 
 				cout << "step 15" << endl;
@@ -849,9 +810,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 					std::remove("temp_L.bin");
-
-					temp_size_17 = mm_initial.compute_L_bit_size();
-
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 					time_cleanL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -865,9 +823,6 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 					graph_hash_of_mixed_weighted_two_hop_case_info_v1 mm_initial;
 					binary_read_vector_of_vectors("temp_L.bin", mm_initial.L);
 					std::remove("temp_L.bin");
-
-					temp_size_18 = mm_initial.compute_L_bit_size();
-
 					auto begin = std::chrono::high_resolution_clock::now();
 					clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 					time_clean_PPR = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -894,10 +849,7 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 		outputFile << L_size_0 << "," << PPR_size_0 / L_size_0 << "," << L_size_1 / L_size_0 << "," << PPR_size_1 / L_size_0 << "," <<
 			L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
 			L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," <<
-			cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << "," <<
-			temp_size_1 / L_size_0 << "," << temp_size_2 / L_size_0 << "," << temp_size_3 / L_size_0 << "," << temp_size_4 / L_size_0 << "," << temp_size_5 / L_size_0 << "," << temp_size_6 / L_size_0 << "," << temp_size_7 / L_size_0 << "," <<
-			temp_size_8 / L_size_0 << "," << temp_size_9 / L_size_0 << "," << temp_size_10 / L_size_0 << "," << temp_size_11 / L_size_0 << "," << temp_size_12 / L_size_0 << "," << temp_size_13 / L_size_0 << "," << temp_size_14 / L_size_0 << "," <<
-			temp_size_15 / L_size_0 << "," << temp_size_16 / L_size_0 << "," << temp_size_17 / L_size_0 << "," << temp_size_18 / L_size_0 << endl;
+			cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << endl;
 
 		outputFile.close(); // without this, multiple files cannot be successfully created
 	}
