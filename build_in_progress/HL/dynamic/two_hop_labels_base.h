@@ -35,6 +35,8 @@ queue<int> Qid_595; // IDs of available elements of P T
 vector<vector<weightTYPE>> P_dij_595;
 vector<vector<weightTYPE>> T_dij_595;
 
+long long int query_time_gene = 0;
+
 struct PLL_dynamic_node_for_sp {
 public:
 	int vertex;

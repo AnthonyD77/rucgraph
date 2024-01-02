@@ -455,11 +455,12 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 		cout << file_name << endl;
 		outputFile.open(file_name);
 
-		outputFile << "L_bit_size_0(1),PPR_size_0,L_size_1,PPR_size_1,L_size_1clean,PPR_size_1clean,cleanL_time1,cleanPPR_time1," <<
-			"rege_time1,L_size_2,PPR_size_2,L_size_2clean,PPR_size_2clean,cleanL_time2,cleanPPR_time2,rege_time2" << endl;
+		outputFile << "L_bit_size_0(1),PPR_size_0,L_size_1,PPR_size_1,L_size_1clean,PPR_size_1clean,cleanL_time1,cleanPPR_time1,cleanTotal_time1,cleanQuery_times1," <<
+			"rege_time1,regeQuery_times1,L_size_2,PPR_size_2,L_size_2clean,PPR_size_2clean,cleanL_time2,cleanPPR_time2,cleanTotal_time2,cleanQuery_times2,rege_time2,regeQuery_times2" << endl;
 
-		double L_size_0 = 0, PPR_size_0 = 0, L_size_1 = 0, PPR_size_1 = 0, L_size_1clean = 0, PPR_size_1clean = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, rege_time1 = 0,
-			L_size_2 = 0, PPR_size_2 = 0, L_size_2clean = 0, PPR_size_2clean = 0, cleanL_time2 = 0, cleanPPR_time2 = 0, rege_time2 = 0;
+		double L_size_0 = 0, PPR_size_0 = 0, L_size_1 = 0, PPR_size_1 = 0, L_size_1clean = 0, PPR_size_1clean = 0, cleanL_time1 = 0, cleanPPR_time1 = 0, cleanTotal_time1 = 0, cleanQuery_times1 = 0,
+			rege_time1 = 0, regeQuery_times1 = 0,
+			L_size_2 = 0, PPR_size_2 = 0, L_size_2clean = 0, PPR_size_2clean = 0, cleanL_time2 = 0, cleanPPR_time2 = 0, cleanTotal_time2 = 0, cleanQuery_times2 = 0, rege_time2 = 0, regeQuery_times2 = 0;
 
 		/*mixed*/
 		if (1) {
@@ -583,6 +584,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 
 				cout << "step 4" << endl;
 
+				query_time_gene = 0;
+
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -603,6 +606,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				cleanTotal_time1 = cleanL_time1 + cleanPPR_time1;
+				cleanQuery_times1 = query_time_gene;
 
 				cout << "step 7" << endl;
 			}
@@ -610,6 +615,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			/*re-ge*/
 			if (1) {
 				double time_rege = 0, time_cleanL = 0, time_clean_PPR = 0;
+
+				query_time_gene = 0;
 
 				if (1) {
 					graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
@@ -660,6 +667,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				*/
 
 				rege_time1 = time_rege + time_cleanL + time_clean_PPR; // s
+
+				regeQuery_times1 = query_time_gene;
 
 				initialize_global_values_dynamic(V, thread_num); // Qid_595 needs to be initialized
 
@@ -764,6 +773,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 
 				cout << "step 11" << endl;
 
+				query_time_gene = 0;
+
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_L_dynamic(mm_initial.L, mm_initial.PPR, thread_num);
 				cleanL_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
@@ -784,6 +795,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 				auto begin = std::chrono::high_resolution_clock::now();
 				clean_PPR(instance_graph, mm_initial.L, mm_initial.PPR, thread_num);
 				cleanPPR_time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count() / 1e9; // s
+				cleanTotal_time2 = cleanL_time2 + cleanPPR_time2;
+				cleanQuery_times2 = query_time_gene;
 
 				cout << "step 14" << endl;
 			}
@@ -792,6 +805,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 			if (1) {
 
 				double time_rege = 0, time_cleanL = 0, time_clean_PPR = 0;
+
+				query_time_gene = 0;
 
 				if (1) {
 					graph_hash_of_mixed_weighted g = graph_v_of_v_idealID_to_graph_hash_of_mixed_weighted(instance_graph);
@@ -839,6 +854,8 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 
 				rege_time2 = time_rege + time_cleanL + time_clean_PPR; // s
 
+				regeQuery_times2 = query_time_gene;
+
 				cout << "step 17" << endl;
 			}
 
@@ -847,9 +864,10 @@ void exp_clean(string data_name, double weightChange_ratio, int change_times, do
 		}
 
 		outputFile << L_size_0 << "," << PPR_size_0 / L_size_0 << "," << L_size_1 / L_size_0 << "," << PPR_size_1 / L_size_0 << "," <<
-			L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << rege_time1 << "," <<
+			L_size_1clean / L_size_0 << "," << PPR_size_1clean / L_size_0 << "," << cleanL_time1 << "," << cleanPPR_time1 << "," << cleanTotal_time1 << "," << cleanQuery_times1 << "," <<
+			rege_time1 << "," << regeQuery_times1 << "," <<
 			L_size_2 / L_size_0 << "," << PPR_size_2 / L_size_0 << "," << L_size_2clean / L_size_0 << "," << PPR_size_2clean / L_size_0 << "," <<
-			cleanL_time2 << "," << cleanPPR_time2 << "," << rege_time2 << endl;
+			cleanL_time2 << "," << cleanPPR_time2 << "," << cleanTotal_time2 << "," << cleanQuery_times2 << "," << rege_time2 << "," << regeQuery_times2 << endl;
 
 		outputFile.close(); // without this, multiple files cannot be successfully created
 	}

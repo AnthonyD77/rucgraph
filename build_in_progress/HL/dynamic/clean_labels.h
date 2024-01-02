@@ -60,6 +60,9 @@ void clean_L_dynamic(vector<vector<two_hop_label_v1>>& L, PPR_type& PPR, int thr
 					auto& T = T_clean_L_dynamic[used_id];
 
 					int size = Lv.size();
+
+					query_time_gene += size;
+
 					for (int i = 0; i < size; i++) {
 						int u = Lv[i].vertex;
 						if (Lv[i].distance == std::numeric_limits<weightTYPE>::max()) {
@@ -223,6 +226,9 @@ void clean_PPR(graph_v_of_v_idealID& ideal_g, vector<vector<two_hop_label_v1>>& 
 								}
 							}
 							else {
+
+								query_time_gene++;
+
 								double min_dis = std::numeric_limits<weightTYPE>::max();
 								int min_dis_v;
 								for (auto label : L[v]) {
