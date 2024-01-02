@@ -66,6 +66,8 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 			weightTYPE query_v_k_u = std::numeric_limits<weightTYPE>::max();
 			int common_hub_for_query_v_k_u;
 
+			query_time_gene++;
+
 #ifdef _WIN32
 			mtx_595[u].lock();
 			auto L_u_size = L_temp_595[u].size(); // a vector<PLL_with_non_adj_reduction_sorted_label>
