@@ -4,7 +4,7 @@
 #include <shared_mutex>
 #include <graph_hash_of_mixed_weighted/graph_hash_of_mixed_weighted.h>
 #include <graph_hash_of_mixed_weighted/two_graphs_operations/graph_hash_of_mixed_weighted_to_graph_v_of_v_idealID.h>
-#include <build_in_progress/HL/two_hop_v1/graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
+#include <build_in_progress/HL/two_hop_v1_old//graph_hash_of_mixed_weighted_two_hop_labels_v1.h>
 
  
 
@@ -111,7 +111,7 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_dij(int u, graph_hash_o
 
 	auto& reduction_measures_2019R2 = (*case_info).reduction_measures_2019R2;
 
-	/* save labels of u in T */ //ÓÐÁËÕâ¸öTÖ®ºó,ºóÃæµÄquery¾Í»á¿ìÒ»µã,Õâ¸öÓ¦¸Ã²»ÓÃ¸Ä
+	/* save labels of u in T */ //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½TÖ®ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½queryï¿½Í»ï¿½ï¿½Ò»ï¿½ï¿½,ï¿½ï¿½ï¿½Ó¦ï¿½Ã²ï¿½ï¿½Ã¸ï¿½
 	int u_label_size = L_595[u].size();
 	for (int i = 0; i < u_label_size; i++)
 	{
@@ -127,29 +127,29 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_dij(int u, graph_hash_o
 	}
 
 	/*
-	if (reduction_measures[vertexID_new_to_old[u]] == 2) //Èç¹ûuÊÇlmsÖÐµÄµã,ÄÇÃ´Ïàµ±ÓÚËü±»É¾³ýµôÁË,²»ÐèÒªÔÙ¸øËü×ölabelÁË
+	if (reduction_measures[vertexID_new_to_old[u]] == 2) //ï¿½ï¿½ï¿½uï¿½ï¿½lmsï¿½ÐµÄµï¿½,ï¿½ï¿½Ã´ï¿½àµ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½Òªï¿½Ù¸ï¿½ï¿½ï¿½ï¿½ï¿½labelï¿½ï¿½
 	{
 		for (int i = 0; i < u_label_size; i++)
 			dirty_tag_595[used_id][L_595[u][i].vertex] = true; // recover dirty tag
 	}
 	*/
 
-	int u_adj_size = ideal_graph_595[u].size(); // uµÄÁÚ¾ÓµÄÊýÁ¿
-	for (int i = 0; i < u_adj_size; i++)        // ±éÀúuµÄÁÚ¾Óv
+	int u_adj_size = ideal_graph_595[u].size(); // uï¿½ï¿½ï¿½Ú¾Óµï¿½ï¿½ï¿½ï¿½ï¿½
+	for (int i = 0; i < u_adj_size; i++)        // ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½Ú¾ï¿½v
 	{
 		int v = ideal_graph_595[u][i].first;
-		double ec = ideal_graph_595[u][i].second;        //(u,v)¾àÀë
+		double ec = ideal_graph_595[u][i].second;        //(u,v)ï¿½ï¿½ï¿½ï¿½
 		int v_label_size = pos_595[v] + increment_595[v]; // increment_595[v] is label size in the last iteration
-		if (reduction_measures_2019R2[vertexID_new_to_old_595[v]] == 2) //Èç¹ûµãvÊÇlms¼¯ºÏÖÐµÄµã,ÄÇÃ´½øÈëÕâ¸öÑ­»·,ÕÒµ½v³ýÁËuÒÔÍâµÄÁÚ½Óµã(N2²¿·Ö)
+		if (reduction_measures_2019R2[vertexID_new_to_old_595[v]] == 2) //ï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½lmsï¿½ï¿½ï¿½ï¿½ï¿½ÐµÄµï¿½,ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½,ï¿½Òµï¿½vï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½Óµï¿½(N2ï¿½ï¿½ï¿½ï¿½)
 		{		
 			int v_adj_size = ideal_graph_595[v].size();
 			for (int j = 0; j < v_adj_size; j++)
 			{
-				if (ideal_graph_595[v][j].first == u) //ÐèÒªÅÅ³ýÊÇuµãµÄÇé¿ö
+				if (ideal_graph_595[v][j].first == u) //ï¿½ï¿½Òªï¿½Å³ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 					continue;
-				int v_1 = ideal_graph_595[v][j].first;     //ÕâÊÇµãv1µÄindex
-				double ec_2 = ideal_graph_595[v][j].second; // vµ½v1µÄ±ßµÄ³¤¶È
-				//±éÀúv_1µÄd-2¼¶±ðlabel,ÓÃÉÏpos_2
+				int v_1 = ideal_graph_595[v][j].first;     //ï¿½ï¿½ï¿½Çµï¿½v1ï¿½ï¿½index
+				double ec_2 = ideal_graph_595[v][j].second; // vï¿½ï¿½v1ï¿½Ä±ßµÄ³ï¿½ï¿½ï¿½
+				//ï¿½ï¿½ï¿½ï¿½v_1ï¿½ï¿½d-2ï¿½ï¿½ï¿½ï¿½label,ï¿½ï¿½ï¿½ï¿½pos_2
 				for (int k = pos_2_595[v_1]; k < pos_595[v_1]; k++) 
 				{
 					int w = L_595[v_1][k].vertex; //d-2 hubs of v1, which is adj of v
@@ -185,7 +185,7 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_dij(int u, graph_hash_o
 				}
 			}
 		}
-		else // v²»ÊÇlms¼¯ºÏÖÐµÄµã,ÄÇÃ´½øÈëÕâ¸öÑ­»·,ÕÒµ½vµÄd-1label(N1²¿·Ö)
+		else // vï¿½ï¿½ï¿½ï¿½lmsï¿½ï¿½ï¿½ï¿½ï¿½ÐµÄµï¿½,ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½,ï¿½Òµï¿½vï¿½ï¿½d-1label(N1ï¿½ï¿½ï¿½ï¿½)
 		{
 			for (int j = pos_595[v]; j < v_label_size; j++) // Ld-1(v); v_label_size is the position of the last element in Ld-1
 			{
@@ -252,7 +252,7 @@ void graph_hash_of_mixed_weighted_PSL_v1_thread_function_add_new_labels(int u)
 	L_595[u].insert(L_595[u].end(), L_temp_595[u].begin(), L_temp_595[u].end());
 
 	vector<two_hop_label_v1>().swap(L_temp_595[u]);
-	vector<two_hop_label_v1>(L_595[u]).swap(L_595[u]);  // swapÊÍ·ÅvectorÖÐ¶àÓà¿Õ¼ä£º https://blog.csdn.net/qq_41929943/article/details/103190891 
+	vector<two_hop_label_v1>(L_595[u]).swap(L_595[u]);  // swapï¿½Í·ï¿½vectorï¿½Ð¶ï¿½ï¿½ï¿½Õ¼ä£º https://blog.csdn.net/qq_41929943/article/details/103190891 
 }
 
 void graph_hash_of_mixed_weighted_PSL_v1_transform_labels_to_old_vertex_IDs_element(vector<vector<two_hop_label_v1>>* output_L, int v_k) {
@@ -554,7 +554,7 @@ void graph_hash_of_mixed_weighted_PSL_v1
 
 	ThreadPool pool(num_of_threads);
 	std::vector< std::future<int> > results;
-	int num_of_threads_per_push = num_of_threads * 1000; // Ã¿´Îpush½øÈ¥ num_of_threads_per_push Ïß³Ì£¬Èç¹ûÃ»ÓÐÒì³££¬¼ÌÐøpush½øÈ¥num_of_threads_per_pushÏß³Ì£»Èç¹ûÈ«¶¼Ò»Æðpush½øÈ¥±ØÐëÈ«²¿Ïß³Ì¶¼½áÊø²ÅÄÜcatchÒì³£
+	int num_of_threads_per_push = num_of_threads * 1000; // Ã¿ï¿½ï¿½pushï¿½ï¿½È¥ num_of_threads_per_push ï¿½ß³Ì£ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pushï¿½ï¿½È¥num_of_threads_per_pushï¿½ß³Ì£ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½Ò»ï¿½ï¿½pushï¿½ï¿½È¥ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½ß³Ì¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½catchï¿½ì³£
 	while (if_continue_595 || if_continue_595_false_time < 2) // since R2 skip some vertices, some new labels can only be generated when d increases 2, not 1, thus terminate the loop only when if_continue_595==false twice
 	{
 		//cout << "here" << endl;
@@ -600,7 +600,7 @@ void graph_hash_of_mixed_weighted_PSL_v1
 
 		for (auto&& result : results)
 			result.get();
-		results.clear(); // Èç¹û±¾ÂÖÃ»ÓÐÒì³£Ôò¼ÌÐø
+		results.clear(); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½ï¿½
 
 		if (if_continue_595 == false) {
 			if_continue_595_false_time++; // if if_continue_595_false_time==2, then if_continue_595==false twice
