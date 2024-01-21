@@ -12,12 +12,83 @@ int print = 0;
 
 map<pair<int, int>, int> elimination_edge;
 vector<int> elimination_vertex;
+graph_hash_of_mixed_weighted_CT_v2_case_info case_info_global;
+graph_hash_of_mixed_weighted input_graph_global;
+
+void generate_extension_tree_label_parallel(int u) {
+    auto& Bags = case_info_global.Bags;
+    auto& isIntree = case_info_global.isIntree;
+    auto& L_ = case_info_global.two_hop_case_info.L;
+
+    int Lu_size = L_[u].size();
+    for (int i = 0; i < Lu_size; i++) {
+        // check if v is in Bag(u)
+        int v = L_[u][i].vertex;
+        if (v == u) {
+            continue;
+        }
+        int v_in_Bagu = 0;
+        for (auto it : Bags[u]) {
+            // v is in Bag(u)
+            if (it.first == v) {
+                double edge_uv = graph_hash_of_mixed_weighted_edge_weight(input_graph_global, u, v);
+                if ((edge_uv - L_[u][i].distance) < 1e-5){
+                    // nothing
+                }
+                else {
+                    for (auto it : elimination_vertex) {
+                        if (it == u || it == v) {
+                            continue;
+                        }
+                        double dist1 = CT_extract_distance(case_info_global, it, u);
+                        double dist2 = CT_extract_distance(case_info_global, it, v);
+                        if (dist1 != std::numeric_limits<double>::max() && dist2 != std::numeric_limits<double>::max() && abs(dist1 + dist2 - L_[u][i].distance) < 1e-5) {
+                            L_[u][i].parent_vertex = it;
+                            break;
+                        }
+                    }
+                }
+                v_in_Bagu = 1;
+                break;
+            }
+        }
+        // v is not in Bag(u)
+        if (!v_in_Bagu) {
+            for (auto it : Bags[u]) {
+                double dist1 = CT_extract_distance(case_info_global, it.first, u);
+                double dist2 = CT_extract_distance(case_info_global, it.first, v);
+                if (u == 0) {
+                    cout << it.first << ": " << "dist1=" << dist1 << ", dist2=" << dist2 << endl;
+                }
+                if (dist1 != std::numeric_limits<double>::max() && dist2 != std::numeric_limits<double>::max() && abs(dist1 + dist2 - L_[u][i].distance) < 1e-5) {
+                    L_[u][i].parent_vertex = it.first;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void generate_extension_core_label_parallel(int v_k) {
+    auto& L_ = case_info_global.two_hop_case_info.L;
+
+    int Lvk_size = L_[v_k].size();
+    for (int j = 0; j < Lvk_size; j++) {
+        while (1) {
+            if (elimination_edge.find({v_k, L_[v_k][j].parent_vertex}) == elimination_edge.end()) {
+                break;
+            }
+            L_[v_k][j].parent_vertex = elimination_edge[{v_k, L_[v_k][j].parent_vertex}];
+        }
+    }
+}
 
 void clear_gloval_values_CT_extension() {
-    graph_hash_of_mixed_weighted_two_hop_clear_global_values();
+//    graph_hash_of_mixed_weighted_two_hop_clear_global_values();
     graph_v_of_v_idealID().swap(global_ideal_graph_CT);
     map<pair<int, int>, int>().swap(elimination_edge);
     vector<int>().swap(elimination_vertex);
+    input_graph_global.clear();
 }
 
 void graph_hash_of_mixed_weighted_to_ideal_graph_of_CT_extension(graph_hash_of_mixed_weighted& input_graph, int max_N_ID) {
@@ -174,9 +245,6 @@ void CT_extension(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph
             for (int k = j + 1; k < v_adj_size; k++) {
                 int adj_k = adj_temp[k].first;
                 double new_ec = adj_temp[j].second + adj_temp[k].second;
-                if (v_x == 9 && adj_j == 0 && adj_k == 7) {
-                    cout << "new_ec = " << new_ec << endl;
-                }
                 int right_k = right_temp[k];
                 results.emplace_back(
                     pool.enqueue([v_x, adj_j, adj_k, new_ec] {  // pass const type value j to thread; [] can be empty
@@ -514,7 +582,7 @@ void CT_extension(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph
     //--------------------------------------------------------------------------------------------------------------------
 
     //-------------------------------------------------- step 6: postprocessing -------------------------------------------------------------------
-    cout << "step 6: postprocessing" << endl;
+    cout << "step 6: extension" << endl;
     auto begin6 = std::chrono::high_resolution_clock::now();
 
     /* merge tree_index: L1 into case_info.two_hop_case_info.L */
@@ -527,111 +595,72 @@ void CT_extension(graph_hash_of_mixed_weighted& input_graph, int max_N_ID, graph
     }
 
     /* Extention: generate tree pred */
-    auto begin_extension = std::chrono::high_resolution_clock::now();
 
-    auto& L_ = case_info.two_hop_case_info.L;
-    cout << "step 6.1: extention" << endl;
-
-    cout << "elimination_vertex" << endl;
-    for (auto it : elimination_vertex) {
-        cout << it << ", ";
-    }
-    cout << endl;
-
-    cout << "elimination_vertex" << endl;
-    for (auto it : elimination_edge) {
-        cout << it.first.first << ", " << it.first.second << " -> " << it.second << endl;
-    }
-
-    int cc = 0;
-    for (auto it: Bags){
-        cout << "Bags " << cc << ": ";
-        for (auto itt : it) {
-            cout << itt.first << " ";
+    if (print) {
+        cout << "elimination_vertex" << endl;
+        for (auto it : elimination_vertex) {
+            cout << it << ", ";
         }
         cout << endl;
-        cc++;
-    }
-
-
-    int u, v = 0, Lu_size = 0, v_in_Bagu = 0;
-    int tree_size = elimination_vertex.size();
-    for (int j = 0; j < tree_size; j++) {
-        u = elimination_vertex[j];
-        Lu_size = L_[u].size();
-        for (int i = 0; i < Lu_size; i++) {
-            // check if v is in Bag(u)
-            v = L_[u][i].vertex;
-            if (v == u) {
-                continue;
+        cout << "elimination_vertex" << endl;
+        for (auto it : elimination_edge) {
+            cout << it.first.first << ", " << it.first.second << " -> " << it.second << endl;
+        }
+        int cc = 0;
+        for (auto it : Bags) {
+            cout << "Bags " << cc << ": ";
+            for (auto itt : it) {
+                cout << itt.first << " ";
             }
-            v_in_Bagu = 0;
-            for (auto it : Bags[u]) {
-                // v is in Bag(u)
-                if (it.first == v) {
-                    double edge_uv = graph_hash_of_mixed_weighted_edge_weight(input_graph, u, v);
-                    if ((edge_uv - L_[u][i].distance) < 1e-5){
-                        // nothing
-                    }
-                    else {
-                        for (auto it : elimination_vertex) {
-                            if (it == u || it == v) {
-                                continue;
-                            }
-                            double dist1 = CT_extract_distance(case_info, it, u);
-                            double dist2 = CT_extract_distance(case_info, it, v);
-                            if (dist1 != std::numeric_limits<double>::max() && dist2 != std::numeric_limits<double>::max() && abs(dist1 + dist2 - L_[u][i].distance) < 1e-5) {
-                                L_[u][i].parent_vertex = it;
-                                break;
-                            }
-                        }
-                    }
-                    v_in_Bagu = 1;
-                    break;
-                }
-            }
-            // v is not in Bag(u)
-            if (!v_in_Bagu) {
-                for (auto it : Bags[u]) {
-                    double dist1 = CT_extract_distance(case_info, it.first, u);
-                    double dist2 = CT_extract_distance(case_info, it.first, v);
-                    if (u == 0) {
-                        cout << it.first << ": " << "dist1=" << dist1 << ", dist2=" << dist2 << endl;
-                    }
-                    if (dist1 != std::numeric_limits<double>::max() && dist2 != std::numeric_limits<double>::max() && abs(dist1 + dist2 - L_[u][i].distance) < 1e-5) {
-                        L_[u][i].parent_vertex = it.first;
-                        break;
-                    }
-                }
-            }
+            cout << endl;
+            cc++;
         }
     }
 
-    auto end_extension = std::chrono::high_resolution_clock::now();
-    case_info.time_extension = std::chrono::duration_cast<std::chrono::nanoseconds>(end_extension - begin_extension).count() / 1e9;
-    /* extension end */
+    case_info_global = case_info;
+    input_graph_global = input_graph;
 
-    for (int v_k = 0; v_k < N; v_k++) {
+    int tree_size = elimination_vertex.size();
+    for (int j = 0; j < tree_size; j++) {
+        int u = elimination_vertex[j];
+
+        results.emplace_back(
+            pool.enqueue([u]{
+                generate_extension_tree_label_parallel(u);
+                return 1;
+            }));
+    }
+    for (auto&& result : results) {
+        result.get();
+    }
+    results.clear();
+
+    int isIntree_size = isIntree.size();
+    for (int v_k = 0; v_k < isIntree_size; v_k++) {
         if (isIntree[v_k]) {
             continue;
         }
-        int Lvk_size = L_[v_k].size();
-        for (int j = 0; j < Lvk_size; j++) {
-            while (1) {
-                if (elimination_edge.find({v_k, L_[v_k][j].parent_vertex}) == elimination_edge.end()) {
-                    break;
-                }
-                L_[v_k][j].parent_vertex = elimination_edge[{v_k, L_[v_k][j].parent_vertex}];
-            }
+
+        results.emplace_back(
+            pool.enqueue([v_k]{
+                generate_extension_core_label_parallel(v_k);
+                return 1;
+            }));
+        for (auto&& result : results) {
+            result.get();
         }
+        results.clear();
     }
+
+    case_info = case_info_global;
 
     auto end6 = std::chrono::high_resolution_clock::now();
     case_info.time_post = std::chrono::duration_cast<std::chrono::nanoseconds>(end6 - begin6).count() / 1e9;
+
+    cout << "step 6: extension end" << endl;
     //---------------------------------------------------------------------------------------------------------------------------------
 
     clear_gloval_values_CT_extension();
-
     case_info.time_total = std::chrono::duration_cast<std::chrono::nanoseconds>(end6 - begin1).count() / 1e9;
 }
 
@@ -665,8 +694,7 @@ vector<pair<int, int>> query_path_sp1(graph_hash_of_mixed_weighted& instance_gra
         }
     }
 
-    //    cout <<"\t sp1 w=" << w << " sw_=" << sw_ << " tw_=" << tw_ <<
-    //        " s=" << source << " t=" << terminal <<endl;
+//    if (print) { cout << "\t sp1 w=" << w << " sw_=" << sw_ << " tw_=" << tw_ << " s=" << source << " t=" << terminal << endl; }
 
     if (w == -2) {
         vector<pair<int, int>> rslt;
@@ -740,7 +768,7 @@ vector<pair<int, int>> query_path_sp2(graph_hash_of_mixed_weighted& instance_gra
         s_ptr++;
     }
 
-//        cout << "\t sp2 w=" << w << endl;
+    if (print) { cout << "\t sp2 w=" << w << endl; }
 
     if (w == -2) {
         return vector<pair<int, int>>();
@@ -867,14 +895,21 @@ void CT_extension_extract_path(graph_hash_of_mixed_weighted& instance_graph, gra
                 continue;
 
             // x is the interface vertex
-            int x = L[terminal][i].vertex;
-            double x_dis = L[terminal][i].distance;
+            int c = L[terminal][i].vertex;
+            double dist_tc = L[terminal][i].distance;
 
-            double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance(L, case_info.two_hop_case_info.reduction_measures_2019R2, case_info.two_hop_case_info.reduction_measures_2019R1, case_info.two_hop_case_info.f_2019R1, case_info.core_graph, source, x);
-            if (distance > dis + x_dis) {
-                distance = dis + x_dis;
-                interface_c = x;
-                interface_distance = x_dis;
+            double dis = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance(L, case_info.two_hop_case_info.reduction_measures_2019R2, case_info.two_hop_case_info.reduction_measures_2019R1, case_info.two_hop_case_info.f_2019R1, case_info.core_graph, source, c);
+            if (distance > dis + dist_tc) {
+                distance = dis + dist_tc;
+                interface_c = c;
+                interface_distance = dist_tc;
+            } else if (distance == dis + dist_tc) {
+                // interface c is closer to terminal than others
+                if (interface_distance > dist_tc) {
+                    distance = dis + dist_tc;
+                    interface_c = c;
+                    interface_distance = dist_tc;
+                }
             }
         }
 

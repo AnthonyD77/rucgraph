@@ -70,14 +70,14 @@ pair<double, double> querying(graph_hash_of_mixed_weighted_CT_v2_case_info& case
 }
 
 
-int debug = 0;
-int ss = 9, tt = 8;
+int debug = 1;
+int ss = 65, tt = 49;
 
 void test_CT() {
 
     /*parameters*/
-    int iteration_graph_times = 1e2, iteration_source_times = 100, iteration_terminal_times = 100;
-    int V = 10, E = 15, precision = 1;
+    int iteration_graph_times = 1e3, iteration_source_times = 100, iteration_terminal_times = 100;
+    int V = 100, E = 500, precision = 1;
     double ec_min = 0.1, ec_max = 1;  // since ec_min = 0.01, precision should be at least 2! Otherwise ec may be 0, and causes bugs in CT
 
     double avg_CT_time = 0, avg_PLL_time = 0;
@@ -90,7 +90,7 @@ void test_CT() {
     int print_L = 0;
 
     int use_CT_extension = 1;
-    int case_info_d = 3;
+    int case_info_d = 5;
     int case_info_use_P2H = 0;
 
     if (debug) {
@@ -177,6 +177,7 @@ void test_CT() {
          */
 
         if (check_correctness) {
+            cout << "perform check" << endl;
             boost::random::uniform_int_distribution<> dist{static_cast<int>(0), static_cast<int>(V - 1)};
 
             for (int yy = 0; yy < iteration_source_times; yy++) {
@@ -225,6 +226,8 @@ void test_CT() {
                         cout << "abs(dis - distances[terminal]) > 1e-5!" << endl;
                         getchar();
                     }
+
+//                    cout << "source: " << source << " terminal: " << terminal << endl;
 
                     vector<pair<int, int>> path;
 
